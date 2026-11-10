@@ -15,6 +15,9 @@ export type Article = {
   videoUrl: string | null;
   paragraphs: string[];
   demo: boolean;
+  youtubeId: string | null;
+  breaking: boolean;
+  sourceUrl: string | null;
 };
 
 const apiUrl = process.env.NEWS_API_URL ?? "http://127.0.0.1:8080";

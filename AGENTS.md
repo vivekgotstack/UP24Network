@@ -15,3 +15,6 @@
 - Use shadcn UI controls and Framer Motion for purposeful animation; respect reduced-motion preferences.
 - Stories show video when available, otherwise a photograph. Verify official social profiles before linking them.
 - Automatic imports may use only the existing UP24Network website and YouTube channel, as selected by the user. Automation must have persisted admin-controlled toggles and schedules.
+- Priority: quality code using current supported APIs, clear module boundaries, validated input, least-privilege access, and maintainable implementation. Do not add shortcuts, obsolete patterns, or speculative infrastructure.
+- Keep checks focused on changed behavior and security boundaries; do not spend credits on repetitive or low-value verification.
+- Use the original logo as the visible masthead mark. Do not recreate it with a typed wordmark.

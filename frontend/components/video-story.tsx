@@ -41,13 +41,13 @@ export function VideoStory({ title, poster, src, large = false }: VideoStoryProp
       <DialogContent className="video-dialog gap-0 overflow-hidden border-white/15 bg-[#071c36] p-0 text-white sm:max-w-5xl" onCloseAutoFocus={stopPreview}>
         <DialogHeader className="video-dialog-heading">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="text-slate-300">Sample film · CC0 footage from MDN</DialogDescription>
+          <DialogDescription className="text-slate-300">{src === '/videos/nature-sample.mp4' ? 'Sample film · CC0 footage from MDN' : 'UP24Network video report'}</DialogDescription>
         </DialogHeader>
         {failed ? <div className="video-unavailable"><Image src={poster} alt="Story photograph" width={1200} height={800} />
           <p>The video is unavailable. You can still view the story photograph.</p></div> :
           <video className="video-player" src={src} controls autoPlay playsInline poster={poster}
             aria-label={title} onError={() => setFailed(true)}>
-            <track kind="captions" src="/videos/nature-sample.vtt" srcLang="en" label="English" default />
+            {src === '/videos/nature-sample.mp4' && <track kind="captions" src="/videos/nature-sample.vtt" srcLang="en" label="English" default />}
             Your browser does not support embedded video.
           </video>}
       </DialogContent>

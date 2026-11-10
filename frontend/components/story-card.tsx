@@ -3,11 +3,12 @@ import Link from "next/link";
 import type { Article } from "@/lib/articles";
 import { VideoStory } from "@/components/video-story";
 import { CoverImage } from "@/components/cover-image";
+import { YouTubeStory } from '@/components/youtube-story';
 
 export function StoryCard({ article, lead = false }: { article: Article; lead?: boolean }) {
   return (
     <article className={lead ? "story-card lead-story" : "story-card"}>
-      {article.videoUrl ? <div className="story-image"><VideoStory title={article.title} poster={article.image} src={article.videoUrl} /></div> :
+      {article.youtubeId ? <div className="story-image"><YouTubeStory videoId={article.youtubeId} title={article.title} /></div> : article.videoUrl ? <div className="story-image"><VideoStory title={article.title} poster={article.image} src={article.videoUrl} /></div> :
       <Link href={`/news/${article.slug}`} className="story-image" tabIndex={-1} aria-hidden="true">
         {lead ? <CoverImage src={article.image} /> : <Image src={article.image} alt="" fill sizes="(max-width: 600px) 100vw, 33vw" />}
         {lead && <span className="image-caption">FEATURE</span>}

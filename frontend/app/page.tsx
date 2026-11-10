@@ -5,34 +5,39 @@ import { getArticles } from "@/lib/articles";
 import { WatchSection } from "@/components/watch-section";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
+import { HeadlineTicker } from '@/components/headline-ticker';
 
 export const dynamic = "force-dynamic";
 
-type Filters = { category?: string; q?: string };
+type Filters = { category?: string; q?: string; view?: string };
 
 export default async function Home({ searchParams }: { searchParams: Promise<Filters> }) {
   const filters = await searchParams;
   const category = typeof filters.category === "string" ? filters.category : "";
   const query = typeof filters.q === "string" ? filters.q.trim().slice(0, 120) : "";
+  const latest = filters.view === 'latest';
   const allArticles = await getArticles();
   const articles = allArticles.filter((article) =>
     (!category || article.category === category) &&
-    `${article.title} ${article.summary} ${article.city} ${article.category}`.toLowerCase().includes(query.toLowerCase()));
+    `${article.title} ${article.summary} ${article.city} ${article.category}`.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => latest ? new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime() : Number(b.breaking) - Number(a.breaking) || new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   const [lead, ...remaining] = articles;
   const filtered = Boolean(category || query);
 
   return (
     <>
-      <SiteHeader category={category} />
+      <SiteHeader category={category} latest={latest} />
+      <HeadlineTicker articles={allArticles} />
       <main id="main-content">
         <div className="edition-heading" id="stories">
-          <div><p className="eyebrow">UP24Network / NEWSROOM</p><h1>{category || "Top stories"}</h1></div>
+          <div><p className="eyebrow">NEWSROOM</p><h1>{category || (latest ? 'Latest news' : "Top stories")}</h1></div>
           <p className="edition-note">News. Context. Perspective.</p>
         </div>
         <form className="search-form" id="search" role="search" action="/">
           <label htmlFor="story-search">Search articles by topic or city</label>
           <div className="search-controls">
             {category && <input type="hidden" name="category" value={category} />}
+            {latest && <input type="hidden" name="view" value="latest" />}
             <input id="story-search" name="q" type="search" defaultValue={query} maxLength={120}
               placeholder="Search a story, topic, or city" />
             <Button type="submit" size="sm">Search</Button>
@@ -59,7 +64,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Fil
                     <Link key={city} href={`/?q=${city}#stories`}>{city}</Link>)}</div></div>
               </aside>
             </Reveal>
-            {!filtered && <Reveal><WatchSection /></Reveal>}
+            {!filtered && <Reveal><WatchSection articles={allArticles} /></Reveal>}
             {remaining.length > 0 && <Reveal><section className="more-stories" aria-label="More stories">
               <div className="section-heading"><h2>{filtered ? "More stories" : "Across the desk"}</h2><span>THE READING LIST</span></div>
               <div className="story-grid">{remaining.map((article) => <StoryCard key={article.slug} article={article} />)}</div>

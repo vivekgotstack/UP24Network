@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from 'next/image';
 import "./globals.css";
 import { ReadingProgress } from "@/components/reading-progress";
 import { brand } from "@/lib/brand";
@@ -22,7 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ReadingProgress />
         <div className="site-shell">{children}
           <footer className="site-footer">
-            <div><Link href="/" className="footer-brand">UP<span>24</span>Network</Link>
+            <div><Link href="/" className="footer-logo brand-badge" aria-label="UP24Network home"><Image src="/brand/up24-logo.png" alt="" width={180} height={180} /></Link>
               <p lang="hi">खबर हमारी यकीन आपका</p></div>
             <nav className="social-links" aria-label="UP24Network social channels">
               <p>Follow UP24Network</p>

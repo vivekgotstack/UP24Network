@@ -39,11 +39,11 @@ class ArticleStore implements ArticleDesk {
     private String value(String text) { return text==null?"":text.trim(); }
     private String media(String input,String kind) {
         String text=value(input);
-        if(text.isBlank()) return kind.equals("image")?"/brand/newsroom-banner.png":null;
+        if(text.isBlank()) return kind.equals("image")?"/brand/up24-logo.png":null;
         boolean local=text.matches("^/(images|brand|videos)/[A-Za-z0-9._/-]+$")&&!text.contains("..");
         try {
             URI uri=URI.create(text);
-            if(local || ("https".equals(uri.getScheme()) && Set.of("up24network.com","www.up24network.com").contains(uri.getHost()))) return text;
+            if(local || ("https".equals(uri.getScheme()) && (Set.of("up24network.com","www.up24network.com").contains(uri.getHost()) || (kind.equals("image")&&"i.ytimg.com".equals(uri.getHost()))))) return text;
         } catch (IllegalArgumentException ignored) {}
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Use a local asset or an HTTPS media URL from UP24Network");
     }
