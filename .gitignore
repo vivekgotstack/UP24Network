@@ -1,0 +1,25 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Java and Maven
+target/
+*.class
+
+# Next.js and Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Editor and operating system files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+.local/
