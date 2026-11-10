@@ -30,7 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div>{brand.socials.map((social) => <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer"
                 aria-label={`UP24Network on ${social.name} (opens in a new tab)`}>{social.name}</a>)}</div>
             </nav>
-            <p>Uttar Pradesh. India. Beyond.<br />Preview edition · Sample content.</p>
+            <p>Uttar Pradesh. India. Beyond.<br />Development preview.</p>
           </footer>
         </div>
       </body>

@@ -34,7 +34,7 @@ export function SiteHeader({ category = "", latest = false }: { category?: strin
         <a className="watch-nav" href="/#watch"><Play size={12} aria-hidden="true" /> Watch</a>
       </nav>
       <div className="preview-notice"><span className="preview-dot" aria-hidden="true" />
-        <strong>Preview edition</strong><span>Sample articles · Official channel below</span>
+        <strong>Preview edition</strong><span>UP24Network reports and video</span>
       </div>
     </>
   );
