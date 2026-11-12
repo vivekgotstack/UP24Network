@@ -52,6 +52,11 @@ events and never reach into another module's internal repositories.
   admin visibility/schedule controls, complete-feed validation and persisted retries.
   It stays disabled until a live provider key is configured locally. Health, books
   and awards show an unconfigured state and cannot be enabled prematurely.
+- Public Hindi API research confirmed the AstroLogics free plan and direct
+  [signup page](https://developers.astrologics.in/auth/sign-up). The admin
+  automation screen now provides that link and server-only setup instructions.
+  One all-signs daily request uses at most 155 of the current 3,000 free monthly
+  credits. Live output remains unverified until an account key is configured.
 - Next small step: configure and verify a real Hindi edition and add a keyed
   YouTube Data API adapter: the public RSS endpoint returned intermittent 404s
   during live checks. Existing videos are retained and failed jobs retry.

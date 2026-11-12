@@ -60,6 +60,26 @@ export function AutomationPanel({ jobs, busy, onSettings, onRun }: Props) {
               </label>
             </div>
             <p className="cms-muted">{job.configurationDetail}</p>
+            {job.key === 'rashifal' && !job.configured && (
+              <div className="cms-muted">
+                <p>
+                  <a
+                    href="https://developers.astrologics.in/auth/sign-up"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get a free Hindi Rashifal API key
+                  </a>{' '}
+                  from AstroLogics. Select a live server key starting with <code>al_live_</code>.
+                </p>
+                <p>
+                  Save it locally in <code>backend/.local/providers.properties</code> as{' '}
+                  <code>up24.providers.astrologics.api-key</code>, then restart the backend. Enable
+                  this job and select Run now to verify the first edition. Keep the key out of chat
+                  and frontend settings.
+                </p>
+              </div>
+            )}
             <p role="status">{job.lastResult}</p>
             <div className="cms-job-meta">
               <span>Last run: {time(job.lastRunAt)}</span>

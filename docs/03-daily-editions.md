@@ -5,8 +5,11 @@ is one reliable daily section before adding more integrations.
 
 ## Configure locally
 
-1. Create your own account and live server key at
-   [AstroLogics](https://developers.astrologics.in/). Review the current plan and terms there.
+1. [Create a free AstroLogics account](https://developers.astrologics.in/auth/sign-up)
+   using Google or an email code; its signup page says no card is needed. In the
+   dashboard, create a **live server key** starting with `al_live_`. Review the
+   [current pricing](https://developers.astrologics.in/pricing) and
+   [authentication guide](https://developers.astrologics.in/docs/authentication).
 2. Copy `backend/providers.example.properties` to
    `backend/.local/providers.properties` if the local file does not already exist.
 3. Set `up24.providers.astrologics.api-key` in that local file. Alternatively,
@@ -19,6 +22,29 @@ is one reliable daily section before adding more integrations.
 No live key was supplied during implementation. Live provider authentication and
 real Hindi output still need verification after local configuration. Test keys and
 test-mode responses are deliberately blocked from public publication.
+
+## Public API research
+
+Checked on 12 November 2026. AstroLogics' Free plan includes 3,000 credits per
+month. Its [all-signs endpoint](https://developers.astrologics.in/daily-horoscope-api)
+returns Hindi with `lang=hi` and costs 5 credits per successful request. One
+complete edition daily therefore uses at most 155 credits in a 31-day month,
+before any failed-edition rechecks or other API use. A public API still requires
+your own free account key; the free plan has no uptime commitment.
+
+Other public options were checked rather than silently substituting an English
+feed or scraping a publisher:
+
+- [MathuraNow](https://mathuranow.in/panchang-api/) offers Hindi without a key,
+  but its published licence requires visible attribution and non-commercial use.
+  It does not fit the requested publication policy.
+- [GrahaAPI](https://grahaapi.com/docs/rashifal/) documents bilingual daily
+  readings and 1,000 real calls/month on its free plan. Its linked terms page did
+  not expose a usable publication licence during this review; it is not selected.
+
+The admin automation screen now links directly to the selected signup page and
+shows the local configuration steps while the provider is unconfigured. This
+keeps provider credentials out of browser storage and the CMS API.
 
 ## Behaviour and boundaries
 
