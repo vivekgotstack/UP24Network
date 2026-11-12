@@ -23,6 +23,16 @@ No live key was supplied during implementation. Live provider authentication and
 real Hindi output still need verification after local configuration. Test keys and
 test-mode responses are deliberately blocked from public publication.
 
+On 12 November 2026, an authenticated request to the actual all-signs endpoint
+using a temporary test key returned HTTP 200 and `meta.mode=test`. It contained
+all 12 unique known signs, the requested daily edition date, Hindi names and
+readings, lucky number/colour fields, request ID and engine version. This
+confirms test authentication and compatibility with the adapter's expected
+fields; it does not verify live publication or ongoing provider availability.
+The key was used only for that direct request, never added to application
+configuration, and its temporary ignored local file was removed in `finally`.
+No test edition was inserted into the news database or published.
+
 ## Public API research
 
 Checked on 12 November 2026. AstroLogics' Free plan includes 3,000 credits per

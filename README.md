@@ -57,6 +57,10 @@ events and never reach into another module's internal repositories.
   automation screen now provides that link and server-only setup instructions.
   One all-signs daily request uses at most 155 of the current 3,000 free monthly
   credits. Live output remains unverified until an account key is configured.
+- A temporary test key successfully authenticated against the real Hindi
+  publisher endpoint on 12 November 2026: HTTP 200, all 12 signs, matching dates,
+  Hindi readings and required metadata. The temporary key file was deleted;
+  test output was not published. Next: verify an edition with a local live key.
 - Next small step: configure and verify a real Hindi edition and add a keyed
   YouTube Data API adapter: the public RSS endpoint returned intermittent 404s
   during live checks. Existing videos are retained and failed jobs retry.
