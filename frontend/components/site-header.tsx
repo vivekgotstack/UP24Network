@@ -49,7 +49,6 @@ export function SiteHeader({
             खबर हमारी यकीन आपका
           </p>
         </div>
-        <span className="banner-credit">Editorial illustration</span>
       </header>
       <nav className="section-nav" aria-label="News sections">
         <Link href="/" aria-current={home ? 'page' : undefined}>

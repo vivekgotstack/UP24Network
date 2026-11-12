@@ -38,8 +38,6 @@ export function YouTubeStory({
           <span className="play-mark" aria-hidden="true">
             <Play size={22} fill="currentColor" />
           </span>
-          <span className="video-label">UP24Network / YouTube</span>
-          <span className="video-action">Play report</span>
         </motion.button>
       )}
     </div>

@@ -20,7 +20,9 @@ export function ArticlePreview({ row }: { row: ManagedArticle }) {
       </p>
       <article className="standalone-preview">
         <p className="eyebrow">{row.article.category}</p>
-        <h1 lang={textLanguage(row.article.title)}>{row.article.title}</h1>
+        <h2 className="preview-headline" lang={textLanguage(row.article.title)}>
+          {row.article.title}
+        </h2>
         <p className="article-deck" lang={textLanguage(row.article.summary)}>
           {row.article.summary}
         </p>

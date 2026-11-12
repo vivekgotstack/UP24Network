@@ -122,11 +122,6 @@ export default async function ArticlePage({ params }: Props) {
                 />
               )}
             </div>
-            <figcaption>
-              {article.demo
-                ? 'Illustrative development sample'
-                : article.imageAlt || 'UP24Network report'}
-            </figcaption>
           </figure>
           <ReadingExperience
             story={{

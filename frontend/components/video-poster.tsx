@@ -21,8 +21,6 @@ export function VideoPoster({
       <span className="play-mark" aria-hidden="true">
         <Play size={22} fill="currentColor" />
       </span>
-      <span className="video-label">VIDEO REPORT</span>
-      <span className="video-action">Watch report</span>
     </Link>
   );
 }

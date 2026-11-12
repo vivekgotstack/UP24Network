@@ -25,6 +25,7 @@ export function ArticleWorkspace({
   const [query, setQuery] = useState(''),
     [filter, setFilter] = useState('ALL');
   const [confirm, setConfirm] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const rows = articles.filter(
     (row) =>
       (filter === 'ALL' || row.status === filter) &&
@@ -32,6 +33,9 @@ export function ArticleWorkspace({
         .toLowerCase()
         .includes(query.toLowerCase()),
   );
+  const pageCount = Math.max(1, Math.ceil(rows.length / 15));
+  const currentPage = Math.min(page, pageCount);
+  const visibleRows = rows.slice((currentPage - 1) * 15, currentPage * 15);
   const canPublish = user.role === 'ADMIN' || user.role === 'EDITOR';
   return (
     <section>
@@ -59,13 +63,22 @@ export function ArticleWorkspace({
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
             placeholder="Find a headline, section or city"
           />
         </label>
         <label>
           <span className="sr-only">Publication status</span>
-          <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+          <select
+            value={filter}
+            onChange={(event) => {
+              setFilter(event.target.value);
+              setPage(1);
+            }}
+          >
             <option value="ALL">All articles</option>
             <option value="DRAFT">Drafts</option>
             <option value="PUBLISHED">Published</option>
@@ -78,7 +91,7 @@ export function ArticleWorkspace({
       </p>
       {rows.length ? (
         <div className="cms-article-list">
-          {rows.map((row) => (
+          {visibleRows.map((row) => (
             <article key={row.id}>
               <div className="cms-badges">
                 <span data-status={row.status}>{row.status}</span>
@@ -174,6 +187,27 @@ export function ArticleWorkspace({
               : 'Create a draft to start the publishing workflow.'}
           </p>
         </div>
+      )}
+      {pageCount > 1 && (
+        <nav className="pagination" aria-label="Article desk pages">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {currentPage} of {pageCount}
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === pageCount}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </nav>
       )}
     </section>
   );
