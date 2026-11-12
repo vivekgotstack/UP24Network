@@ -57,6 +57,24 @@ function Test-Up24BackendHealth {
     } catch { return $false }
 }
 
+function Find-Up24Backend {
+    param([string]$ProjectRoot)
+    # The TCP snapshot can briefly omit a reachable endpoint altogether. Fall
+    # back to JVM identity, never to a stale PID file or a generic Java process.
+    $candidateIds = @(Get-Up24PortProcessIds 8080) + @(
+        Get-Process -Name java -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id
+    )
+    $owned = @(
+        foreach ($candidateId in ($candidateIds | Sort-Object -Unique)) {
+            try { Get-Up24BackendProcess -ProjectRoot $ProjectRoot -ProcessId $candidateId } catch { }
+        }
+    )
+    if ($owned.Count -ne 1) {
+        throw "Expected one verified backend from this repository; found $($owned.Count). No unverified process will be stopped."
+    }
+    return $owned[0]
+}
+
 function Wait-Up24Backend {
     param([System.Diagnostics.Process]$Launcher, [int]$TimeoutSeconds = 90)
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)

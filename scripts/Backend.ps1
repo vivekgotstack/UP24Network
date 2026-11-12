@@ -15,11 +15,7 @@ try {
 
 try {
     if (Test-Up24LocalPort 8080) {
-        $listenerIds = @(Get-Up24PortProcessIds 8080)
-        if ($listenerIds.Count -ne 1) {
-            throw 'Port 8080 is occupied, but its single owning process could not be verified. No process was stopped.'
-        }
-        $backend = Get-Up24BackendProcess -ProjectRoot $projectRoot -ProcessId $listenerIds[0]
+        $backend = Find-Up24Backend -ProjectRoot $projectRoot
         if ($Action -eq 'Start') {
             Wait-Up24Backend -TimeoutSeconds 30
             Write-Output "Backend already running and healthy: http://127.0.0.1:8080 (PID $($backend.Id))."
@@ -54,9 +50,7 @@ try {
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr
     Write-Output "Starting backend. Logs: $stdout and $stderr"
     Wait-Up24Backend -Launcher $launcher
-    $listenerIds = @(Get-Up24PortProcessIds 8080)
-    if ($listenerIds.Count -ne 1) { throw 'Backend responded, but its owning process could not be verified.' }
-    $backend = Get-Up24BackendProcess -ProjectRoot $projectRoot -ProcessId $listenerIds[0]
+    $backend = Find-Up24Backend -ProjectRoot $projectRoot
     $backend.Id | Set-Content -LiteralPath (Join-Path $runtimeDirectory 'backend.pid')
     Write-Output "Backend ready: http://127.0.0.1:8080 (PID $($backend.Id))."
 } finally { $lifecycleLock.Dispose() }
