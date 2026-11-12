@@ -43,7 +43,7 @@ class ArticleStore implements ArticleDesk {
         boolean local=text.matches("^/(images|brand|videos)/[A-Za-z0-9._/-]+$")&&!text.contains("..");
         try {
             URI uri=URI.create(text);
-            if(local || ("https".equals(uri.getScheme()) && (Set.of("up24network.com","www.up24network.com").contains(uri.getHost()) || (kind.equals("image")&&"i.ytimg.com".equals(uri.getHost()))))) return text;
+            if(local || ("https".equals(uri.getScheme()) && uri.getRawUserInfo()==null && (Set.of("up24network.com","www.up24network.com").contains(uri.getHost()) || (kind.equals("image")&&Set.of("i.ytimg.com","i1.ytimg.com","i2.ytimg.com","i3.ytimg.com","i4.ytimg.com").contains(uri.getHost()))))) return text;
         } catch (IllegalArgumentException ignored) {}
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Use a local asset or an HTTPS media URL from UP24Network");
     }

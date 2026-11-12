@@ -1,23 +1,52 @@
-import Image from "next/image";
-import Link from "next/link";
-import type { Article } from "@/lib/articles";
-import { VideoStory } from "@/components/video-story";
-import { CoverImage } from "@/components/cover-image";
-import { YouTubeStory } from '@/components/youtube-story';
+import Link from 'next/link';
+import type { Article } from '@/lib/articles';
+import { VideoPoster } from '@/components/video-poster';
+import { NewsImage } from '@/components/news-image';
+import { CoverImage } from '@/components/cover-image';
+import { textLanguage } from '@/lib/language';
+import { sectionHref, sectionTitle } from '@/lib/sections';
+import { shortDate } from '@/lib/news';
 
 export function StoryCard({ article, lead = false }: { article: Article; lead?: boolean }) {
   return (
-    <article className={lead ? "story-card lead-story" : "story-card"}>
-      {article.youtubeId ? <div className="story-image"><YouTubeStory videoId={article.youtubeId} title={article.title} /></div> : article.videoUrl ? <div className="story-image"><VideoStory title={article.title} poster={article.image} src={article.videoUrl} /></div> :
-      <Link href={`/news/${article.slug}`} className="story-image" tabIndex={-1} aria-hidden="true">
-        {lead ? <CoverImage src={article.image} /> : <Image src={article.image} alt="" fill sizes="(max-width: 600px) 100vw, 33vw" />}
-        {lead && <span className="image-caption">FEATURE</span>}
-      </Link>}
+    <article className={`story-card ${lead ? 'lead-story' : ''}`}>
+      <div className="story-image">
+        {article.youtubeId || article.videoUrl ? (
+          <VideoPoster slug={article.slug} title={article.title} image={article.image} />
+        ) : (
+          <Link
+            href={`/news/${article.slug}`}
+            tabIndex={-1}
+            aria-hidden="true"
+            className="image-link"
+          >
+            {lead ? <CoverImage src={article.image} /> : <NewsImage src={article.image} />}
+          </Link>
+        )}
+      </div>
       <div className="story-copy">
-        <p className="eyebrow">{article.category}<span className="eyebrow-city"> / {article.city}</span></p>
-        <h2><Link href={`/news/${article.slug}`}>{article.title}</Link></h2>
-        <p className="story-summary">{article.summary}</p>
-        <div className="story-meta"><span>{article.readingMinutes} min read</span></div>
+        <p className="story-category">
+          <Link href={sectionHref(article.category)} lang="hi">
+            {sectionTitle(article.category)}
+          </Link>
+          {article.breaking && <span className="breaking-label">Breaking</span>}
+        </p>
+        <h2 lang={textLanguage(article.title)}>
+          <Link href={`/news/${article.slug}`}>{article.title}</Link>
+        </h2>
+        {lead && (
+          <p className="story-summary" lang={textLanguage(article.summary)}>
+            {article.summary}
+          </p>
+        )}
+        <div className="story-meta">
+          <time dateTime={article.publishedAt}>{shortDate(article.publishedAt)}</time>
+          <span>
+            {article.youtubeId || article.videoUrl
+              ? 'Video report'
+              : `${article.readingMinutes} min read`}
+          </span>
+        </div>
       </div>
     </article>
   );

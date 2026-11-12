@@ -1,77 +1,140 @@
-import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
-import { StoryCard } from "@/components/story-card";
-import { getArticles } from "@/lib/articles";
-import { WatchSection } from "@/components/watch-section";
-import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/reveal";
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
+import { SiteHeader } from '@/components/site-header';
+import { StoryCard } from '@/components/story-card';
+import { NewsList } from '@/components/news-list';
+import { EmptyState } from '@/components/empty-state';
+import { getArticles } from '@/lib/articles';
+import { newest } from '@/lib/news';
+import { newsSections, sectionHref } from '@/lib/sections';
+import { WatchSection } from '@/components/watch-section';
+import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
+import { RashifalSection } from '@/components/rashifal-section';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
-type Filters = { category?: string; q?: string; view?: string };
-
-export default async function Home({ searchParams }: { searchParams: Promise<Filters> }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; q?: string; view?: string }>;
+}) {
   const filters = await searchParams;
-  const category = typeof filters.category === "string" ? filters.category : "";
-  const query = typeof filters.q === "string" ? filters.q.trim().slice(0, 120) : "";
-  const latest = filters.view === 'latest';
-  const allArticles = await getArticles();
-  const articles = allArticles.filter((article) =>
-    (!category || article.category === category) &&
-    `${article.title} ${article.summary} ${article.city} ${article.category}`.toLowerCase().includes(query.toLowerCase()))
-    .sort((a, b) => latest ? new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime() : Number(b.breaking) - Number(a.breaking) || new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-  const [lead, ...remaining] = articles;
-  const filtered = Boolean(category || query);
-
+  if (typeof filters.q === 'string' && filters.q.trim())
+    redirect(`/search?q=${encodeURIComponent(filters.q)}`);
+  if (typeof filters.category === 'string' && newsSections.some((s) => s.name === filters.category))
+    redirect(sectionHref(filters.category));
+  if (filters.view === 'latest') redirect('/latest');
+  const articles = newest(await getArticles());
+  const lead =
+    articles.find((a) => a.breaking && Date.now() - Date.parse(a.publishedAt) < 86400000) ??
+    articles[0];
+  const remaining = articles.filter((a) => a.slug !== lead?.slug);
+  const date = new Intl.DateTimeFormat('hi-IN', {
+    dateStyle: 'full',
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date());
+  const desks = newsSections
+    .filter(
+      (s) =>
+        s.name !== 'Videos' &&
+        s.name !== 'Rashifal' &&
+        articles.filter((a) => a.category === s.name).length >= 2,
+    )
+    .slice(0, 3);
   return (
     <>
-      <SiteHeader category={category} latest={latest} />
-      <HeadlineTicker articles={allArticles} />
+      <SiteHeader home />
+      <HeadlineTicker articles={articles} />
       <main id="main-content">
-        <div className="edition-heading" id="stories">
-          <div><p className="eyebrow">NEWSROOM</p><h1>{category || (latest ? 'Latest news' : "Top stories")}</h1></div>
-          <p className="edition-note">News. Context. Perspective.</p>
-        </div>
-        <form className="search-form" id="search" role="search" action="/">
-          <label htmlFor="story-search">Search articles by topic or city</label>
-          <div className="search-controls">
-            {category && <input type="hidden" name="category" value={category} />}
-            {latest && <input type="hidden" name="view" value="latest" />}
-            <input id="story-search" name="q" type="search" defaultValue={query} maxLength={120}
-              placeholder="Search a story, topic, or city" />
-            <Button type="submit" size="sm">Search</Button>
+        <header className="page-heading edition-heading" id="stories">
+          <div>
+            <p className="eyebrow">THE FRONT PAGE</p>
+            <h1 lang="hi">आज की बड़ी खबरें</h1>
           </div>
-        </form>
-        {filtered && <div className="filter-summary"><p>{articles.length} {articles.length === 1 ? "story" : "stories"}
-          {query && <> matching “{query}”</>}{category && <> in {category}</>}</p><Link href="/">Clear filters</Link></div>}
+          <div className="edition-date">
+            <span className="edition-stamp">UP24Network</span>
+            <time dateTime={new Date().toISOString().slice(0, 10)} lang="hi">
+              {date}
+            </time>
+          </div>
+        </header>
         {lead ? (
-          <>
-            <Reveal className="front-grid">
-              <StoryCard article={lead} lead />
-              <aside className="briefing" aria-label="Around the newsroom">
-                <div className="section-heading"><h2>The briefing</h2><span className="red-square" aria-hidden="true" /></div>
-                <p className="briefing-intro">A quick read across the desk.</p>
-                {allArticles.filter((article) => article.slug !== lead.slug).slice(0, 3).map((article, index) => (
-                  <article className="briefing-item" key={article.slug}>
-                    <span className="briefing-number">0{index + 1}</span>
-                    <div><p className="eyebrow">{article.category}</p><h3><Link href={`/news/${article.slug}`}>{article.title}</Link></h3>
-                      <p className="briefing-time">{article.readingMinutes} min read</p></div>
-                  </article>
-                ))}
-                <div className="desk-note"><p className="eyebrow">OUR REGION</p>
-                  <div className="city-links">{["Lucknow", "Noida", "Prayagraj", "Varanasi"].map((city) =>
-                    <Link key={city} href={`/?q=${city}#stories`}>{city}</Link>)}</div></div>
-              </aside>
+          <Reveal className="front-grid">
+            <StoryCard article={lead} lead />
+            <aside className="briefing">
+              <div className="section-heading">
+                <h2 lang="hi">इस वक्त</h2>
+                <Link href="/latest">Latest</Link>
+              </div>
+              <NewsList articles={remaining.slice(0, 4)} numbered />
+              <div className="region-note">
+                <p className="eyebrow">YOUR REGION</p>
+                <div>
+                  {['Lucknow', 'Noida', 'Prayagraj', 'Varanasi'].map((city) => (
+                    <Link key={city} href={`/search?q=${city}`}>
+                      {city}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </Reveal>
+        ) : (
+          <EmptyState />
+        )}
+        <Reveal>
+          <WatchSection articles={articles} />
+        </Reveal>
+        <Suspense fallback={null}>
+          <RashifalSection />
+        </Suspense>
+        {remaining.length > 0 && (
+          <section className="more-stories">
+            <div className="section-heading">
+              <h2 lang="hi">खबरें विस्तार से</h2>
+              <Link href="/latest">All reports</Link>
+            </div>
+            <Reveal className="story-grid">
+              {remaining.slice(0, 6).map((article) => (
+                <StoryCard key={article.slug} article={article} />
+              ))}
             </Reveal>
-            {!filtered && <Reveal><WatchSection articles={allArticles} /></Reveal>}
-            {remaining.length > 0 && <Reveal><section className="more-stories" aria-label="More stories">
-              <div className="section-heading"><h2>{filtered ? "More stories" : "Across the desk"}</h2><span>THE READING LIST</span></div>
-              <div className="story-grid">{remaining.map((article) => <StoryCard key={article.slug} article={article} />)}</div>
-            </section></Reveal>}
-          </>
-        ) : <section className="empty-state"><p className="eyebrow">KEEP EXPLORING</p><h2>No stories found.</h2>
-          <p>Try another topic or explore the front page.</p><Link className="text-link" href="/">Back to all stories</Link></section>}
+          </section>
+        )}
+        {desks.map((desk) => (
+          <section className="more-stories" key={desk.slug}>
+            <div className="section-heading">
+              <h2 lang="hi">{desk.title}</h2>
+              <Link href={sectionHref(desk.name)}>View section</Link>
+            </div>
+            <div className="story-grid">
+              {articles
+                .filter((a) => a.category === desk.name)
+                .slice(0, 3)
+                .map((article) => (
+                  <StoryCard key={article.slug} article={article} />
+                ))}
+            </div>
+          </section>
+        ))}
+        <section className="section-directory">
+          <div className="section-heading">
+            <h2 lang="hi">हर खबर की अपनी जगह</h2>
+            <span>EXPLORE</span>
+          </div>
+          <nav aria-label="Explore categories">
+            {newsSections
+              .filter((s) => s.name !== 'Videos')
+              .map((section) => (
+                <Link key={section.slug} href={sectionHref(section.name)}>
+                  <span lang="hi">{section.title}</span>
+                  <small>{section.name}</small>
+                </Link>
+              ))}
+          </nav>
+        </section>
       </main>
     </>
   );

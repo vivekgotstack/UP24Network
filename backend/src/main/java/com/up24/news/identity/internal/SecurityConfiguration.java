@@ -16,7 +16,7 @@ class SecurityConfiguration {
     @Bean SecurityFilterChain security(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers("/api/articles/**","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login").permitAll()
+                .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/me","/api/admin/**").authenticated().anyRequest().denyAll())
                 .formLogin(form -> form.loginProcessingUrl("/api/auth/login").usernameParameter("email")
                         .successHandler((request,response,authentication) -> { response.setContentType("application/json"); response.getWriter().write("{\"authenticated\":true}"); })

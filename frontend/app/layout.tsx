@@ -1,38 +1,34 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import Image from 'next/image';
-import "./globals.css";
-import { ReadingProgress } from "@/components/reading-progress";
-import { brand } from "@/lib/brand";
+import type { Metadata } from 'next';
+import { connection } from 'next/server';
+import './globals.css';
+import { ReadingProgress } from '@/components/reading-progress';
+import { SiteFooter } from '@/components/site-footer';
+import { Providers } from '@/components/providers';
+import { brand } from '@/lib/brand';
 
+const indexable = process.env.SITE_INDEXABLE === 'true';
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-  title: { default: "UP24Network | The voice of new India", template: "%s | UP24Network" },
-  description: "A new perspective on Uttar Pradesh, India, and the stories closest to home.",
+  metadataBase: new URL(process.env.SITE_URL ?? 'http://127.0.0.1:3000'),
+  title: { default: 'UP24Network | खबर हमारी यकीन आपका', template: '%s | UP24Network' },
+  description: 'उत्तर प्रदेश, देश और दुनिया की खबरें, जमीनी रिपोर्ट और वीडियो।',
   applicationName: brand.name,
   publisher: brand.name,
-  openGraph: { siteName: brand.name, locale: "en_IN", type: "website" },
-  icons: { icon: "/brand/up24-logo.png", apple: "/brand/up24-logo.png" },
-  robots: { index: false, follow: false },
+  openGraph: { siteName: brand.name, locale: 'hi_IN', type: 'website' },
+  icons: { icon: '/brand/up24-logo.png', apple: '/brand/up24-logo.png' },
+  robots: { index: indexable, follow: indexable },
 };
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  await connection();
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body>
-        <ReadingProgress />
-        <div className="site-shell">{children}
-          <footer className="site-footer">
-            <div><Link href="/" className="footer-logo brand-badge" aria-label="UP24Network home"><Image src="/brand/up24-logo.png" alt="" width={180} height={180} /></Link>
-              <p lang="hi">खबर हमारी यकीन आपका</p></div>
-            <nav className="social-links" aria-label="UP24Network social channels">
-              <p>Follow UP24Network</p>
-              <div>{brand.socials.map((social) => <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer"
-                aria-label={`UP24Network on ${social.name} (opens in a new tab)`}>{social.name}</a>)}</div>
-            </nav>
-            <p>Uttar Pradesh. India. Beyond.<br />Development preview.</p>
-          </footer>
-        </div>
+    <html lang="hi" data-scroll-behavior="smooth">
+      <body id="top">
+        <Providers>
+          <ReadingProgress />
+          <div className="site-shell">
+            {children}
+            <SiteFooter />
+          </div>
+        </Providers>
       </body>
     </html>
   );

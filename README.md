@@ -33,8 +33,10 @@ events and never reach into another module's internal repositories.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
   and individual `/news/[slug]` pages.
 - Official UP24Network logo, navy/yellow palette, and Hindi masthead tagline integrated.
-- Classic newspaper typography: Source Serif for headlines/reading and Source Sans
-  for controls. The original logo sits on a balanced political-news illustration.
+- Classic newspaper typography: Source Serif/Source Sans for Latin, paired with
+  self-hosted Noto Serif Devanagari/Noto Sans Devanagari for Hindi. Hindi headlines
+  use natural spacing and room for vowel marks. The original logo sits on a
+  balanced political-news illustration.
 - Sections, latest news, a moving headline strip, one search form, article metadata,
   media players, and verified social links.
 - Framer Motion reveals, cover parallax, reading progress, and shadcn UI controls.
@@ -43,11 +45,17 @@ events and never reach into another module's internal repositories.
 - PostgreSQL/Flyway foundation, draft/publication API, cookie sessions with CSRF,
   and Admin/Editor/Reporter/Subscriber account types.
 - Newsroom screens for articles, accounts, and saved automation settings.
-- Automatic imports use only the existing UP24Network website and YouTube channel.
-  News/YouTube jobs start enabled; Rashifal, health, books, and awards jobs start
-  disabled and can be controlled by an administrator.
-- Next small step: review this frontend prototype, then add focused role/publication
-  integration coverage and separate the newsroom UI into feature components.
+- Independent source adapters replace the WordPress importer. The official YouTube
+  feed supplies video IDs and exact thumbnails automatically; editor changes remain
+  protected. Automatically imported WordPress stories are preserved as drafts.
+- Hindi Rashifal has its own module, dated editions, keyboard-accessible sign tabs,
+  admin visibility/schedule controls, complete-feed validation and persisted retries.
+  It stays disabled until a live provider key is configured locally. Health, books
+  and awards show an unconfigured state and cannot be enabled prematurely.
+- Next small step: configure and verify a real Hindi edition and add a keyed
+  YouTube Data API adapter: the public RSS endpoint returned intermittent 404s
+  during live checks. Existing videos are retained and failed jobs retry.
+  See [daily edition setup, checks and boundaries](docs/03-daily-editions.md).
 
 Prototype links: [Reader](http://127.0.0.1:3000/),
 [Newsroom](http://127.0.0.1:3000/admin), [Reader account](http://127.0.0.1:3000/account).

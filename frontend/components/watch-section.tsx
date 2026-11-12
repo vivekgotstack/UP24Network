@@ -1,19 +1,47 @@
-import { brand } from "@/lib/brand";
-import { YouTubeStory } from "@/components/youtube-story";
+import Link from 'next/link';
+import { VideoPoster } from '@/components/video-poster';
+import { textLanguage } from '@/lib/language';
+import { hasVideo, newest } from '@/lib/news';
 import type { Article } from '@/lib/articles';
-
 export function WatchSection({ articles }: { articles: Article[] }) {
-  const recent = articles.find(article => article.youtubeId);
-  const video = recent ? { id: recent.youtubeId!, title: recent.title } : brand.featuredVideo;
+  const videos = newest(articles).filter(hasVideo).slice(0, 3);
+  if (!videos.length) return null;
+  const [lead, ...rest] = videos;
   return (
-    <section className="watch-section" id="watch" aria-label="Watch UP24">
-      <div className="watch-heading"><p className="eyebrow">UP24Network / WATCH</p><h2>Press play.</h2><p>From our newsroom.</p>
-        <a className="channel-link" href={brand.featuredVideo.channel} target="_blank" rel="noopener noreferrer">Visit our YouTube channel</a></div>
-      <div className="watch-films">
-        <article className="watch-film">
-          <div className="watch-screen"><YouTubeStory videoId={video.id} title={video.title} /></div>
-          <div className="watch-film-caption"><h3 lang="hi">{video.title}</h3><span>UP24Network</span></div>
-        </article>
+    <section className="watch-section" id="watch" aria-labelledby="watch-title">
+      <div className="watch-heading">
+        <div>
+          <p className="eyebrow">UP24Network · VIDEO DESK</p>
+          <h2 id="watch-title" lang="hi">
+            खबर, सीधे मौके से।
+          </h2>
+        </div>
+        <Link href="/watch" className="text-link">
+          All video reports
+        </Link>
+      </div>
+      <div className="watch-layout">
+        <div className="watch-feature">
+          <div className="watch-screen">
+            <VideoPoster slug={lead.slug} title={lead.title} image={lead.image} />
+          </div>
+          <h3 lang={textLanguage(lead.title)}>
+            <Link href={`/news/${lead.slug}`}>{lead.title}</Link>
+          </h3>
+        </div>
+        <div className="watch-queue">
+          {rest.map((article) => (
+            <article key={article.slug}>
+              <span className="eyebrow">VIDEO REPORT</span>
+              <h3 lang={textLanguage(article.title)}>
+                <Link href={`/news/${article.slug}`}>{article.title}</Link>
+              </h3>
+              <Link className="text-link" href={`/news/${article.slug}`}>
+                Watch report
+              </Link>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

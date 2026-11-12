@@ -14,8 +14,10 @@
 - Visual direction: classic newspaper typography (Source Serif for reading/headlines, Source Sans for controls), restrained colour, no decorative arrows or generic promotional copy. The user rejected robotic mono typography.
 - Use shadcn UI controls and Framer Motion for purposeful animation; respect reduced-motion preferences.
 - Stories show video when available, otherwise a photograph. Verify official social profiles before linking them.
-- Automatic imports may use only the existing UP24Network website and YouTube channel, as selected by the user. Automation must have persisted admin-controlled toggles and schedules.
+- Start with fresh editorial data; do not depend on the old WordPress database or importer. Keep automatic YouTube updates. Vetted external APIs are approved for daily sections; the user selected a Hindi Rashifal provider with its key configured server-side.
+- Public provider attribution is unwanted. Use public-domain structured data or licensed white-label content that permits this; preserve provenance internally and comply with each provider's terms. Automation must have persisted admin-controlled toggles and schedules.
 - Priority: quality code using current supported APIs, clear module boundaries, validated input, least-privilege access, and maintainable implementation. Do not add shortcuts, obsolete patterns, or speculative infrastructure.
 - Keep checks focused on changed behavior and security boundaries; do not spend credits on repetitive or low-value verification.
 - Use the original logo as the visible masthead mark. Do not recreate it with a typed wordmark.
 - Prefer focused libraries and encapsulated feature/API adapters over tightly coupled components or custom replacements for established tools. Keep the frontend independently reviewable.
+- Hindi text must use self-hosted Noto Serif Devanagari/Noto Sans Devanagari paired with the Source families, rather than falling back to system fonts.
