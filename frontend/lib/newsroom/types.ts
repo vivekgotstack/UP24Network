@@ -6,6 +6,7 @@ export type ManagedArticle = {
   manualOverride: boolean;
   version: number;
   article: Article;
+  sourceNotes: string;
 };
 export type Draft = {
   title: string;
@@ -18,6 +19,7 @@ export type Draft = {
   videoUrl: string;
   youtubeId: string;
   body: string;
+  sourceNotes: string;
 };
 export type SaveArticle = Draft & { version: number | null };
 export const emptyDraft: Draft = {
@@ -31,6 +33,7 @@ export const emptyDraft: Draft = {
   videoUrl: '',
   youtubeId: '',
   body: '',
+  sourceNotes: '',
 };
 export function toDraft(row?: ManagedArticle | null): Draft {
   return row
@@ -45,6 +48,7 @@ export function toDraft(row?: ManagedArticle | null): Draft {
         videoUrl: row.article.videoUrl ?? '',
         youtubeId: row.article.youtubeId ?? '',
         body: row.article.paragraphs.join('\n\n'),
+        sourceNotes: row.sourceNotes ?? '',
       }
     : { ...emptyDraft };
 }

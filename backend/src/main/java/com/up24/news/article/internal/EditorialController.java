@@ -24,7 +24,12 @@ class EditorialController {
         return desk.list(actor.role()==Accounts.Role.REPORTER?actor.id():null);
     }
     @PostMapping ArticleDesk.Managed create(@Valid @RequestBody ArticleDesk.Input input) {
-        var actor=access.current(); return desk.save(null,input,actor.id(),actor.displayName());
+        var actor=access.current();
+        requirements(actor,input);
+        return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?"UP24Network Editorial Team":actor.displayName());
+    }
+    private void requirements(Accounts.Account actor,ArticleDesk.Input input) {
+        if(actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.check(input.city(),input.image(),input.imageAlt(),input.videoUrl(),input.youtubeId(),input.sourceNotes());
     }
     @GetMapping("/{id}") ArticleDesk.Managed find(@PathVariable UUID id) {
         var actor=access.current();
@@ -37,9 +42,15 @@ class EditorialController {
         var actor=access.current(); var existing=desk.find(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
         if(actor.role()==Accounts.Role.REPORTER && (!actor.id().equals(existing.authorId()) || !existing.status().equals("DRAFT")))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        requirements(actor,input);
         return desk.save(id,input,actor.id(),actor.displayName());
     }
     @PostMapping("/{id}/publication") @PreAuthorize("@access.hasAny('ADMIN','EDITOR')") ArticleDesk.Managed publish(@PathVariable UUID id,@Valid @RequestBody Publication input) {
+        if(input.published() && access.current().role()!=Accounts.Role.ADMIN) {
+            var managed=desk.find(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
+            var article=managed.article();
+            ReportingRequirements.check(article.city(),article.image(),article.imageAlt(),article.videoUrl(),article.youtubeId(),managed.sourceNotes());
+        }
         return desk.publish(id,input.version(),input.published(),input.breaking());
     }
 }

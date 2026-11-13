@@ -9,8 +9,9 @@ public interface ArticleDesk {
                  @NotBlank @Size(max=2000) String summary,@NotBlank @Size(max=100) String category,
                  @Size(max=100) String city,@Size(max=2000) String image,@Size(max=500) String imageAlt,
                  @Size(max=2000) String videoUrl,@Pattern(regexp="^$|^[A-Za-z0-9_-]{11}$") String youtubeId,
-                 @NotBlank @Size(max=100000) String body,@PositiveOrZero Long version) {}
-    record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article) {}
+                 @NotBlank @Size(max=100000) String body,@PositiveOrZero Long version,
+                 @Size(max=10000) String sourceNotes) {}
+    record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article,String sourceNotes) {}
     record Imported(String upstreamKey,String slug,String title,String summary,String category,String city,
                     String image,String imageAlt,String videoUrl,String youtubeId,List<String> paragraphs,
                     Instant publishedAt,boolean breaking,String sourceUrl) {}

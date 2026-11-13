@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties={"up24.automation.scheduling-enabled=false","up24.bootstrap.admin-email=",
-        "up24.newsroom.owner-email=owner@identity.test",
+        "up24.newsroom.admin-email=owner@identity.test",
         "up24.newsroom.otp-secret=1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"})
 @AutoConfigureMockMvc
 @Transactional

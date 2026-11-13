@@ -16,14 +16,14 @@ import java.util.Locale;
 class NewsroomPolicy {
     static final String VERIFIED_EMAIL = "up24.newsroom.verified-email";
     static final String VERIFIED_UNTIL = "up24.newsroom.verified-until";
-    private final String ownerEmail;
+    private final String adminEmail;
     private final Clock clock;
-    NewsroomPolicy(@Value("${up24.newsroom.owner-email}") String ownerEmail, Clock clock) {
-        this.ownerEmail=ownerEmail.trim().toLowerCase(Locale.ROOT); this.clock=clock;
+    NewsroomPolicy(@Value("${up24.newsroom.admin-email}") String adminEmail, Clock clock) {
+        this.adminEmail=adminEmail.trim().toLowerCase(Locale.ROOT); this.clock=clock;
     }
-    String ownerEmail() { return ownerEmail; }
+    String adminEmail() { return adminEmail; }
     boolean eligible(Accounts.Account account) {
-        return (account.role()==Accounts.Role.ADMIN && ownerEmail.equals(account.email()))
+        return (account.role()==Accounts.Role.ADMIN && adminEmail.equals(account.email()))
                 || account.role()==Accounts.Role.EDITOR || account.role()==Accounts.Role.REPORTER;
     }
     boolean verified(Accounts.Account account) {

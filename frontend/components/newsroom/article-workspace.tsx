@@ -15,6 +15,7 @@ export function ArticleWorkspace({
   refreshing,
   onRefresh,
   onPublish,
+  basePath,
 }: {
   user: Account;
   articles: ManagedArticle[];
@@ -22,6 +23,7 @@ export function ArticleWorkspace({
   refreshing: boolean;
   onRefresh: () => Promise<unknown>;
   onPublish: (row: ManagedArticle, published: boolean, breaking: boolean) => Promise<boolean>;
+  basePath: '/admin' | '/newsroom';
 }) {
   const [query, setQuery] = useState(''),
     [filter, setFilter] = useState('ALL');
@@ -50,7 +52,7 @@ export function ArticleWorkspace({
             {refreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
           <Button asChild>
-            <Link href="/admin/articles/new">
+            <Link href={`${basePath}/articles/new`}>
               <Plus size={15} aria-hidden="true" />
               New article
             </Link>
@@ -107,10 +109,10 @@ export function ArticleWorkspace({
               <div className="cms-row-actions">
                 {!(user.role === 'REPORTER' && row.status !== 'DRAFT') && (
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/admin/articles/${row.id}`}>Edit report</Link>
+                    <Link href={`${basePath}/articles/${row.id}`}>Edit report</Link>
                   </Button>
                 )}
-                <Link href={`/admin/articles/${row.id}/preview`}>Preview</Link>
+                <Link href={`${basePath}/articles/${row.id}/preview`}>Preview</Link>
                 {row.status === 'PUBLISHED' && (
                   <Link
                     href={`/news/${row.article.slug}`}

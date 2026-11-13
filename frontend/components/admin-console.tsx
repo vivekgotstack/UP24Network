@@ -19,14 +19,17 @@ type Section = 'overview' | 'articles' | 'editor' | 'preview' | 'accounts' | 'au
 export function AdminConsole({
   section = 'overview',
   articleId,
+  workspace = 'admin',
 }: {
   section?: Section;
   articleId?: string;
+  workspace?: 'admin' | 'staff';
 }) {
   const session = useSession(),
     router = useRouter(),
     user = session.data;
   const editorial = Boolean(user?.newsroomAccess);
+  const basePath = workspace === 'admin' ? '/admin' : '/newsroom';
   const needsArticles = editorial && ['overview', 'articles'].includes(section);
   const articleData = useNewsroomResource<ManagedArticle[]>(user, 'admin/articles', needsArticles);
   const reportData = useNewsroomResource<ManagedArticle>(
@@ -54,8 +57,8 @@ export function AdminConsole({
   const loadError = articleData.error ?? reportData.error ?? accountData.error ?? jobData.error;
   useEffect(() => {
     if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess)
-      router.replace('/admin/sign-in');
-  }, [session.isLoading, session.data, router]);
+      router.replace(`${basePath}/sign-in`);
+  }, [session.isLoading, session.data, router, basePath]);
   useEffect(() => {
     if (loadError?.status === 401) void session.mutate();
   }, [loadError?.status, session.mutate]);
@@ -110,7 +113,7 @@ export function AdminConsole({
       </main>
     );
   const titles = {
-    overview: 'Newsroom',
+    overview: workspace === 'admin' ? 'Administration' : 'Reporting desk',
     articles: 'Article desk',
     editor: articleId ? 'Edit report' : 'Create a draft',
     preview: 'Private preview',
@@ -119,8 +122,8 @@ export function AdminConsole({
   };
   const active = ['editor', 'preview'].includes(section) ? 'articles' : section;
   const nav = [
-    { key: 'overview', href: '/admin', label: 'Overview', icon: LayoutDashboard },
-    { key: 'articles', href: '/admin/articles', label: 'Articles', icon: FileText },
+    { key: 'overview', href: basePath, label: 'Overview', icon: LayoutDashboard },
+    { key: 'articles', href: `${basePath}/articles`, label: 'Articles', icon: FileText },
     ...(user.role === 'ADMIN'
       ? [
           { key: 'accounts', href: '/admin/accounts', label: 'Accounts', icon: Users },
@@ -283,7 +286,7 @@ export function AdminConsole({
                     </li>
                   </ol>
                   <Button asChild variant="outline">
-                    <Link href="/admin/articles">Open article desk</Link>
+                    <Link href={`${basePath}/articles`}>Open article desk</Link>
                   </Button>
                 </section>
                 <section className="cms-card">
@@ -294,7 +297,7 @@ export function AdminConsole({
                       <article key={item.id}>
                         <span className="role-badge">{item.status.toLowerCase()}</span>
                         <p lang={/[\u0900-\u097f]/u.test(item.article.title) ? 'hi' : 'en'}>
-                          <Link href={`/admin/articles/${item.id}/preview`}>
+                          <Link href={`${basePath}/articles/${item.id}/preview`}>
                             {item.article.title}
                           </Link>
                         </p>
@@ -315,6 +318,7 @@ export function AdminConsole({
           )}
           {section === 'articles' && (
             <ArticleWorkspace
+              basePath={basePath}
               user={user}
               articles={articles}
               busy={blocked}
@@ -328,7 +332,7 @@ export function AdminConsole({
               <section className="empty-state">
                 <h2>Report not available.</h2>
                 <p>It may be outside your editorial permissions.</p>
-                <Link className="text-link" href="/admin/articles">
+                <Link className="text-link" href={`${basePath}/articles`}>
                   Back to article desk
                 </Link>
               </section>
@@ -339,19 +343,20 @@ export function AdminConsole({
               </p>
             ) : (
               <ArticleEditor
+                adminMode={user.role === 'ADMIN'}
                 key={articleId ?? 'new'}
                 article={row ?? null}
                 busy={blocked}
                 onDirty={setDirty}
-                onCancel={() => window.location.assign('/admin/articles')}
+                onCancel={() => window.location.assign(${basePath}/articles)}
                 onSave={(draft, preview) =>
                   act(
                     async () => {
                       const saved = await articleDesk.save(articleId, draft);
                       await reportData.mutate(saved, { revalidate: false });
                       setDirty(false);
-                      if (preview) router.push(`/admin/articles/${saved.id}/preview`);
-                      else if (!articleId) router.replace(`/admin/articles/${saved.id}`);
+                      if (preview) router.push(`${basePath}/articles/${saved.id}/preview`);
+                      else if (!articleId) router.replace(`${basePath}/articles/${saved.id}`);
                       return saved;
                     },
                     'Article saved.',
@@ -362,11 +367,11 @@ export function AdminConsole({
             ))}
           {section === 'preview' &&
             (row ? (
-              <ArticlePreview row={row} />
+              <ArticlePreview row={row} basePath={basePath} />
             ) : (
               <section className="empty-state">
                 <h2>Preview not available.</h2>
-                <Link className="text-link" href="/admin/articles">
+                <Link className="text-link" href={`${basePath}/articles`}>
                   Back to article desk
                 </Link>
               </section>

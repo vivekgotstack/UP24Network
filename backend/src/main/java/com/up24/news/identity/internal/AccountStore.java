@@ -28,8 +28,8 @@ class AccountStore implements Accounts {
     }
     @Override public List<Account> list() { return jdbc.query("SELECT * FROM identity_account ORDER BY created_at DESC",this::map); }
     @Override public Account create(String email,String name,String password,Role role) {
-        if (role==Role.ADMIN && !normalized(email).equals(newsroom.ownerEmail()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The administrator role is reserved for the owner.");
+        if (role==Role.ADMIN && !normalized(email).equals(newsroom.adminEmail()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The administrator role is reserved for the designated administrator.");
         if (password.length()<12 || password.getBytes(StandardCharsets.UTF_8).length>72)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Use a password of at least 12 characters and at most 72 UTF-8 bytes");
         var account = new Account(UUID.randomUUID(),normalized(email),name.trim(),role);
@@ -43,8 +43,8 @@ class AccountStore implements Accounts {
         jdbc.queryForList("SELECT id FROM identity_account WHERE role='ADMIN' ORDER BY id FOR UPDATE");
         var target = jdbc.query("SELECT * FROM identity_account WHERE id=?",this::map,id).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (role==Role.ADMIN && !target.email().equals(newsroom.ownerEmail()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The administrator role is reserved for the owner.");
+        if (role==Role.ADMIN && !target.email().equals(newsroom.adminEmail()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The administrator role is reserved for the designated administrator.");
         if (target.role()==Role.ADMIN && role!=Role.ADMIN && jdbc.queryForObject("SELECT count(*) FROM identity_account WHERE role='ADMIN'",Integer.class)<=1)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Keep at least one administrator");
         jdbc.update("UPDATE identity_account SET role=? WHERE id=?",role.name(),id);

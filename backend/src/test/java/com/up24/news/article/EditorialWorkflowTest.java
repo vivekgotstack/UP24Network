@@ -46,7 +46,7 @@ class EditorialWorkflowTest {
     }
     private ArticleDesk.Input input(String slug, String title, Long version) {
         return new ArticleDesk.Input(title,slug,"परीक्षण का सारांश।","Uttar Pradesh","Lucknow",
-                "/brand/up24-logo.png","UP24Network",null,null,"परीक्षण रिपोर्ट का पाठ।",version);
+                "/images/newsroom.jpg","UP24Network newsroom",null,null,"परीक्षण रिपोर्ट का पाठ।",version,"Local test reporting notes");
     }
 
     @Test void realLoginAndDraftPublicationRespectPermissionsAndCsrf() throws Exception {

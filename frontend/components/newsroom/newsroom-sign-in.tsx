@@ -11,9 +11,11 @@ import { newsroomAuth, type CodeDelivery } from '@/lib/newsroom/auth';
 export function NewsroomSignIn({
   account,
   onAuthenticated,
+  signInPath,
 }: {
   account: Account | null | undefined;
   onAuthenticated: (account: Account) => Promise<unknown>;
+  signInPath: string;
 }) {
   const [staff, setStaff] = useState<Account | null>(null);
   const current = staff ?? (account?.newsroomEligible ? account : null);
@@ -143,7 +145,7 @@ export function NewsroomSignIn({
                   await cms('auth/logout', 'POST');
                   setStaff(null);
                   setDelivery(null);
-                  window.location.assign('/admin/sign-in');
+                  window.location.assign(signInPath);
                 })
               }
             >

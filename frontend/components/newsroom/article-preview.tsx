@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { NewsImage } from '@/components/news-image';
 import { textLanguage } from '@/lib/language';
 import type { ManagedArticle } from '@/lib/newsroom/types';
-export function ArticlePreview({ row }: { row: ManagedArticle }) {
+export function ArticlePreview({ row,basePath }: { row: ManagedArticle; basePath: '/admin' | '/newsroom' }) {
   return (
     <section>
       <header className="cms-section-heading">
@@ -10,7 +10,7 @@ export function ArticlePreview({ row }: { row: ManagedArticle }) {
           <p className="eyebrow">PRIVATE EDITORIAL PREVIEW</p>
           <h2>Review the report</h2>
         </div>
-        <Link className="text-link" href={`/admin/articles/${row.id}`}>
+        <Link className="text-link" href={`${basePath}/articles/${row.id}`}>
           Back to editor
         </Link>
       </header>

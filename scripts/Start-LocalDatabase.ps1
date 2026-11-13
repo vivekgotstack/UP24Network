@@ -52,7 +52,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Could not create the up24network database.' }
     }
 } finally { $env:PGPASSWORD = $previousPassword }
-$configuration['up24.newsroom.owner-email'] = 'vivekni1224@gmail.com'
+$configuration['up24.newsroom.admin-email'] = 'vivekni1224@gmail.com'
+$configuration.Remove('up24.newsroom.owner-email')
 $configuration['up24.bootstrap.admin-email'] = 'vivekni1224@gmail.com'
 if (-not $configuration['up24.newsroom.otp-secret']) {
     $configuration['up24.newsroom.otp-secret'] = [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))

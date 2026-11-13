@@ -27,7 +27,7 @@ export const publicationDocuments = {
         id: 'publication',
         title: 'The publication',
         paragraphs: [
-          'UP24Network is a Hindi news publication covering Uttar Pradesh, national affairs and the developments that shape everyday life. We publish written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.',
+          'UP24Network is a Hindi news publication owned by Abhishek Srivastav, covering Uttar Pradesh, national affairs and the developments that shape everyday life. Our editorial team publishes written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.',
           'Our editorial purpose is to make a report useful: explain what happened, identify what is known, place the development in context and make clear why it matters to the people affected. Speed matters in news, but it does not replace accuracy or responsibility.',
         ],
       },
@@ -381,7 +381,8 @@ export const publicationDocuments = {
         id: 'responsibility',
         title: 'Publication responsibility',
         paragraphs: [
-          'The publication’s owner is responsible for the operation of UP24Network and for assigning editorial responsibilities. Editors are responsible for publication decisions within their remit. A reader’s question, correction request or formal enquiry can be directed to the publication through its contact channels.',
+          'UP24Network is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.',
+          'Publication enquiries, correction requests and formal editorial correspondence can be directed to UP24Network through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.',
           'Official channels are listed together so that readers can identify the UP24Network publication across the website and social platforms. An account or page using a similar name should not be assumed to represent the publication.',
         ],
         links: [{ href: '/contact', label: 'Official publication contacts' }],
@@ -390,7 +391,7 @@ export const publicationDocuments = {
         id: 'independence',
         title: 'Editorial control',
         paragraphs: [
-          'The owner appoints staff and assigns their permissions. Editorial review, publication and correction decisions must follow the publication’s standards. A source, advertiser or external organisation does not gain editorial authority by providing material or entering a commercial discussion.',
+          'Editors work within the responsibilities assigned to them. Editorial review, publication and correction decisions must follow the publication’s standards. A source, advertiser or external organisation does not gain editorial authority by providing material or entering a commercial discussion.',
           'Where a personal or commercial interest could materially affect a report, that interest should be disclosed to the responsible editor and addressed through the editorial process.',
         ],
       },
