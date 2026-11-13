@@ -3,9 +3,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Search, FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { textLanguage } from '@/lib/language';
 import type { Account } from '@/lib/cms';
-import type { ManagedArticle } from '@/components/newsroom/types';
+import type { ManagedArticle } from '@/lib/newsroom/types';
 
 export function ArticleWorkspace({
   user,
@@ -24,7 +25,7 @@ export function ArticleWorkspace({
 }) {
   const [query, setQuery] = useState(''),
     [filter, setFilter] = useState('ALL');
-  const [confirm, setConfirm] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<ManagedArticle | null>(null);
   const [page, setPage] = useState(1);
   const rows = articles.filter(
     (row) =>
@@ -42,7 +43,7 @@ export function ArticleWorkspace({
       <div className="cms-section-heading">
         <div>
           <p className="eyebrow">EDITORIAL WORKSPACE</p>
-          <h2>All reports</h2>
+          <h2>Recent reports</h2>
         </div>
         <div className="cms-row-actions">
           <Button variant="outline" disabled={busy || refreshing} onClick={() => void onRefresh()}>
@@ -125,7 +126,7 @@ export function ArticleWorkspace({
                       size="sm"
                       variant={row.status === 'PUBLISHED' ? 'outline' : 'default'}
                       disabled={busy}
-                      onClick={() => setConfirm(row.id)}
+                      onClick={() => setConfirm(row)}
                     >
                       {row.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
                     </Button>
@@ -141,39 +142,6 @@ export function ArticleWorkspace({
                   </>
                 )}
               </div>
-              {confirm === row.id && (
-                <section className="inline-confirm" aria-label="Confirm publication change">
-                  <p>
-                    {row.status === 'PUBLISHED'
-                      ? 'Return this report to drafts and remove it from public pages?'
-                      : 'Publish this saved report on the public website?'}
-                  </p>
-                  <div className="cms-row-actions">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => setConfirm(null)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={busy}
-                      onClick={async () => {
-                        if (await onPublish(row, row.status !== 'PUBLISHED', row.article.breaking))
-                          setConfirm(null);
-                      }}
-                    >
-                      {busy
-                        ? 'Updating…'
-                        : row.status === 'PUBLISHED'
-                          ? 'Confirm unpublish'
-                          : 'Confirm publication'}
-                    </Button>
-                  </div>
-                </section>
-              )}
             </article>
           ))}
         </div>
@@ -209,6 +177,14 @@ export function ArticleWorkspace({
           </Button>
         </nav>
       )}
+      <ConfirmDialog
+        open={Boolean(confirm)} onOpenChange={(open) => { if (!open) setConfirm(null); }}
+        title={confirm?.status === 'PUBLISHED' ? 'Unpublish this report?' : 'Publish this report?'}
+        description={confirm ? `“${confirm.article.title}” ${confirm.status === 'PUBLISHED' ? 'will return to drafts and be removed from public pages.' : 'will become visible on the public website.'}` : ''}
+        confirmLabel={confirm?.status === 'PUBLISHED' ? 'Unpublish report' : 'Publish report'}
+        destructive={confirm?.status === 'PUBLISHED'}
+        onConfirm={() => confirm ? onPublish(confirm, confirm.status !== 'PUBLISHED', confirm.article.breaking) : false}
+      />
     </section>
   );
 }

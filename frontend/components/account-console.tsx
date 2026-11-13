@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SavedStories } from '@/components/saved-stories';
@@ -43,11 +42,6 @@ export function AccountConsole() {
         <p>{user.email}</p>
         <span className="role-badge">{user.role.toLowerCase()}</span>
         <div className="account-actions">
-          {user.role !== 'SUBSCRIBER' && (
-            <Link className="text-link" href="/admin">
-              Open the newsroom
-            </Link>
-          )}
           <Button
             variant="outline"
             onClick={async () => {

@@ -4,6 +4,7 @@ export type ManagedArticle = {
   authorId: string | null;
   status: 'DRAFT' | 'PUBLISHED';
   manualOverride: boolean;
+  version: number;
   article: Article;
 };
 export type Draft = {
@@ -18,6 +19,7 @@ export type Draft = {
   youtubeId: string;
   body: string;
 };
+export type SaveArticle = Draft & { version: number | null };
 export const emptyDraft: Draft = {
   title: '',
   slug: '',

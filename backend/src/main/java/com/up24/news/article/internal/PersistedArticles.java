@@ -12,6 +12,6 @@ class PersistedArticles implements Articles {
     PersistedArticles(ArticleDesk desk) { this.desk=desk; }
     @Override public List<ArticleView> published() { return desk.published(); }
     @Override public Optional<ArticleView> findPublished(String slug) {
-        return desk.published().stream().filter(article->article.slug().equals(slug)).findFirst();
+        return desk.findPublished(slug);
     }
 }

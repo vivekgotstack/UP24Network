@@ -14,6 +14,11 @@ try {
 
 $nodePath = (Get-Command node.exe -ErrorAction Stop).Source
 $frontendDirectory = Join-Path $projectRoot 'frontend'
+$frontendEnvironment = Join-Path $frontendDirectory '.env.local'
+if (-not (Test-Path -LiteralPath $frontendEnvironment)) {
+    @('NEWS_API_URL=http://127.0.0.1:8080','SITE_URL=http://127.0.0.1:3000','SITE_INDEXABLE=false') |
+        Set-Content -LiteralPath $frontendEnvironment -Encoding utf8
+}
 $nextPath = Join-Path $frontendDirectory 'node_modules\next\dist\bin\next'
 if (-not (Test-Path -LiteralPath $nextPath)) { throw 'Run npm ci in frontend/ first.' }
 

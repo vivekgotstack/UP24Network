@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { NewsImage } from '@/components/news-image';
 import { textLanguage } from '@/lib/language';
-import type { ManagedArticle } from '@/components/newsroom/types';
+import type { ManagedArticle } from '@/lib/newsroom/types';
 export function ArticlePreview({ row }: { row: ManagedArticle }) {
   return (
     <section>

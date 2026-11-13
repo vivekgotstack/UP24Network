@@ -27,7 +27,6 @@ export function SiteHeader({
           <SearchLink />
           <Link href="/saved">Saved</Link>
           <Link href="/account">My account</Link>
-          <Link href="/admin">Newsroom</Link>
         </div>
       </div>
       <header className={`masthead ${compact ? 'masthead-compact' : ''}`}>

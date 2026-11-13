@@ -12,7 +12,8 @@ import { ArticleEditor } from '@/components/newsroom/article-editor';
 import { ArticlePreview } from '@/components/newsroom/article-preview';
 import { TeamPanel } from '@/components/newsroom/team-panel';
 import { AutomationPanel, type AutomationJob } from '@/components/newsroom/automation-panel';
-import type { ManagedArticle } from '@/components/newsroom/types';
+import type { ManagedArticle } from '@/lib/newsroom/types';
+import { articleDesk } from '@/lib/newsroom/articles';
 
 type Section = 'overview' | 'articles' | 'editor' | 'preview' | 'accounts' | 'automations';
 export function AdminConsole({
@@ -25,10 +26,14 @@ export function AdminConsole({
   const session = useSession(),
     router = useRouter(),
     user = session.data;
-  const editorial = Boolean(user && user.role !== 'SUBSCRIBER');
-  const needsArticles =
-    editorial && ['overview', 'articles', 'editor', 'preview'].includes(section);
+  const editorial = Boolean(user?.newsroomAccess);
+  const needsArticles = editorial && ['overview', 'articles'].includes(section);
   const articleData = useNewsroomResource<ManagedArticle[]>(user, 'admin/articles', needsArticles);
+  const reportData = useNewsroomResource<ManagedArticle>(
+    user,
+    `admin/articles/${articleId}`,
+    editorial && Boolean(articleId) && ['editor', 'preview'].includes(section),
+  );
   const accountData = useNewsroomResource<Account[]>(
     user,
     'admin/accounts',
@@ -46,14 +51,18 @@ export function AdminConsole({
   const articles = articleData.data ?? [],
     accounts = accountData.data ?? [],
     jobs = jobData.data ?? [];
-  const loadError = articleData.error ?? accountData.error ?? jobData.error;
+  const loadError = articleData.error ?? reportData.error ?? accountData.error ?? jobData.error;
   useEffect(() => {
-    if (!session.isLoading && session.data === null) router.replace('/admin/sign-in');
+    if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess) router.replace('/admin/sign-in');
   }, [session.isLoading, session.data, router]);
   useEffect(() => {
     if (loadError?.status === 401) void session.mutate();
   }, [loadError?.status, session.mutate]);
-  async function act<T>(action: () => Promise<T>, success?: string): Promise<T | undefined> {
+  async function act<T>(
+    action: () => Promise<T>,
+    success?: string,
+    propagate = false,
+  ): Promise<T | undefined> {
     setBusy(true);
     setError('');
     setNotice('');
@@ -64,6 +73,8 @@ export function AdminConsole({
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The action could not be completed.');
       if (reason instanceof CmsError && [401, 403].includes(reason.status)) void session.mutate();
+      if (reason instanceof CmsError && reason.status === 409) void articleData.mutate();
+      if (propagate) throw reason;
       return undefined;
     } finally {
       setBusy(false);
@@ -116,19 +127,23 @@ export function AdminConsole({
         ]
       : []),
   ];
-  const row = articleId ? articles.find((item) => item.id === articleId) : null;
-  const loading = articleData.isLoading || accountData.isLoading || jobData.isLoading;
+  const row = articleId ? reportData.data : null;
+  const loading =
+    articleData.isLoading || reportData.isLoading || accountData.isLoading || jobData.isLoading;
   const blocked = busy || Boolean(loadError);
   const published = articles.filter((item) => item.status === 'PUBLISHED').length;
-  const refresh = () => Promise.all([articleData.mutate(), accountData.mutate(), jobData.mutate()]);
+  const refresh = () =>
+    Promise.all([
+      articleData.mutate(),
+      reportData.mutate(),
+      accountData.mutate(),
+      jobData.mutate(),
+    ]);
   async function publication(item: ManagedArticle, publish: boolean, breaking: boolean) {
     return Boolean(
       await act(
         async () => {
-          await cms(`admin/articles/${item.id}/publication`, 'POST', {
-            published: publish,
-            breaking,
-          });
+          await articleDesk.publish(item, publish, breaking);
           await articleData.mutate();
           return true;
         },
@@ -329,18 +344,18 @@ export function AdminConsole({
                 onDirty={setDirty}
                 onCancel={() => window.location.assign('/admin/articles')}
                 onSave={(draft, preview) =>
-                  act(async () => {
-                    const saved = await cms<ManagedArticle>(
-                      `admin/articles${articleId ? `/${articleId}` : ''}`,
-                      articleId ? 'PUT' : 'POST',
-                      draft,
-                    );
-                    await articleData.mutate();
-                    setDirty(false);
-                    if (preview) router.push(`/admin/articles/${saved.id}/preview`);
-                    else if (!articleId) router.replace(`/admin/articles/${saved.id}`);
-                    return saved;
-                  }, 'Article saved.')
+                  act(
+                    async () => {
+                      const saved = await articleDesk.save(articleId, draft);
+                      await reportData.mutate(saved, { revalidate: false });
+                      setDirty(false);
+                      if (preview) router.push(`/admin/articles/${saved.id}/preview`);
+                      else if (!articleId) router.replace(`/admin/articles/${saved.id}`);
+                      return saved;
+                    },
+                    'Article saved.',
+                    true,
+                  )
                 }
               />
             ))}

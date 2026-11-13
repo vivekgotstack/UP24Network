@@ -7,8 +7,9 @@ const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me)$/, ['GET']],
   [/^auth\/(login|register|logout)$/, ['POST']],
+  [/^auth\/newsroom\/(code|verify)$/, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
-  [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['PUT']],
+  [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT']],
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
   [/^admin\/accounts$/, ['GET', 'POST']],
   [new RegExp(`^admin/accounts/${UUID}$`, 'i'), ['PATCH']],

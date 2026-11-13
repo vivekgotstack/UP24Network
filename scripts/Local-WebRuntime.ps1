@@ -64,11 +64,11 @@ function Find-Up24Backend {
     $candidateIds = @(Get-Up24PortProcessIds 8080) + @(
         Get-Process -Name java -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id
     )
-    $owned = @(
+    $owned = @(@(
         foreach ($candidateId in ($candidateIds | Sort-Object -Unique)) {
             try { Get-Up24BackendProcess -ProjectRoot $ProjectRoot -ProcessId $candidateId } catch { }
         }
-    )
+    ) | Where-Object { $_ -is [System.Diagnostics.Process] } | Sort-Object -Property Id -Unique)
     if ($owned.Count -ne 1) {
         throw "Expected one verified backend from this repository; found $($owned.Count). No unverified process will be stopped."
     }

@@ -1,6 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ArticleConflict } from '@/components/newsroom/article-conflict';
+import { CmsError } from '@/lib/cms';
 
 import { sections } from '@/lib/sections';
 import {
@@ -10,7 +13,8 @@ import {
   allowedMedia,
   type Draft,
   type ManagedArticle,
-} from '@/components/newsroom/types';
+  type SaveArticle,
+} from '@/lib/newsroom/types';
 
 export function ArticleEditor({
   article,
@@ -21,13 +25,17 @@ export function ArticleEditor({
 }: {
   article: ManagedArticle | null;
   busy: boolean;
-  onSave: (draft: Draft, preview?: boolean) => Promise<ManagedArticle | undefined>;
+  onSave: (draft: SaveArticle, preview?: boolean) => Promise<ManagedArticle | undefined>;
   onDirty: (dirty: boolean) => void;
   onCancel: () => void;
 }) {
   const [draft, setDraft] = useState(() => toDraft(article));
   const [saved, setSaved] = useState(() => JSON.stringify(toDraft(article)));
   const [error, setError] = useState('');
+  const [version, setVersion] = useState(article?.version ?? null);
+  const [conflict, setConflict] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+  const allowLeave = useRef(false);
   const dirty = JSON.stringify(draft) !== saved;
   useEffect(() => {
     onDirty(dirty);
@@ -35,7 +43,7 @@ export function ArticleEditor({
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
+      if (!allowLeave.current) event.preventDefault();
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
@@ -55,7 +63,7 @@ export function ArticleEditor({
       throw new Error('Use letters, numbers and hyphens for the article slug.');
     if (!allowedMedia(draft.image) || !allowedMedia(draft.videoUrl, false))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
-    return { ...draft, youtubeId: videoId(draft.youtubeId.trim()) };
+    return { ...draft, version, youtubeId: videoId(draft.youtubeId.trim()) };
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,9 +78,14 @@ export function ArticleEditor({
         const next = toDraft(result);
         setDraft(next);
         setSaved(JSON.stringify(next));
+        setVersion(result.version);
+        setConflict(false);
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Check the article fields.');
+      setConflict(
+        reason instanceof CmsError && reason.problemType === 'urn:up24:article-version-conflict',
+      );
     }
   }
   const wordCount = draft.body.trim().split(/\s+/u).filter(Boolean).length;
@@ -83,11 +96,11 @@ export function ArticleEditor({
           <p className="eyebrow">{article ? 'ARTICLE WORKSPACE' : 'NEW REPORT'}</p>
           <h2>{article ? 'Edit article' : 'Create a draft'}</h2>
         </div>
-        <span className={`save-state ${dirty ? 'is-dirty' : ''}`}>
-          {dirty ? 'Unsaved changes' : article ? 'Saved' : 'New draft'}
+        <span className={`save-state ${dirty ? 'is-dirty' : ''}`} role="status">
+          {busy ? 'Saving…' : dirty ? 'Unsaved changes' : article ? 'Saved' : 'New draft'}
         </span>
       </div>
-      <form className="cms-form editor-form" onSubmit={submit}>
+      <form className="cms-form editor-form" onSubmit={submit} aria-busy={busy}>
         <fieldset className="editor-fields" disabled={busy}>
           <label>
             Headline
@@ -220,7 +233,12 @@ export function ArticleEditor({
             <Button type="submit" name="intent" value="preview" disabled={busy}>
               Save &amp; preview
             </Button>
-            <Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => (dirty ? setConfirmClose(true) : onCancel())}
+            >
               Close editor
             </Button>
           </div>
@@ -231,6 +249,33 @@ export function ArticleEditor({
           )}
         </fieldset>
       </form>
+      {conflict && article && (
+        <ArticleConflict
+          id={article.id}
+          onReplace={(latest) => {
+            const next = toDraft(latest);
+            setDraft(next);
+            setSaved(JSON.stringify(next));
+            setVersion(latest.version);
+            setConflict(false);
+            setError('');
+          }}
+        />
+      )}
+      <ConfirmDialog
+        open={confirmClose}
+        onOpenChange={setConfirmClose}
+        title="Leave without saving?"
+        description="Your unsaved changes will be lost. Save the report or keep editing to preserve them."
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        destructive
+        onConfirm={() => {
+          allowLeave.current = true;
+          onDirty(false);
+          onCancel();
+        }}
+      />
     </section>
   );
 }

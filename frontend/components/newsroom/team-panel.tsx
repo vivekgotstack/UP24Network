@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Account, Role } from '@/lib/cms';
 
-const roles: Role[] = ['ADMIN', 'EDITOR', 'REPORTER', 'SUBSCRIBER'];
+const roles: Role[] = ['EDITOR', 'REPORTER', 'SUBSCRIBER'];
 const permissions = [
-  ['Administrator', 'Manage the team, automation and every publication.'],
+  ['Administrator', 'Owner only. Manages the team, automation and every publication.'],
   ['Editor', 'Create, edit and publish reports.'],
   ['Reporter', 'Create and edit their own drafts.'],
   ['Subscriber', 'Reader account with no newsroom access.'],
@@ -130,6 +130,7 @@ export function TeamPanel({
                     disabled={busy || account.id === currentUser.id}
                     onChange={(event) => void onRole(account, event.target.value as Role)}
                   >
+                    {account.role === 'ADMIN' && <option value="ADMIN">ADMIN</option>}
                     {roles.map((role) => (
                       <option key={role}>{role}</option>
                     ))}

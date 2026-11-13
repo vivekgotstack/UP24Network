@@ -13,11 +13,16 @@ class AccountController {
     record Signup(@Email @NotBlank @Size(max=254) String email,@NotBlank @Size(max=100) String displayName,@NotBlank @Size(min=12,max=64) String password) {}
     record NewAccount(@Email @NotBlank @Size(max=254) String email,@NotBlank @Size(max=100) String displayName,@NotBlank @Size(min=12,max=64) String password,@NotNull Accounts.Role role) {}
     record RoleChange(@NotNull Accounts.Role role) {}
+    record SessionAccount(UUID id,String email,String displayName,Accounts.Role role,boolean newsroomEligible,boolean newsroomAccess) {}
     private final Accounts accounts;
     private final Access access;
-    AccountController(Accounts accounts,Access access) { this.accounts=accounts; this.access=access; }
+    private final NewsroomPolicy newsroom;
+    AccountController(Accounts accounts,Access access,NewsroomPolicy newsroom) { this.accounts=accounts; this.access=access; this.newsroom=newsroom; }
     @GetMapping("/api/auth/csrf") Map<String,String> csrf(CsrfToken token) { return Map.of("token",token.getToken(),"headerName",token.getHeaderName()); }
-    @GetMapping("/api/auth/me") Accounts.Account me() { return access.current(); }
+    @GetMapping("/api/auth/me") SessionAccount me() {
+        var account=access.current();
+        return new SessionAccount(account.id(),account.email(),account.displayName(),account.role(),newsroom.eligible(account),newsroom.verified(account));
+    }
     @PostMapping("/api/auth/register") Accounts.Account register(@Valid @RequestBody Signup input) {
         return accounts.create(input.email(),input.displayName(),input.password(),Accounts.Role.SUBSCRIBER);
     }
