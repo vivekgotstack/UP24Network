@@ -178,12 +178,23 @@ export function ArticleWorkspace({
         </nav>
       )}
       <ConfirmDialog
-        open={Boolean(confirm)} onOpenChange={(open) => { if (!open) setConfirm(null); }}
+        open={Boolean(confirm)}
+        onOpenChange={(open) => {
+          if (!open) setConfirm(null);
+        }}
         title={confirm?.status === 'PUBLISHED' ? 'Unpublish this report?' : 'Publish this report?'}
-        description={confirm ? `“${confirm.article.title}” ${confirm.status === 'PUBLISHED' ? 'will return to drafts and be removed from public pages.' : 'will become visible on the public website.'}` : ''}
+        description={
+          confirm
+            ? `“${confirm.article.title}” ${confirm.status === 'PUBLISHED' ? 'will return to drafts and be removed from public pages.' : 'will become visible on the public website.'}`
+            : ''
+        }
         confirmLabel={confirm?.status === 'PUBLISHED' ? 'Unpublish report' : 'Publish report'}
         destructive={confirm?.status === 'PUBLISHED'}
-        onConfirm={() => confirm ? onPublish(confirm, confirm.status !== 'PUBLISHED', confirm.article.breaking) : false}
+        onConfirm={() =>
+          confirm
+            ? onPublish(confirm, confirm.status !== 'PUBLISHED', confirm.article.breaking)
+            : false
+        }
       />
     </section>
   );

@@ -9,8 +9,8 @@ $secureKey = Read-Host 'Brevo API key (hidden)' -AsSecureString
 $credential = [System.Net.NetworkCredential]::new('', $secureKey)
 $apiKey = $credential.Password.Trim()
 if ($apiKey.Length -lt 20 -or $apiKey -match '[\r\n]') { throw 'The API key is incomplete.' }
-@('up24.providers.brevo.sender-email=' + $sender,
-  'up24.providers.brevo.api-key=' + $apiKey.Replace('\','\\')) |
+@(('up24.providers.brevo.sender-email=' + $sender),
+  ('up24.providers.brevo.api-key=' + $apiKey.Replace('\','\\'))) |
     Set-Content -LiteralPath (Join-Path $localRoot 'mail.properties') -Encoding utf8
 $apiKey = $null
 $credential = $null

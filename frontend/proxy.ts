@@ -1,7 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /** Per-response script nonces; styles remain inline-capable for Framer Motion. */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  if (
+    (request.nextUrl.pathname === '/admin' || request.nextUrl.pathname.startsWith('/admin/')) &&
+    request.nextUrl.pathname !== '/admin/sign-in'
+  ) {
+    const session = request.cookies.get('JSESSIONID');
+    const signIn = () => {
+      const response = NextResponse.redirect(new URL('/admin/sign-in', request.url));
+      response.headers.set('cache-control', 'private, no-store');
+      return response;
+    };
+    if (!session) return signIn();
+    try {
+      const response = await fetch(
+        `${process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080'}/api/auth/me`,
+        {
+          headers: { cookie: `JSESSIONID=${session.value}` },
+          cache: 'no-store',
+          signal: AbortSignal.timeout(5000),
+        },
+      );
+      if (response.status === 401) return signIn();
+      if (!response.ok) throw new Error('Session service unavailable');
+      const account: { newsroomAccess?: boolean; role?: string } = await response.json();
+      if (!account.newsroomAccess) return signIn();
+      const ownerPage = /^\/admin\/(accounts|automations)(\/|$)/.test(request.nextUrl.pathname);
+      if (ownerPage && account.role !== 'ADMIN')
+        return new NextResponse(null, {
+          status: 404,
+          headers: { 'cache-control': 'private, no-store' },
+        });
+    } catch {
+      return NextResponse.json(
+        { detail: 'The private workspace is temporarily unavailable.' },
+        {
+          status: 503,
+          headers: { 'cache-control': 'private, no-store' },
+        },
+      );
+    }
+  }
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const development = process.env.NODE_ENV === 'development';
   const policy = [

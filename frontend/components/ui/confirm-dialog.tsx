@@ -26,34 +26,58 @@ export function ConfirmDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   return (
-    <AlertDialog.Root open={open} onOpenChange={(value) => {
-      if (submitting) return;
-      setError('');
-      onOpenChange(value);
-    }}>
+    <AlertDialog.Root
+      open={open}
+      onOpenChange={(value) => {
+        if (submitting) return;
+        setError('');
+        onOpenChange(value);
+      }}
+    >
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="confirmation-overlay" />
         <AlertDialog.Content className="confirmation-dialog" aria-busy={submitting}>
           <AlertDialog.Title>{title}</AlertDialog.Title>
           <AlertDialog.Description>{description}</AlertDialog.Description>
-          {error && <p className="inline-error" role="alert">{error}</p>}
+          {error && (
+            <p className="inline-error" role="alert">
+              {error}
+            </p>
+          )}
           <div className="cms-row-actions">
             <AlertDialog.Cancel asChild>
-              <Button variant="outline" disabled={submitting}>{cancelLabel}</Button>
+              <Button variant="outline" disabled={submitting}>
+                {cancelLabel}
+              </Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>
-              <Button variant={destructive ? 'destructive' : 'default'} disabled={submitting} onClick={async (event) => {
-                event.preventDefault();
-                setSubmitting(true);
-                setError('');
-                try {
-                  const result = await onConfirm();
-                  if (result === false) setError('The change could not be completed. Close this dialog and review the message on the page.');
-                  else onOpenChange(false);
-                } catch (reason) {
-                  setError(reason instanceof Error ? reason.message : 'The change could not be completed. Please try again.');
-                } finally { setSubmitting(false); }
-              }}>{submitting ? 'Updating…' : confirmLabel}</Button>
+              <Button
+                variant={destructive ? 'destructive' : 'default'}
+                disabled={submitting}
+                onClick={async (event) => {
+                  event.preventDefault();
+                  setSubmitting(true);
+                  setError('');
+                  try {
+                    const result = await onConfirm();
+                    if (result === false)
+                      setError(
+                        'The change could not be completed. Close this dialog and review the message on the page.',
+                      );
+                    else onOpenChange(false);
+                  } catch (reason) {
+                    setError(
+                      reason instanceof Error
+                        ? reason.message
+                        : 'The change could not be completed. Please try again.',
+                    );
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+              >
+                {submitting ? 'Updating…' : confirmLabel}
+              </Button>
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>

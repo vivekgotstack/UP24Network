@@ -53,7 +53,8 @@ export function AdminConsole({
     jobs = jobData.data ?? [];
   const loadError = articleData.error ?? reportData.error ?? accountData.error ?? jobData.error;
   useEffect(() => {
-    if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess) router.replace('/admin/sign-in');
+    if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess)
+      router.replace('/admin/sign-in');
   }, [session.isLoading, session.data, router]);
   useEffect(() => {
     if (loadError?.status === 401) void session.mutate();

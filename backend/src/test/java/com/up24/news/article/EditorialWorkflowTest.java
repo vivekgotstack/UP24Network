@@ -38,6 +38,12 @@ class EditorialWorkflowTest {
         reporter = accounts.create(key + "@reporter.test", "Test reporter", PASSWORD, Accounts.Role.REPORTER);
     }
 
+    private org.springframework.mock.web.MockHttpSession verified(String email) {
+        var session = new org.springframework.mock.web.MockHttpSession();
+        session.setAttribute("up24.newsroom.verified-email",email);
+        session.setAttribute("up24.newsroom.verified-until",java.time.Instant.MAX);
+        return session;
+    }
     private ArticleDesk.Input input(String slug, String title, Long version) {
         return new ArticleDesk.Input(title,slug,"परीक्षण का सारांश।","Uttar Pradesh","Lucknow",
                 "/brand/up24-logo.png","UP24Network",null,null,"परीक्षण रिपोर्ट का पाठ।",version);
@@ -50,16 +56,16 @@ class EditorialWorkflowTest {
                 .startsWith("{bcrypt}");
         String slug = "workflow-" + UUID.randomUUID();
         String body = json.writeValueAsString(input(slug,"परीक्षण रिपोर्ट",null));
-        mvc.perform(post("/api/admin/articles").with(user(reporter.email())).contentType("application/json").content(body))
+        mvc.perform(post("/api/admin/articles").with(user(reporter.email())).session(verified(reporter.email())).contentType("application/json").content(body))
                 .andExpect(status().isForbidden());
-        var result = mvc.perform(post("/api/admin/articles").with(user(reporter.email())).with(csrf())
+        var result = mvc.perform(post("/api/admin/articles").with(user(reporter.email())).session(verified(reporter.email())).with(csrf())
                 .contentType("application/json").content(body)).andExpect(status().isOk()).andReturn();
         var draft = json.readValue(result.getResponse().getContentAsString(),ArticleDesk.Managed.class);
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isNotFound());
         String publication = "{\"version\":0,\"published\":true,\"breaking\":false}";
-        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(reporter.email())).with(csrf())
+        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(reporter.email())).session(verified(reporter.email())).with(csrf())
                 .contentType("application/json").content(publication)).andExpect(status().isForbidden());
-        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).with(csrf())
+        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).session(verified(editor.email())).with(csrf())
                 .contentType("application/json").content(publication)).andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1));
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("परीक्षण रिपोर्ट"));
         desk.publish(draft.id(),1,false,false);
@@ -69,18 +75,18 @@ class EditorialWorkflowTest {
     @Test void staleEditsAndPublicationCannotOverwriteNewerWorkAndRolesAreRechecked() throws Exception {
         var draft = desk.save(null,input("revision-"+UUID.randomUUID(),"Original",null),reporter.id(),reporter.displayName());
         var saved = desk.save(draft.id(),input(draft.article().slug(),"Newer report",0L),reporter.id(),reporter.displayName());
-        mvc.perform(put("/api/admin/articles/"+draft.id()).with(user(reporter.email())).with(csrf()).contentType("application/json")
+        mvc.perform(put("/api/admin/articles/"+draft.id()).with(user(reporter.email())).session(verified(reporter.email())).with(csrf()).contentType("application/json")
                 .content(json.writeValueAsString(input(draft.article().slug(),"Stale report",0L))))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.type").value("urn:up24:article-version-conflict"));
-        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).with(csrf())
+        mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).session(verified(editor.email())).with(csrf())
                 .contentType("application/json").content("{\"version\":0,\"published\":true,\"breaking\":false}"))
                 .andExpect(status().isConflict());
         assertThat(desk.find(draft.id()).orElseThrow().article().title()).isEqualTo("Newer report");
-        mvc.perform(get("/api/admin/articles/"+draft.id()).with(user(editor.email()))).andExpect(status().isOk());
+        mvc.perform(get("/api/admin/articles/"+draft.id()).with(user(editor.email())).session(verified(editor.email()))).andExpect(status().isOk());
         jdbc.update("UPDATE identity_account SET role='SUBSCRIBER' WHERE id=?",editor.id());
-        mvc.perform(get("/api/admin/articles/"+saved.id()).with(user(editor.email()))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/articles/"+saved.id()).with(user(editor.email())).session(verified(editor.email()))).andExpect(status().isForbidden());
         var others = desk.save(null,input("private-"+UUID.randomUUID(),"Private",null),editor.id(),editor.displayName());
-        mvc.perform(get("/api/admin/articles/"+others.id()).with(user(reporter.email()))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/admin/articles/"+others.id()).with(user(reporter.email())).session(verified(reporter.email()))).andExpect(status().isNotFound());
     }
 
     @Test void oldPublishedArticlesRemainAddressableOutsideTheLatestFeed() throws Exception {

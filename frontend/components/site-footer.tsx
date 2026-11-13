@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionHref } from '@/lib/sections';
+import { publicationNavigation } from '@/lib/publication';
 
 export function SiteFooter() {
   return (
@@ -37,10 +38,11 @@ export function SiteFooter() {
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} UP24Network</p>
         <nav aria-label="Publication information">
-          <Link href="/about">About</Link>
-          <Link href="/contact">Contact & corrections</Link>
-          <Link href="/editorial-policy">Editorial standards</Link>
-          <Link href="/privacy">Privacy</Link>
+          {publicationNavigation.map(({ path, label }) => (
+            <Link key={path} href={path}>
+              {label}
+            </Link>
+          ))}
         </nav>
         <a href="#top">Back to top</a>
       </div>

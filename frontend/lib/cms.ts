@@ -1,5 +1,12 @@
 export type Role = 'ADMIN' | 'EDITOR' | 'REPORTER' | 'SUBSCRIBER';
-export type Account = { id: string; email: string; displayName: string; role: Role; newsroomEligible?: boolean; newsroomAccess?: boolean };
+export type Account = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: Role;
+  newsroomEligible?: boolean;
+  newsroomAccess?: boolean;
+};
 
 export class CmsError extends Error {
   constructor(

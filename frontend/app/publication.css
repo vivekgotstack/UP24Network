@@ -1,0 +1,219 @@
+.publication-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 0 20px;
+}
+.publication-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 32px;
+  color: var(--muted);
+  font: 400 13px/1.5 var(--sans);
+}
+.publication-breadcrumb a {
+  color: var(--ink);
+}
+.publication-heading {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 30px;
+  margin-bottom: 38px;
+}
+.publication-heading h1 {
+  max-width: 23ch;
+  font: 700 clamp(34px, 4.5vw, 58px)/1.15 var(--serif);
+  letter-spacing: -0.025em;
+  margin: 14px 0 22px;
+}
+.publication-intro {
+  max-width: 48ch;
+  font: 400 clamp(21px, 2.1vw, 26px)/1.65 var(--serif);
+  color: var(--ink);
+}
+.publication-date {
+  margin-top: 24px;
+  color: var(--muted);
+  font: 400 13px/1.5 var(--sans);
+}
+.publication-layout {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(32px, 5vw, 80px);
+}
+.publication-sidebar {
+  position: sticky;
+  top: 90px;
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  font: 400 14px/1.6 var(--sans);
+}
+.publication-sidebar nav {
+  display: grid;
+  gap: 1px;
+}
+.publication-sidebar .eyebrow {
+  margin-bottom: 14px;
+  font-size: 10px;
+}
+.publication-sidebar a {
+  display: block;
+  padding: 8px 12px;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  text-decoration: none;
+}
+.publication-sidebar a[aria-current='page'] {
+  color: var(--brand-navy);
+  border-color: var(--brand-gold);
+  font-weight: 600;
+  background: var(--surface);
+}
+.publication-sidebar a:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+.publication-sidebar .publication-contents {
+  border-top: 1px solid var(--line);
+  margin-top: 25px;
+  padding-top: 25px;
+}
+.publication-contents a {
+  padding-block: 5px;
+  font-size: 13px;
+}
+.publication-copy {
+  min-width: 0;
+  max-width: 740px;
+  font: 400 19px/1.85 var(--serif);
+}
+.publication-copy section {
+  scroll-margin-top: 100px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 30px;
+  margin-bottom: 32px;
+}
+.publication-copy h2 {
+  margin: 0 0 18px;
+  font: 700 27px/1.45 var(--serif);
+}
+.publication-copy p + p {
+  margin-top: 18px;
+}
+.publication-copy ul {
+  list-style: disc;
+  margin: 18px 0 0;
+  padding-left: 24px;
+}
+.publication-copy li + li {
+  margin-top: 10px;
+}
+.publication-copy a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+.publication-copy a:hover {
+  text-decoration-thickness: 2px;
+}
+.publication-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 24px;
+  font: 600 14px/1.6 var(--sans);
+}
+.publication-channels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 25px;
+}
+.publication-channels a {
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  font-family: var(--sans);
+}
+.publication-channels a:hover {
+  background: var(--surface);
+}
+.publication-channels strong {
+  font-size: 16px;
+}
+.publication-channels span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.publication-note {
+  color: var(--muted);
+  font: 400 14px/1.7 var(--sans);
+}
+@media (max-width: 800px) {
+  .publication-page {
+    padding-top: 20px;
+  }
+  .publication-breadcrumb {
+    margin-bottom: 24px;
+  }
+  .publication-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+  .publication-sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .publication-sidebar nav:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .publication-sidebar nav:first-child .eyebrow {
+    flex-basis: 100%;
+    margin-bottom: 8px;
+  }
+  .publication-sidebar a {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    padding: 7px 9px;
+  }
+  .publication-sidebar .publication-contents {
+    display: none;
+  }
+  .publication-heading {
+    margin-bottom: 22px;
+    padding-bottom: 24px;
+  }
+  .publication-copy {
+    font-size: 18px;
+  }
+  .publication-copy h2 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 420px) {
+  .publication-channels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media print {
+  .publication-sidebar,
+  .publication-breadcrumb {
+    display: none;
+  }
+  .publication-layout {
+    display: block;
+  }
+  .publication-copy {
+    max-width: none;
+    font-size: 12pt;
+  }
+  .publication-copy section {
+    break-inside: avoid;
+  }
+}

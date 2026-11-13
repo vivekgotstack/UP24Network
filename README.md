@@ -69,6 +69,16 @@ events and never reach into another module's internal repositories.
 Prototype links: [Reader](http://127.0.0.1:3000/),
 [Newsroom](http://127.0.0.1:3000/admin), [Reader account](http://127.0.0.1:3000/account).
 
+Latest local milestone (13 November 2026): versioned article edits prevent lost
+updates; older published articles remain addressable; runtime and migration DB
+accounts are separate. The private newsroom requires a password and a session-bound
+email code. Only `vivekni1224@gmail.com` can be Admin; invited Editors and Reporters
+have restricted permissions. Configure the real email sender with
+`./scripts/Configure-Brevo.ps1`, then restart the backend. Public navigation has no
+newsroom link. Nine publication/policy pages now share a full reading layout.
+Backend checks (21), frontend production build and local access/DB checks passed.
+Next small step: authenticated local photograph uploads for the article editor.
+
 ## Run locally
 
 Prerequisites: JDK 21 or newer, Maven 3.6.3 or newer, Node.js 20.9 or newer, npm,

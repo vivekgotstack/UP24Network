@@ -28,7 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.providers.astrologics.api-key=al_live_integration_placeholder"})
+@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.owner-email=owner@automation.test", "up24.bootstrap.admin-email=", "up24.providers.astrologics.api-key=al_live_integration_placeholder"})
 @AutoConfigureMockMvc
 @Transactional
 @Import(AutomationIntegrationTest.TestBeans.class)
@@ -56,7 +56,7 @@ class AutomationIntegrationTest {
     }
 
     @BeforeEach void prepare() {
-        admin = "admin-" + UUID.randomUUID() + "@example.test";
+        admin = "owner@automation.test";
         subscriber = "reader-" + UUID.randomUUID() + "@example.test";
         accounts.create(admin, "Test Admin", "test-password-long-enough", Accounts.Role.ADMIN);
         accounts.create(subscriber, "Test Reader", "test-password-long-enough", Accounts.Role.SUBSCRIBER);
@@ -70,6 +70,12 @@ class AutomationIntegrationTest {
         jdbc.update("DELETE FROM identity_account WHERE email IN (?, ?)", admin, subscriber);
     }
 
+    private org.springframework.mock.web.MockHttpSession verified() {
+        var session = new org.springframework.mock.web.MockHttpSession();
+        session.setAttribute("up24.newsroom.verified-email",admin);
+        session.setAttribute("up24.newsroom.verified-until",Instant.MAX);
+        return session;
+    }
     private HoroscopeEdition edition(LocalDate day) {
         return new HoroscopeEdition(day, NOW, HoroscopeEdition.SIGN_IDS.stream()
                 .map(id -> new HoroscopeEdition.Reading(id, "राशि", "आज का परीक्षण पाठ।", "1", "नीला")).toList());
@@ -79,16 +85,16 @@ class AutomationIntegrationTest {
         horoscopes.save(edition(DAY), "internal-provider", "internal-request", "internal-engine");
         mvc.perform(get("/api/horoscope/today")).andExpect(status().isNoContent());
         String settings = "{\"enabled\":true,\"intervalMinutes\":1440}";
-        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).contentType("application/json").content(settings))
+        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).session(verified()).contentType("application/json").content(settings))
                 .andExpect(status().isForbidden());
         mvc.perform(patch("/api/admin/automations/rashifal").with(user(subscriber)).with(csrf()).contentType("application/json").content(settings))
                 .andExpect(status().isForbidden());
-        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).with(csrf()).contentType("application/json").content(settings))
+        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).session(verified()).with(csrf()).contentType("application/json").content(settings))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(true));
         mvc.perform(get("/api/horoscope/today")).andExpect(status().isOk()).andExpect(jsonPath("$.date").value("2040-01-02"))
                 .andExpect(jsonPath("$.signs.length()").value(12)).andExpect(jsonPath("$.provider").doesNotExist())
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("internal-"))));
-        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).with(csrf()).contentType("application/json")
+        mvc.perform(patch("/api/admin/automations/rashifal").with(user(admin)).session(verified()).with(csrf()).contentType("application/json")
                 .content("{\"enabled\":false,\"intervalMinutes\":1440}")).andExpect(status().isOk());
         mvc.perform(get("/api/horoscope/today")).andExpect(status().isNoContent());
         assertThat(horoscopes.hasEdition(DAY)).isTrue();
@@ -133,7 +139,7 @@ class AutomationIntegrationTest {
     }
 
     @Test void unimplementedProvidersCannotBeEnabled() throws Exception {
-        mvc.perform(patch("/api/admin/automations/health").with(user(admin)).with(csrf()).contentType("application/json")
+        mvc.perform(patch("/api/admin/automations/health").with(user(admin)).session(verified()).with(csrf()).contentType("application/json")
                 .content("{\"enabled\":true,\"intervalMinutes\":1440}")).andExpect(status().isConflict());
     }
 }
