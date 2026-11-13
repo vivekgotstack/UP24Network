@@ -13,7 +13,7 @@ export default function Loading() {
         ))}
       </div>
       <p className="sr-only" role="status">
-        Opening the newsroom…
+        Loading reports…
       </p>
     </main>
   );

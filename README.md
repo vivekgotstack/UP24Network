@@ -88,8 +88,19 @@ It creates a separate development cluster on port 55432 inside ignored local dat
 From the repository root:
 
 ```powershell
-.\scripts\Start-Prototype.ps1
+.\scripts\Start-Preview.ps1
 ```
+
+The preview includes twelve Hindi stories, video, a daily Rashifal edition and
+sample Editor/Reporter accounts in an isolated `local_preview` schema. Credentials
+are in `backend/.local/preview-login.txt`. Request a sign-in code, then read
+`backend/.local/preview-mailbox/latest-message.txt`; preview sends no external mail.
+Admin uses `/admin/sign-in`; employees use `/newsroom/sign-in` and cannot open
+administrative pages. Staff reports require a dateline, media details and private
+source notes; Admin has a shorter workflow. Public ownership names Abhishek
+Srivastav and the editorial publishing team; the developer's identity stays private.
+To use editorial data and Brevo again, run
+`./scripts/Backend.ps1 Restart -Profile default`, then `./scripts/Start-Prototype.ps1`.
 
 If frontend dependencies are missing, install them first:
 

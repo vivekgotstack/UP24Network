@@ -111,10 +111,11 @@
   .masthead-art {
     object-fit: cover;
     object-position: center;
-    z-index: -1;
+    z-index: 0;
   }
   .masthead-identity {
     position: absolute;
+    z-index: 1;
     left: 3.5%;
     top: 50%;
     transform: translateY(-50%);
