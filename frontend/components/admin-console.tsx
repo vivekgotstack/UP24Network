@@ -348,7 +348,7 @@ export function AdminConsole({
                 article={row ?? null}
                 busy={blocked}
                 onDirty={setDirty}
-                onCancel={() => window.location.assign(${basePath}/articles)}
+                onCancel={() => window.location.assign(`${basePath}/articles`)}
                 onSave={(draft, preview) =>
                   act(
                     async () => {

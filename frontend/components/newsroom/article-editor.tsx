@@ -63,7 +63,12 @@ export function ArticleEditor({
   function validated() {
     if (!adminMode && (!draft.city.trim() || !draft.sourceNotes.trim()))
       throw new Error('Add a location and reporting sources before saving.');
-    if (!adminMode && !draft.videoUrl && !draft.youtubeId && (!draft.image || draft.image.startsWith('/brand/')))
+    if (
+      !adminMode &&
+      !draft.videoUrl &&
+      !draft.youtubeId &&
+      (!draft.image || draft.image.startsWith('/brand/'))
+    )
       throw new Error('Choose a photograph or video for this report.');
     if (!adminMode && draft.image && !draft.imageAlt.trim())
       throw new Error('Add a description for the photograph.');
@@ -131,7 +136,16 @@ export function ArticleEditor({
               onChange={(event) => set('slug', event.target.value)}
             />
             <span className="field-help">/news/{draft.slug || 'article-slug'}</span>
-            {adminMode && <Button type="button" size="sm" variant="outline" onClick={() => set('slug',slugify(draft.title))}>Use headline for address</Button>}
+            {adminMode && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => set('slug', slugify(draft.title))}
+              >
+                Use headline for address
+              </Button>
+            )}
           </label>
           <div className="cms-form-row">
             <label>
@@ -169,13 +183,23 @@ export function ArticleEditor({
             />
           </label>
           <details className="reporting-notes" open={adminMode ? undefined : true}>
-            <summary>Reporting sources & verification{adminMode ? ' · Optional' : ' · Required'}</summary>
+            <summary>
+              Reporting sources & verification{adminMode ? ' · Optional' : ' · Required'}
+            </summary>
             <label>
               Private source notes
-              <textarea name="sourceNotes" rows={4} maxLength={10000} required={!adminMode}
-                value={draft.sourceNotes} onChange={(event) => set('sourceNotes',event.target.value)}
-                placeholder="Record the source, how the facts were checked, and any response received." />
-              <span className="field-help">For the editorial team. These notes are never shown in the public article.</span>
+              <textarea
+                name="sourceNotes"
+                rows={4}
+                maxLength={10000}
+                required={!adminMode}
+                value={draft.sourceNotes}
+                onChange={(event) => set('sourceNotes', event.target.value)}
+                placeholder="Record the source, how the facts were checked, and any response received."
+              />
+              <span className="field-help">
+                For the editorial team. These notes are never shown in the public article.
+              </span>
             </label>
           </details>
           <label>

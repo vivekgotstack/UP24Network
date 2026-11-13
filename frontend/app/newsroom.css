@@ -973,5 +973,14 @@
   white-space: pre-wrap;
   margin-bottom: 1rem;
 }
-.reporting-notes { padding: 18px; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); }
-.reporting-notes summary { cursor: pointer; font-weight: 600; margin-bottom: 14px; }
+.reporting-notes {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+.reporting-notes summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 14px;
+}

@@ -45,7 +45,7 @@ try {
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
     $stdout = Join-Path $runtimeDirectory "backend-$stamp.out.log"
     $stderr = Join-Path $runtimeDirectory "backend-$stamp.err.log"
-    $mavenArguments = '"{0}" -q spring-boot:run -Dspring-boot.run.arguments="--server.port=8080 --spring.profiles.active={1}"' -f $mavenPath,$Profile
+    $mavenArguments = '"{0}" -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8080 -Dspring-boot.run.profiles={1}' -f $mavenPath,$Profile
     $launcher = Start-Process -FilePath $env:COMSPEC -ArgumentList @('/d','/s','/c',$mavenArguments) `
         -WorkingDirectory (Join-Path $projectRoot 'backend') -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput $stdout -RedirectStandardError $stderr

@@ -2,7 +2,13 @@ import Link from 'next/link';
 import { NewsImage } from '@/components/news-image';
 import { textLanguage } from '@/lib/language';
 import type { ManagedArticle } from '@/lib/newsroom/types';
-export function ArticlePreview({ row,basePath }: { row: ManagedArticle; basePath: '/admin' | '/newsroom' }) {
+export function ArticlePreview({
+  row,
+  basePath,
+}: {
+  row: ManagedArticle;
+  basePath: '/admin' | '/newsroom';
+}) {
   return (
     <section>
       <header className="cms-section-heading">

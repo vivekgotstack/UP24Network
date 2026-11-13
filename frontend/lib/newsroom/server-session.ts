@@ -5,7 +5,7 @@ import type { Account } from '@/lib/cms';
 
 /** Server boundary: private workspace HTML is never rendered for reader sessions. */
 export async function requireNewsroomSession(scope: 'admin' | 'staff' = 'admin'): Promise<Account> {
-  const signInPath=scope === 'admin' ? '/admin/sign-in' : '/newsroom/sign-in';
+  const signInPath = scope === 'admin' ? '/admin/sign-in' : '/newsroom/sign-in';
   const sessionCookie = (await cookies()).get('JSESSIONID');
   if (!sessionCookie) redirect(signInPath);
   const response = await fetch(
