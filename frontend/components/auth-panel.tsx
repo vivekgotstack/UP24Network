@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand-logo';
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cms, CmsError, type Account } from '@/lib/cms';
@@ -54,7 +54,7 @@ export function AuthPanel({
     <section className="auth-layout">
       <div className="auth-brand-panel">
         <Link href="/" className="brand-badge" aria-label="UP24Network home">
-          <Image src="/brand/up24-logo.png" alt="" width={180} height={180} />
+          <BrandLogo eager />
         </Link>
         <p className="eyebrow">{editorial ? 'THE NEWSROOM' : 'YOUR READING SPACE'}</p>
         <h1 lang="hi">{editorial ? 'हर खबर के पीछे,\nएक जिम्मेदारी।' : 'अच्छी खबरों से\nजुड़े रहिए।'}</h1>

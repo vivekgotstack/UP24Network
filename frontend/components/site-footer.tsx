@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand-logo';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionHref } from '@/lib/sections';
@@ -10,7 +10,7 @@ export function SiteFooter() {
       <div className="footer-main">
         <div className="footer-identity">
           <Link href="/" className="brand-badge footer-logo" aria-label="UP24Network home">
-            <Image src="/brand/up24-logo.png" alt="" width={180} height={180} />
+            <BrandLogo />
           </Link>
           <p lang="hi">
             खबर हमारी

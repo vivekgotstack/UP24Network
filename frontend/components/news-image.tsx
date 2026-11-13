@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { BrandLogo } from '@/components/brand-logo';
 
 export function NewsImage({
   src,
@@ -24,7 +25,7 @@ export function NewsImage({
         aria-label={alt || undefined}
       >
         <span className="brand-badge">
-          <Image src="/brand/up24-logo.png" alt="" width={180} height={180} />
+          <BrandLogo />
         </span>
         <span lang="hi">खबर हमारी यकीन आपका</span>
       </div>

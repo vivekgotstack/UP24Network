@@ -33,6 +33,8 @@ events and never reach into another module's internal repositories.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
   and individual `/news/[slug]` pages.
 - Official UP24Network logo, navy/yellow palette, and Hindi masthead tagline integrated.
+- Supplied official logo replaces the earlier asset; shared marks use its original
+  PNG without lossy resizing or the previous enlargement. Next: local media uploads.
 - Classic newspaper typography: Source Serif/Source Sans for Latin, paired with
   self-hosted Noto Serif Devanagari/Noto Sans Devanagari for Hindi. Hindi headlines
   use natural spacing and room for vowel marks. The original logo sits on a

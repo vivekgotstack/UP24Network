@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand-logo';
 import Link from 'next/link';
 import { LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,7 +57,7 @@ export function NewsroomSignIn({
     <section className="auth-layout">
       <div className="auth-brand-panel">
         <Link href="/" className="brand-badge" aria-label="UP24Network home">
-          <Image src="/brand/up24-logo.png" alt="" width={180} height={180} preload />
+          <BrandLogo eager />
         </Link>
         <p className="eyebrow">PRIVATE NEWSROOM</p>
         <h1 lang="hi">

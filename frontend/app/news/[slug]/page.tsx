@@ -12,6 +12,7 @@ import { ReadingExperience } from '@/components/reading-experience';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { newest } from '@/lib/news';
+import officialLogo from '@/public/brand/up24-logo.png';
 
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
@@ -58,7 +59,7 @@ export default async function ArticlePage({ params }: Props) {
     publisher: {
       '@type': 'Organization',
       name: 'UP24Network',
-      logo: { '@type': 'ImageObject', url: new URL('/brand/up24-logo.png', origin).href },
+      logo: { '@type': 'ImageObject', url: new URL(officialLogo.src, origin).href },
     },
   };
   return (

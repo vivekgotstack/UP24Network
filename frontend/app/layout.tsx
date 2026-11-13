@@ -5,6 +5,7 @@ import { ReadingProgress } from '@/components/reading-progress';
 import { SiteFooter } from '@/components/site-footer';
 import { Providers } from '@/components/providers';
 import { brand } from '@/lib/brand';
+import officialLogo from '@/public/brand/up24-logo.png';
 
 const indexable = process.env.SITE_INDEXABLE === 'true';
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   applicationName: brand.name,
   publisher: brand.name,
   openGraph: { siteName: brand.name, locale: 'hi_IN', type: 'website' },
-  icons: { icon: '/brand/up24-logo.png', apple: '/brand/up24-logo.png' },
+  icons: { icon: officialLogo.src, apple: officialLogo.src },
   robots: { index: indexable, follow: indexable },
 };
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

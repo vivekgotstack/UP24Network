@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { SectionMenu } from '@/components/section-menu';
 import { SearchLink } from '@/components/search-link';
+import { BrandLogo } from '@/components/brand-logo';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 
 export function SiteHeader({
@@ -41,7 +42,7 @@ export function SiteHeader({
         <div className="masthead-identity">
           <Link className="brand-lockup" href="/" aria-label="UP24Network home">
             <span className="brand-badge">
-              <Image src="/brand/up24-logo.png" alt="" width={180} height={180} preload />
+              <BrandLogo eager />
             </span>
           </Link>
           <p className="masthead-tagline" lang="hi">
