@@ -93,6 +93,11 @@ From the repository root:
 .\scripts\Start-Preview.ps1
 ```
 
+This starts the project PostgreSQL cluster before Spring Boot. After a reboot,
+running the Java application directly can fail with `127.0.0.1:55432 refused`
+until the database is started. For an IDE launch, run
+`./scripts/Start-LocalDatabase.ps1` from the repository root first.
+
 The preview includes twelve Hindi stories, video, a daily Rashifal edition and
 sample Editor/Reporter accounts in an isolated `local_preview` schema. Credentials
 are in `backend/.local/preview-login.txt`. Request a sign-in code, then read
