@@ -29,6 +29,7 @@ export default async function SectionPage({ params, searchParams }: Props) {
   const section = newsSections.find((s) => s.slug === slug);
   if (!section) notFound();
   if (section.name === 'Videos') redirect('/watch');
+  if (section.slug === 'uttar-pradesh') redirect('/region/uttar-pradesh');
   const results =
     section.name === 'Rashifal'
       ? null

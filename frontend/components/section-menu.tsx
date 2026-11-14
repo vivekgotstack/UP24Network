@@ -19,7 +19,7 @@ export function SectionMenu() {
       }}
     >
       <Dialog.Trigger asChild>
-        <Button variant="ghost" className="section-menu-trigger">
+        <Button variant="ghost" className="section-menu-trigger" aria-label="सभी विभाग">
           <Menu size={18} aria-hidden="true" />
           <span>सभी विभाग</span>
         </Button>

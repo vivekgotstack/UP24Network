@@ -52,6 +52,7 @@
   .section-nav {
     gap: 23px;
     overflow-x: auto;
+    overflow-y: hidden;
     min-height: 54px;
     scrollbar-width: thin;
   }

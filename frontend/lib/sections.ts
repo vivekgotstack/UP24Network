@@ -250,6 +250,7 @@ export function sectionCategories(section: NewsSection): string[] {
 export const sections = newsSections.map((section) => section.name);
 export function sectionHref(name: string) {
   const section = newsSections.find((section) => section.name === name);
+  if (section?.slug === 'uttar-pradesh') return '/region/uttar-pradesh';
   return section?.slug === 'videos' ? '/watch' : section ? `/section/${section.slug}` : '/latest';
 }
 export function sectionTitle(name: string) {

@@ -76,13 +76,19 @@ function Find-Up24Backend {
 }
 
 function Wait-Up24Backend {
-    param([System.Diagnostics.Process]$Launcher, [int]$TimeoutSeconds = 90)
+    param([System.Diagnostics.Process]$Launcher, [int]$TimeoutSeconds = 180)
+    $started = [DateTime]::UtcNow
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    $nextProgress = $started.AddSeconds(15)
     do {
         if (Test-Up24BackendHealth) { return }
         if ($Launcher) {
             $Launcher.Refresh()
             if ($Launcher.HasExited) { throw 'The backend launcher exited before the application became healthy. Check its startup logs.' }
+        }
+        if ([DateTime]::UtcNow -ge $nextProgress) {
+            Write-Output ("Waiting for backend startup ({0}s elapsed)…" -f [int]([DateTime]::UtcNow - $started).TotalSeconds)
+            $nextProgress = [DateTime]::UtcNow.AddSeconds(15)
         }
         Start-Sleep -Milliseconds 500
     } while ([DateTime]::UtcNow -lt $deadline)

@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: new URL(path || '/', origin).href,
     })),
     ...newsSections
-      .filter((s) => s.name !== 'Videos')
+      .filter((s) => s.name !== 'Videos' && s.slug !== 'uttar-pradesh')
       .map((s) => ({ url: new URL(`/section/${s.slug}`, origin).href })),
     ...reports
       .filter((a) => !a.demo)
