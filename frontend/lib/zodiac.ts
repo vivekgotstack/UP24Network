@@ -48,6 +48,6 @@ const colourSwatches: Readonly<Record<string, string>> = {
   gray: '#90979e',
 };
 
-export function luckyColourSwatch(colour: string) {
+export function luckyColourSwatch(colour: string): string | undefined {
   return colourSwatches[colour.trim().toLocaleLowerCase('hi-IN')];
 }
