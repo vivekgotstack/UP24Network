@@ -11,7 +11,9 @@ export function SiteFooter() {
       <div className="footer-main">
         <EditionArt />
         <nav className="social-links" aria-label="Official UP24Network channels">
-          <h2 className="footer-social-heading" lang="hi">आधिकारिक चैनल</h2>
+          <h2 className="footer-social-heading" lang="hi">
+            आधिकारिक चैनल
+          </h2>
           {brand.socials.map((social) => (
             <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
               {social.name}
