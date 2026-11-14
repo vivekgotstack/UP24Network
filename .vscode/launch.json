@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "UP24Network: Local preview",
+      "request": "launch",
+      "mainClass": "com.up24.news.NewsApplication",
+      "cwd": "${workspaceFolder}/backend",
+      "env": { "SPRING_PROFILES_ACTIVE": "local-preview" },
+      "preLaunchTask": "up24: prepare backend",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "java",
+      "name": "UP24Network: Editorial data",
+      "request": "launch",
+      "mainClass": "com.up24.news.NewsApplication",
+      "cwd": "${workspaceFolder}/backend",
+      "env": { "SPRING_PROFILES_ACTIVE": "default" },
+      "preLaunchTask": "up24: prepare backend",
+      "console": "integratedTerminal"
+    }
+  ]
+}

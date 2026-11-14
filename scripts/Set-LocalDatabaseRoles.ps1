@@ -1,6 +1,7 @@
 param([Parameter(Mandatory)][string]$PostgresBin)
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Local-Configuration.ps1')
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $localRoot = Join-Path $projectRoot 'backend\.local'
 $configurationPath = Join-Path $localRoot 'application.properties'
@@ -13,13 +14,13 @@ if (-not (Test-Path -LiteralPath $clusterPath)) {
     if ($configuration['spring.datasource.username'] -ne 'up24') {
         throw 'The original local cluster credential is missing. Restore backend/.local/cluster.properties.'
     }
-    ('password=' + $configuration['spring.datasource.password']) | Set-Content -LiteralPath $clusterPath -Encoding utf8
+    Write-Up24Utf8File -Path $clusterPath -Lines @('password=' + $configuration['spring.datasource.password'])
 }
 if (-not (Test-Path -LiteralPath $rolesPath)) {
-    @(
-        ('applicationPassword=' + [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(24)))
-        ('migrationPassword=' + [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(24)))
-    ) | Set-Content -LiteralPath $rolesPath -Encoding utf8
+    Write-Up24Utf8File -Path $rolesPath -Lines @(
+        ('applicationPassword=' + (New-Up24LocalSecret -ByteCount 24))
+        ('migrationPassword=' + (New-Up24LocalSecret -ByteCount 24))
+    )
 }
 $cluster = Get-Content -Raw -LiteralPath $clusterPath | ConvertFrom-StringData
 $roles = Get-Content -Raw -LiteralPath $rolesPath | ConvertFrom-StringData
@@ -58,6 +59,6 @@ $configuration['spring.datasource.password'] = $roles['applicationPassword']
 $configuration['spring.flyway.url'] = $configuration['spring.datasource.url']
 $configuration['spring.flyway.user'] = 'up24_migrator'
 $configuration['spring.flyway.password'] = $roles['migrationPassword']
-$configuration.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Key + '=' + $_.Value } |
-    Set-Content -LiteralPath $configurationPath -Encoding utf8
+$configurationLines = @($configuration.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Key + '=' + $_.Value })
+Write-Up24Utf8File -Path $configurationPath -Lines $configurationLines
 Write-Output 'Database roles ready: restricted application login and separate migration owner.'

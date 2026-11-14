@@ -99,10 +99,14 @@ From the repository root:
 .\scripts\Start-Preview.ps1
 ```
 
-This starts the project PostgreSQL cluster before Spring Boot. After a reboot,
-running the Java application directly can fail with `127.0.0.1:55432 refused`
-until the database is started. For an IDE launch, run
-`./scripts/Start-LocalDatabase.ps1` from the repository root first.
+This starts the project PostgreSQL cluster before Spring Boot. In VS Code, select
+**UP24Network: Local preview** in Run and Debug, then press F5. Its pre-launch task
+starts PostgreSQL and releases any previous backend from this workspace. Use
+**UP24Network: Editorial data** for the normal database schema. Both configurations
+work when opening the repository root or just `backend/`; local setup supports
+Windows PowerShell 5.1 without requiring another PowerShell installation.
+For a plain Java command outside these launchers, start the database first with
+`./scripts/Start-LocalDatabase.ps1`.
 
 The preview includes twelve Hindi stories, video, a daily Rashifal edition and
 sample Editor/Reporter accounts in an isolated `local_preview` schema. Credentials

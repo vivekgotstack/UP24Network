@@ -18,7 +18,11 @@ out/
 # Editor and operating system files
 .idea/
 *.iml
-.vscode/
+**/.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!backend/.vscode/launch.json
+!backend/.vscode/tasks.json
 .DS_Store
 Thumbs.db
 *.log

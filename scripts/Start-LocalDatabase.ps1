@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Local-Configuration.ps1')
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $localRoot = Join-Path $projectRoot 'backend\.local'
 $dataDirectory = Join-Path $localRoot 'postgres'
@@ -11,17 +12,16 @@ if (-not $postgresBin) { throw 'Install PostgreSQL or set UP24_POSTGRES_BIN to i
 New-Item -ItemType Directory -Force -Path $localRoot | Out-Null
 $configurationPath = Join-Path $localRoot 'application.properties'
 if (-not (Test-Path -LiteralPath $configurationPath)) {
-    $databasePassword = [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
-    $adminPassword = [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(16))
-    @(
+    $databasePassword = New-Up24LocalSecret -ByteCount 24
+    $adminPassword = New-Up24LocalSecret -ByteCount 16
+    Write-Up24Utf8File -Path $configurationPath -Lines @(
         'spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/up24network'
         'spring.datasource.username=up24'
         ('spring.datasource.password=' + $databasePassword)
         'up24.bootstrap.admin-email=vivekni1224@gmail.com'
         ('up24.bootstrap.admin-password=' + $adminPassword)
-    ) | Set-Content -LiteralPath $configurationPath -Encoding utf8
-    @('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $adminPassword)) |
-        Set-Content -LiteralPath (Join-Path $localRoot 'admin-login.txt') -Encoding utf8
+    )
+    Write-Up24Utf8File -Path (Join-Path $localRoot 'admin-login.txt') -Lines @('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $adminPassword))
 }
 $configuration = Get-Content -Raw -LiteralPath $configurationPath | ConvertFrom-StringData
 $databasePassword = $configuration['spring.datasource.password']
@@ -31,14 +31,19 @@ if (Test-Path -LiteralPath $clusterPath) {
 }
 if (-not (Test-Path -LiteralPath (Join-Path $dataDirectory 'PG_VERSION'))) {
     $passwordPath = Join-Path $localRoot 'init-password.txt'
-    Set-Content -LiteralPath $passwordPath -Value $databasePassword -Encoding utf8
+    Write-Up24Utf8File -Path $passwordPath -Lines @($databasePassword)
     try {
         & (Join-Path $postgresBin 'initdb.exe') -D $dataDirectory -U up24 -A scram-sha-256 --encoding=UTF8 --no-locale --pwfile=$passwordPath
         if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL initialization failed.' }
     } finally { Remove-Item -LiteralPath $passwordPath -ErrorAction SilentlyContinue }
 }
-& (Join-Path $postgresBin 'pg_ctl.exe') -D $dataDirectory status *> $null
-if ($LASTEXITCODE -ne 0) {
+$statusPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & (Join-Path $postgresBin 'pg_ctl.exe') -D $dataDirectory status *> $null
+    $databaseRunning = $LASTEXITCODE -eq 0
+} finally { $ErrorActionPreference = $statusPreference }
+if (-not $databaseRunning) {
     & (Join-Path $postgresBin 'pg_ctl.exe') -D $dataDirectory -l (Join-Path $localRoot 'postgres.log') -o '-h 127.0.0.1 -p 55432' -w start
     if ($LASTEXITCODE -ne 0) { throw 'The project database could not start. Check backend/.local/postgres.log.' }
 }
@@ -56,12 +61,11 @@ $configuration['up24.newsroom.admin-email'] = 'vivekni1224@gmail.com'
 $configuration.Remove('up24.newsroom.owner-email')
 $configuration['up24.bootstrap.admin-email'] = 'vivekni1224@gmail.com'
 if (-not $configuration['up24.newsroom.otp-secret']) {
-    $configuration['up24.newsroom.otp-secret'] = [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+    $configuration['up24.newsroom.otp-secret'] = New-Up24LocalSecret -ByteCount 32
 }
-$configuration.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Key + '=' + $_.Value } |
-    Set-Content -LiteralPath $configurationPath -Encoding utf8
-@('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $configuration['up24.bootstrap.admin-password'])) |
-    Set-Content -LiteralPath (Join-Path $localRoot 'admin-login.txt') -Encoding utf8
+$configurationLines = @($configuration.GetEnumerator() | Sort-Object Name | ForEach-Object { $_.Key + '=' + $_.Value })
+Write-Up24Utf8File -Path $configurationPath -Lines $configurationLines
+Write-Up24Utf8File -Path (Join-Path $localRoot 'admin-login.txt') -Lines @('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $configuration['up24.bootstrap.admin-password']))
 & (Join-Path $PSScriptRoot 'Set-LocalDatabaseRoles.ps1') -PostgresBin $postgresBin
 Write-Output 'UP24Network database ready on 127.0.0.1:55432.'
 Write-Output 'Local admin credentials: backend/.local/admin-login.txt (excluded from Git).'
