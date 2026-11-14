@@ -9,7 +9,6 @@ import { getArticles } from '@/lib/articles';
 import { newest } from '@/lib/news';
 import { newsSections, sectionHref, sectionCategories } from '@/lib/sections';
 import { cities } from '@/lib/regions';
-import { EditionArt } from '@/components/edition-art';
 import { WatchSection } from '@/components/watch-section';
 import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
@@ -122,7 +121,6 @@ export default async function Home({
             </div>
           </section>
         ))}
-        <EditionArt />
         <section className="section-directory">
           <div className="section-heading">
             <h2 lang="hi">हर खबर की अपनी जगह</h2>

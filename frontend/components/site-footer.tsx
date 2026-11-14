@@ -1,4 +1,4 @@
-import { BrandLogo } from '@/components/brand-logo';
+import { EditionArt } from '@/components/edition-art';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
@@ -7,29 +7,11 @@ import { publicationNavigation } from '@/lib/publication';
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" id="site-footer">
       <div className="footer-main">
-        <div className="footer-identity">
-          <Link href="/" className="brand-badge footer-logo" aria-label="UP24Network home">
-            <BrandLogo />
-          </Link>
-          <p lang="hi">
-            खबर हमारी
-            <br />
-            यकीन आपका
-          </p>
-        </div>
-        <nav className="footer-sections" aria-label="Explore news">
-          {['india', 'uttar-pradesh', 'sports', 'business', 'entertainment', 'technology']
-            .map((slug) => newsSections.find((section) => section.slug === slug)!)
-            .map((section) => (
-              <Link key={section.slug} href={sectionHref(section.name)} lang="hi">
-                {section.title}
-              </Link>
-            ))}
-        </nav>
+        <EditionArt />
         <nav className="social-links" aria-label="Official UP24Network channels">
-          <p className="eyebrow">OUR CHANNELS</p>
+          <h2 className="footer-social-heading" lang="hi">आधिकारिक चैनल</h2>
           {brand.socials.map((social) => (
             <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
               {social.name}
