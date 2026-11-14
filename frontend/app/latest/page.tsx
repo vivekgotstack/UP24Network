@@ -4,8 +4,7 @@ import { HeadlineTicker } from '@/components/headline-ticker';
 import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
-import { getArticles } from '@/lib/articles';
-import { newest, pageOf } from '@/lib/news';
+import { getArticlePage } from '@/lib/articles';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -18,12 +17,12 @@ export default async function Latest({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const [articles, params] = await Promise.all([getArticles(), searchParams]);
-  const results = pageOf(newest(articles), params.page);
+  const params = await searchParams;
+  const results = await getArticlePage({ page: params.page });
   return (
     <>
       <SiteHeader latest />
-      <HeadlineTicker articles={articles} />
+      <HeadlineTicker articles={results.items} />
       <main id="main-content">
         <header className="page-heading" id="stories">
           <div>

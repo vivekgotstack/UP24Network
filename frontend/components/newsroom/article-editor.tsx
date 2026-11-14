@@ -6,6 +6,7 @@ import { ArticleConflict } from '@/components/newsroom/article-conflict';
 import { CmsError } from '@/lib/cms';
 
 import { sections } from '@/lib/sections';
+import { cities, regions } from '@/lib/regions';
 import {
   toDraft,
   slugify,
@@ -164,13 +165,47 @@ export function ArticleEditor({
               City
               <input
                 name="city"
+                list="newsroom-cities"
                 required={!adminMode}
                 value={draft.city}
                 maxLength={100}
-                onChange={(event) => set('city', event.target.value)}
+                onChange={(event) => {
+                  const city = event.target.value;
+                  const known = cities.find((item) =>
+                    item.aliases.some((alias) => alias.toLowerCase() === city.trim().toLowerCase()),
+                  );
+                  setDraft((current) => ({
+                    ...current,
+                    city,
+                    region: known?.region ?? current.region,
+                  }));
+                }}
               />
+              <datalist id="newsroom-cities">
+                {cities.map((city) => (
+                  <option key={city.slug} value={city.title} />
+                ))}
+              </datalist>
             </label>
           </div>
+          <label>
+            Regional edition
+            <select
+              name="region"
+              value={draft.region}
+              onChange={(event) => set('region', event.target.value)}
+            >
+              <option value="">National / international / unassigned</option>
+              {regions.map((region) => (
+                <option key={region.slug} value={region.slug}>
+                  {region.title}
+                </option>
+              ))}
+            </select>
+            <span className="cms-field-hint">
+              Select an edition even when reporting from a town outside the city directory.
+            </span>
+          </label>
           <label>
             Summary
             <textarea

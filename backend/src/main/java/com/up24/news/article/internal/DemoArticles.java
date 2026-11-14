@@ -2,6 +2,8 @@ package com.up24.news.article.internal;
 
 import com.up24.news.article.ArticleView;
 import com.up24.news.article.Articles;
+import com.up24.news.article.ArticlePage;
+import com.up24.news.article.ArticleQuery;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +63,19 @@ class DemoArticles implements Articles {
     @Override
     public List<ArticleView> published() {
         return articles;
+    }
+
+    @Override public ArticlePage browse(ArticleQuery query) {
+        var filtered = articles.stream()
+                .filter(a -> query.region().isEmpty() || query.region().equals(java.util.Map.of("Lucknow", "uttar-pradesh", "Noida", "uttar-pradesh", "Prayagraj", "uttar-pradesh", "Varanasi", "uttar-pradesh", "New Delhi", "delhi").get(a.city())))
+                .filter(a -> query.categories().isEmpty() || query.categories().contains(a.category()))
+                .filter(a -> query.cities().isEmpty() || query.cities().contains(a.city().trim().toLowerCase(java.util.Locale.ROOT)))
+                .filter(a -> !query.videoOnly() || a.videoUrl() != null || a.youtubeId() != null)
+                .filter(a -> java.util.Arrays.stream(query.search().toLowerCase(java.util.Locale.ROOT).split("\\s+"))
+                        .allMatch(word -> (a.title()+" "+a.summary()+" "+a.city()+" "+a.category()).toLowerCase(java.util.Locale.ROOT).contains(word)))
+                .sorted(java.util.Comparator.comparing(ArticleView::publishedAt).reversed().thenComparing(ArticleView::slug)).toList();
+        int pages = ArticlePage.pages(filtered.size(), query.size()), page = Math.min(query.page(), pages);
+        return new ArticlePage(filtered.stream().skip((long)(page-1)*query.size()).limit(query.size()).toList(), filtered.size(), page, query.size(), pages);
     }
 
     @Override

@@ -7,6 +7,7 @@ export type ManagedArticle = {
   version: number;
   article: Article;
   sourceNotes: string;
+  region: string;
 };
 export type Draft = {
   title: string;
@@ -14,6 +15,7 @@ export type Draft = {
   summary: string;
   category: string;
   city: string;
+  region: string;
   image: string;
   imageAlt: string;
   videoUrl: string;
@@ -28,6 +30,7 @@ export const emptyDraft: Draft = {
   summary: '',
   category: 'Uttar Pradesh',
   city: '',
+  region: '',
   image: '',
   imageAlt: '',
   videoUrl: '',
@@ -43,6 +46,7 @@ export function toDraft(row?: ManagedArticle | null): Draft {
         summary: row.article.summary,
         category: row.article.category,
         city: row.article.city,
+        region: row.region ?? '',
         image: row.article.image,
         imageAlt: row.article.imageAlt,
         videoUrl: row.article.videoUrl ?? '',

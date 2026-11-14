@@ -3,8 +3,7 @@ import { SiteHeader } from '@/components/site-header';
 import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
-import { getArticles } from '@/lib/articles';
-import { hasVideo, newest, pageOf } from '@/lib/news';
+import { getArticlePage } from '@/lib/articles';
 import { brand } from '@/lib/brand';
 
 export const dynamic = 'force-dynamic';
@@ -18,8 +17,8 @@ export default async function Watch({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const [articles, filters] = await Promise.all([getArticles(), searchParams]);
-  const result = pageOf(newest(articles).filter(hasVideo), filters.page);
+  const filters = await searchParams;
+  const result = await getArticlePage({ videoOnly: true, page: filters.page });
   return (
     <>
       <SiteHeader category="Videos" />

@@ -10,16 +10,18 @@ public interface ArticleDesk {
                  @Size(max=100) String city,@Size(max=2000) String image,@Size(max=500) String imageAlt,
                  @Size(max=2000) String videoUrl,@Pattern(regexp="^$|^[A-Za-z0-9_-]{11}$") String youtubeId,
                  @NotBlank @Size(max=100000) String body,@PositiveOrZero Long version,
-                 @Size(max=10000) String sourceNotes) {}
-    record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article,String sourceNotes) {}
+                 @Size(max=10000) String sourceNotes,
+                 @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region) {}
+    record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article,String sourceNotes,String region) {}
     record Imported(String upstreamKey,String slug,String title,String summary,String category,String city,
                     String image,String imageAlt,String videoUrl,String youtubeId,List<String> paragraphs,
-                    Instant publishedAt,boolean breaking,String sourceUrl) {}
+                    Instant publishedAt,boolean breaking,String sourceUrl,String region) {}
     List<Managed> list(UUID authorId);
     Optional<Managed> find(UUID id);
     Managed save(UUID id,Input input,UUID actor,String author);
     Managed publish(UUID id,long version,boolean published,boolean breaking);
     List<ArticleView> published();
+    ArticlePage browse(ArticleQuery query);
     Optional<ArticleView> findPublished(String slug);
     boolean importPublished(Imported article);
 }

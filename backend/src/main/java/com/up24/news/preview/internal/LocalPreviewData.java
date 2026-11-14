@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
 @Profile("local-preview")
 @Order(100)
 class LocalPreviewData implements ApplicationRunner {
-    record Story(String slug,String title,String summary,String category,String city,String image,String imageAlt,String videoUrl,List<String> paragraphs) {}
+    record Story(String slug,String title,String summary,String category,String city,String image,String imageAlt,String videoUrl,List<String> paragraphs,String region) {}
     private final Accounts accounts;
     private final ArticleDesk articles;
     private final Horoscopes horoscopes;
@@ -44,13 +44,17 @@ class LocalPreviewData implements ApplicationRunner {
         String password=Files.readString(passwordPath).trim();
         var editor=accounts.find("editor@preview.up24.local").orElseGet(()->accounts.create("editor@preview.up24.local","समीक्षा संपादक",password,Accounts.Role.EDITOR));
         var reporter=accounts.find("reporter@preview.up24.local").orElseGet(()->accounts.create("reporter@preview.up24.local","स्थानीय संवाददाता",password,Accounts.Role.REPORTER));
-        List<Story> fixtures;
-        try(var input=new ClassPathResource("preview/stories.json").getInputStream()) { fixtures=json.readValue(input,new TypeReference<>() {}); }
+        List<Story> fixtures = new java.util.ArrayList<>();
+        for (String resource : List.of("preview/stories.json", "preview/discovery-stories.json")) {
+            try (var input = new ClassPathResource(resource).getInputStream()) {
+                fixtures.addAll(json.readValue(input, new TypeReference<List<Story>>() {}));
+            }
+        }
         var now=clock.instant();
         for(int index=0;index<fixtures.size();index++) {
             var story=fixtures.get(index);
             articles.importPublished(new ArticleDesk.Imported("local-preview:"+story.slug(),story.slug(),story.title(),story.summary(),story.category(),story.city(),
-                    story.image(),story.imageAlt(),story.videoUrl(),null,story.paragraphs(),now.minusSeconds(900L+index*2400L),index==0,null));
+                    story.image(),story.imageAlt(),story.videoUrl(),null,story.paragraphs(),now.minusSeconds(900L+index*2400L),index==0,null,story.region()));
         }
         for(int index=0;index<2;index++) {
             String slug="reporter-draft-"+(index+1);
@@ -58,7 +62,7 @@ class LocalPreviewData implements ApplicationRunner {
                 var sample=fixtures.get(index+1);
                 articles.save(null,new ArticleDesk.Input("समीक्षा के लिए: "+sample.title(),slug,sample.summary(),sample.category(),sample.city(),
                         sample.image(),sample.imageAlt(),sample.videoUrl(),null,String.join("\n\n",sample.paragraphs()),null,
-                        "स्थानीय प्रीव्यू की नमूना रिपोर्ट। स्रोत, स्थान और दृश्य सामग्री का विवरण संपादकीय अभ्यास के लिए जोड़ा गया है।"),reporter.id(),reporter.displayName());
+                        "स्थानीय प्रीव्यू की नमूना रिपोर्ट। स्रोत, स्थान और दृश्य सामग्री का विवरण संपादकीय अभ्यास के लिए जोड़ा गया है।",sample.region()),reporter.id(),reporter.displayName());
             }
         }
         var day=LocalDate.now(clock.withZone(HoroscopeEdition.EDITION_ZONE));

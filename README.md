@@ -29,6 +29,12 @@ events and never reach into another module's internal repositories.
 
 ## Current checkpoint
 
+- Expanded reader navigation: 32 sections, nested subject pages, 8 regional hubs and 22 city editions.
+- Compact logo/category header; the large editorial artwork now appears within the homepage.
+- Article discovery uses bounded database pagination, category/city filters and keyword search instead of filtering the latest 100 reports in the browser.
+- Local preview includes 35 published Hindi stories across the new desks and cities, plus the daily Rashifal; operational data stays separate.
+- Next small step: dedicated photo-story publishing and topic collections, using the existing editorial permissions.
+
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
   and individual `/news/[slug]` pages.

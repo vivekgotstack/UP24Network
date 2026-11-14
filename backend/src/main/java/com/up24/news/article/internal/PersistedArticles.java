@@ -11,6 +11,7 @@ class PersistedArticles implements Articles {
     private final ArticleDesk desk;
     PersistedArticles(ArticleDesk desk) { this.desk=desk; }
     @Override public List<ArticleView> published() { return desk.published(); }
+    @Override public ArticlePage browse(ArticleQuery query) { return desk.browse(query); }
     @Override public Optional<ArticleView> findPublished(String slug) {
         return desk.findPublished(slug);
     }

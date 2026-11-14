@@ -72,7 +72,7 @@ class YouTubeSource implements AutomationSource {
                 reports.add(new ArticleDesk.Imported("youtube:" + id, "video-" + id, title,
                         "From the UP24Network YouTube channel.", "Videos", "UP24Network", thumbnail, title, null, id,
                         List.of("Watch this report on the official UP24Network YouTube channel."),
-                        Instant.parse(text(entry, "published")), false, "https://www.youtube.com/watch?v=" + id));
+                        Instant.parse(text(entry, "published")), false, "https://www.youtube.com/watch?v=" + id, ""));
             }
             return List.copyOf(reports);
         } catch (Exception exception) {

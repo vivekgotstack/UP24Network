@@ -4,6 +4,7 @@
 @import './newsroom.css';
 @import './daily-edition.css';
 @import './publication.css';
+@import './coverage.css';
 @font-face {
   font-family: 'Noto Serif Devanagari';
   font-weight: 400 700;

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { SectionMenu } from '@/components/section-menu';
 import { SearchLink } from '@/components/search-link';
@@ -30,25 +29,30 @@ export function SiteHeader({
           <Link href="/account">My account</Link>
         </div>
       </div>
-      <header className={`masthead ${compact ? 'masthead-compact' : ''}`}>
-        <Image
-          className="masthead-art"
-          src="/brand/newsroom-banner-balanced.png"
-          alt="Editorial illustration of government and opposition leaders with Uttar Pradesh landmarks"
-          fill
-          preload
-          sizes="(max-width: 1320px) 100vw, 1280px"
-        />
-        <div className="masthead-identity">
+      <header className={`compact-header ${compact ? 'compact-header-minimal' : ''}`}>
+        <div className="compact-identity">
           <Link className="brand-lockup" href="/" aria-label="UP24Network home">
-            <span className="brand-badge">
+            <span className="compact-logo">
               <BrandLogo eager />
             </span>
           </Link>
-          <p className="masthead-tagline" lang="hi">
+          <p className="compact-tagline" lang="hi">
             खबर हमारी यकीन आपका
           </p>
         </div>
+        <form action="/search" role="search" className="header-search">
+          <label className="sr-only" htmlFor="header-query">
+            Search UP24Network
+          </label>
+          <input
+            id="header-query"
+            name="q"
+            type="search"
+            placeholder="खबर, विषय या शहर"
+            maxLength={120}
+          />
+          <button type="submit">खोजें</button>
+        </form>
       </header>
       <nav className="section-nav" aria-label="News sections">
         <Link href="/" aria-current={home ? 'page' : undefined}>
@@ -57,7 +61,16 @@ export function SiteHeader({
         <Link href="/latest" aria-current={latest ? 'page' : undefined}>
           ताजा खबरें
         </Link>
-        {['Uttar Pradesh', 'India', 'Politics', 'Sports'].map((section) => (
+        {[
+          'Uttar Pradesh',
+          'India',
+          'World',
+          'Politics',
+          'Cricket',
+          'Entertainment',
+          'Business',
+          'Technology',
+        ].map((section) => (
           <Link
             key={section}
             href={sectionHref(section)}
@@ -67,6 +80,7 @@ export function SiteHeader({
             {sectionTitle(section)}
           </Link>
         ))}
+        <Link href="/regions">राज्य और शहर</Link>
         <Link
           href="/watch"
           className="watch-nav"
@@ -76,6 +90,27 @@ export function SiteHeader({
           वीडियो
         </Link>
         <SectionMenu />
+      </nav>
+      <nav className="secondary-nav" aria-label="More news sections">
+        {[
+          'Education',
+          'Jobs',
+          'Agriculture',
+          'Health & Wellness',
+          'Religion',
+          'Rashifal',
+          'Lifestyle',
+          'Auto',
+          'Explainers',
+        ].map((section) => (
+          <Link
+            key={section}
+            href={sectionHref(section)}
+            aria-current={category === section ? 'page' : undefined}
+          >
+            {sectionTitle(section)}
+          </Link>
+        ))}
       </nav>
     </>
   );

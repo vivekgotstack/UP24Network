@@ -42,6 +42,40 @@ export const getArticle = cache(async (slug: string): Promise<Article | undefine
   return response.json();
 });
 
+export type ArticlePage = {
+  items: Article[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+};
+export type ArticleFilters = {
+  region?: string;
+  categories?: string[];
+  cities?: string[];
+  q?: string;
+  videoOnly?: boolean;
+  page?: string;
+  size?: number;
+};
+export async function getArticlePage(filters: ArticleFilters = {}): Promise<ArticlePage> {
+  const parameters = new URLSearchParams();
+  if (filters.region) parameters.set('region', filters.region);
+  for (const category of filters.categories ?? []) parameters.append('category', category);
+  for (const city of filters.cities ?? []) parameters.append('city', city);
+  if (filters.q) parameters.set('q', filters.q.slice(0, 200));
+  if (filters.videoOnly) parameters.set('videoOnly', 'true');
+  const page = Number(filters.page);
+  parameters.set(
+    'page',
+    String(Number.isSafeInteger(page) && page > 0 ? Math.min(page, 100000) : 1),
+  );
+  parameters.set('size', String(filters.size ?? 12));
+  const response = await request(`/api/articles/browse?${parameters}`);
+  if (!response.ok) throw new Error('The news library is temporarily unavailable.');
+  return response.json();
+}
+
 export function articleDate(date: string) {
   return new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',

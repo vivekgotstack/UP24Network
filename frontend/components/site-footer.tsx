@@ -1,7 +1,8 @@
 import { BrandLogo } from '@/components/brand-logo';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
-import { newsSections, sectionHref } from '@/lib/sections';
+import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
+import { regions } from '@/lib/regions';
 import { publicationNavigation } from '@/lib/publication';
 
 export function SiteFooter() {
@@ -19,11 +20,13 @@ export function SiteFooter() {
           </p>
         </div>
         <nav className="footer-sections" aria-label="Explore news">
-          {newsSections.slice(0, 9).map((section) => (
-            <Link key={section.slug} href={sectionHref(section.name)} lang="hi">
-              {section.title}
-            </Link>
-          ))}
+          {['india', 'uttar-pradesh', 'sports', 'business', 'entertainment', 'technology']
+            .map((slug) => newsSections.find((section) => section.slug === slug)!)
+            .map((section) => (
+              <Link key={section.slug} href={sectionHref(section.name)} lang="hi">
+                {section.title}
+              </Link>
+            ))}
         </nav>
         <nav className="social-links" aria-label="Official UP24Network channels">
           <p className="eyebrow">OUR CHANNELS</p>
@@ -32,6 +35,30 @@ export function SiteFooter() {
               {social.name}
               <span className="sr-only"> (opens in a new tab)</span>
             </a>
+          ))}
+        </nav>
+      </div>
+      <div className="footer-directory">
+        {sectionGroups.map((group) => (
+          <nav key={group.title} aria-label={group.title}>
+            <h2>{group.title}</h2>
+            {newsSections
+              .filter((section) => group.slugs.includes(section.slug))
+              .map((section) => (
+                <Link key={section.slug} href={sectionHref(section.name)}>
+                  {section.title}
+                </Link>
+              ))}
+          </nav>
+        ))}
+        <nav aria-label="States">
+          <h2>
+            <Link href="/regions">राज्य और शहर</Link>
+          </h2>
+          {regions.map((region) => (
+            <Link key={region.slug} href={`/region/${region.slug}`}>
+              {region.title}
+            </Link>
           ))}
         </nav>
       </div>

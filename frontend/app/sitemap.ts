@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getArticles } from '@/lib/articles';
 import { newsSections } from '@/lib/sections';
 import { publicationNavigation } from '@/lib/publication';
+import { cities, regions } from '@/lib/regions';
 export const dynamic = 'force-dynamic';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (process.env.SITE_INDEXABLE !== 'true') return [];
@@ -9,7 +10,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!origin) throw new Error('Set SITE_URL before enabling search indexing.');
   const reports = await getArticles();
   return [
-    ...['', '/latest', '/watch', ...publicationNavigation.map((item) => item.path)].map((path) => ({
+    ...[
+      '',
+      '/latest',
+      '/watch',
+      '/sections',
+      '/regions',
+      ...regions.map((item) => `/region/${item.slug}`),
+      ...cities.map((item) => `/city/${item.slug}`),
+      ...publicationNavigation.map((item) => item.path),
+    ].map((path) => ({
       url: new URL(path || '/', origin).href,
     })),
     ...newsSections

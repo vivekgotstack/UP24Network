@@ -4,9 +4,8 @@ import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
-import { getArticles } from '@/lib/articles';
-import { newsSections } from '@/lib/sections';
-import { searchStories, pageOf } from '@/lib/news';
+import { getArticlePage } from '@/lib/articles';
+import { newsSections, sectionCategories } from '@/lib/sections';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Search', robots: { index: false, follow: true } };
@@ -15,10 +14,16 @@ export default async function SearchPage({
 }: {
   searchParams: Promise<{ q?: string; category?: string; page?: string }>;
 }) {
-  const [params, articles] = await Promise.all([searchParams, getArticles()]);
+  const params = await searchParams;
   const query = typeof params.q === 'string' ? params.q.trim().slice(0, 120) : '';
   const category = newsSections.some((s) => s.name === params.category) ? params.category! : '';
-  const results = pageOf(searchStories(articles, query, category), params.page);
+  const section = newsSections.find((item) => item.name === category);
+  const results = await getArticlePage({
+    q: query,
+    categories: section && category !== 'Videos' ? sectionCategories(section) : [],
+    videoOnly: category === 'Videos',
+    page: params.page,
+  });
   const base = `/search?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ''}`;
   return (
     <>
@@ -26,7 +31,7 @@ export default async function SearchPage({
       <main id="main-content">
         <header className="page-heading" id="stories">
           <div>
-            <p className="eyebrow">SEARCH THE NEWSROOM</p>
+            <p className="eyebrow">UP24NETWORK SEARCH</p>
             <h1 lang="hi">खबर तलाशिए</h1>
           </div>
         </header>

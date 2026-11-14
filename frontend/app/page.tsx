@@ -7,7 +7,9 @@ import { NewsList } from '@/components/news-list';
 import { EmptyState } from '@/components/empty-state';
 import { getArticles } from '@/lib/articles';
 import { newest } from '@/lib/news';
-import { newsSections, sectionHref } from '@/lib/sections';
+import { newsSections, sectionHref, sectionCategories } from '@/lib/sections';
+import { cities } from '@/lib/regions';
+import { EditionArt } from '@/components/edition-art';
 import { WatchSection } from '@/components/watch-section';
 import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
@@ -40,9 +42,10 @@ export default async function Home({
       (s) =>
         s.name !== 'Videos' &&
         s.name !== 'Rashifal' &&
-        articles.filter((a) => a.category === s.name).length >= 2,
+        !s.parent &&
+        articles.filter((a) => sectionCategories(s).includes(a.category)).length >= 2,
     )
-    .slice(0, 3);
+    .slice(0, 6);
   return (
     <>
       <SiteHeader home />
@@ -72,9 +75,9 @@ export default async function Home({
               <div className="region-note">
                 <p className="eyebrow">YOUR REGION</p>
                 <div>
-                  {['Lucknow', 'Noida', 'Prayagraj', 'Varanasi'].map((city) => (
-                    <Link key={city} href={`/search?q=${city}`}>
-                      {city}
+                  {cities.slice(0, 6).map((city) => (
+                    <Link key={city.slug} href={`/city/${city.slug}`}>
+                      {city.title}
                     </Link>
                   ))}
                 </div>
@@ -84,6 +87,7 @@ export default async function Home({
         ) : (
           <EmptyState />
         )}
+        <EditionArt />
         <Reveal>
           <WatchSection articles={articles} />
         </Reveal>
@@ -111,7 +115,7 @@ export default async function Home({
             </div>
             <div className="story-grid">
               {articles
-                .filter((a) => a.category === desk.name)
+                .filter((a) => sectionCategories(desk).includes(a.category))
                 .slice(0, 3)
                 .map((article) => (
                   <StoryCard key={article.slug} article={article} />
