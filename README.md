@@ -30,7 +30,8 @@ events and never reach into another module's internal repositories.
 ## Current checkpoint
 
 - Expanded reader navigation: 32 sections, nested subject pages, 8 regional hubs and 22 city editions.
-- Compact logo/category header; homepage artwork preserves its full proportions and displays the official logo in the navy area.
+- Compact logo/category header; the illustrated banner sits directly above the
+  category directory, preserving its full proportions and official logo.
 - Article discovery uses bounded database pagination, category/city filters and keyword search instead of filtering the latest 100 reports in the browser.
 - Local preview includes 35 published Hindi stories across the new desks and cities, plus the daily Rashifal; operational data stays separate.
 - Rashifal now uses twelve original zodiac illustrations, picture selectors and a larger reading panel with lucky-number and colour cards.

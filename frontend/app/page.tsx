@@ -87,7 +87,6 @@ export default async function Home({
         ) : (
           <EmptyState />
         )}
-        <EditionArt />
         <Reveal>
           <WatchSection articles={articles} />
         </Reveal>
@@ -123,6 +122,7 @@ export default async function Home({
             </div>
           </section>
         ))}
+        <EditionArt />
         <section className="section-directory">
           <div className="section-heading">
             <h2 lang="hi">हर खबर की अपनी जगह</h2>
