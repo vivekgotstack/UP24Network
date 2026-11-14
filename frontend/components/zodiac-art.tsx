@@ -18,8 +18,17 @@ export function ZodiacArt({ sign, large = false }: { sign: string; large?: boole
     aspectRatio: `${zodiacArtwork.width / 3} / ${cellHeight}`,
   } as CSSProperties;
   return (
-    <span className={`zodiac-art${large ? ' zodiac-art-large' : ''}`} style={frameStyle} aria-hidden="true">
-      <Image src={zodiacArtwork} alt="" className="zodiac-sheet" sizes={large ? '(max-width: 760px) 540px, 840px' : '216px'} />
+    <span
+      className={`zodiac-art${large ? ' zodiac-art-large' : ''}`}
+      style={frameStyle}
+      aria-hidden="true"
+    >
+      <Image
+        src={zodiacArtwork}
+        alt=""
+        className="zodiac-sheet"
+        sizes={large ? '(max-width: 760px) 540px, 840px' : '216px'}
+      />
     </span>
   );
 }

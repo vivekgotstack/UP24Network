@@ -1,0 +1,24 @@
+{
+  "asset": "public/images/zodiac/zodiac-atlas.png",
+  "generator": "Built-in imagegen",
+  "generatedOn": "2026-11-14",
+  "layout": {
+    "columns": 3,
+    "rows": 4,
+    "order": [
+      "aries",
+      "taurus",
+      "gemini",
+      "cancer",
+      "leo",
+      "virgo",
+      "libra",
+      "scorpio",
+      "sagittarius",
+      "capricorn",
+      "aquarius",
+      "pisces"
+    ]
+  },
+  "prompt": "Use case: stylized-concept.\nAsset type: ONE reusable zodiac illustration sprite atlas for a professional Hindi newspaper website, not a UI mockup.\nCreate a SQUARE transparent PNG illustration sheet with an EXACT uniform 3-COLUMN by 4-ROW rectangular grid: exactly 12 separate illustrations, one centered in each equal cell. No grid lines, no card borders, no labels, no text, no numerals, no letters, no zodiac glyphs. Cells must remain separate, with generous clear transparent padding around each whole subject; every complete illustration must fit within the middle 65% of its cell, including horns, tails, feet, arrows, vessels and water.\nRead row by row, left to right, in THIS EXACT ORDER:\nROW 1: Aries = a graceful full-bodied ram with curled horns; Taurus = a strong full-bodied bull; Gemini = two modestly clothed adult twins standing together.\nROW 2: Cancer = a crab with visible claws; Leo = a majestic full-bodied lion with a mane; Virgo = a modestly clothed maiden holding a sheaf of wheat.\nROW 3: Libra = a balanced pair of ornate weighing scales without a person; Scorpio = a scorpion with a curled stinger; Sagittarius = a modestly clothed centaur archer holding a bow.\nROW 4: Capricorn = a classical sea-goat with goat head and forelegs and a curled fish tail; Aquarius = an elegant tilted urn pouring stylized water; Pisces = two fish swimming in opposite curved directions.\nStyle: cohesive refined editorial illustrations inspired by engraved astronomical books, expressive recognizable subjects, clean elegant silhouettes, delicate engraved ink details and restrained watercolor shading. Premium and warm, never childish, never flat emoji or generic geometric symbols. Palette restricted to deep navy #071c36 ink, antique golden ochre #c79b38 and warm ivory highlights. Make the subjects readable at thumbnail size. The background must be genuinely transparent, no checkerboard painted into the image, no outer frame, no connected decoration between cells. Consistent scale and detail across the twelve subjects. Prefer a high resolution square canvas. This is one organized atlas image to be displayed as complete individual cell illustrations in the website."
+}

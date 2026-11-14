@@ -25,15 +25,25 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
           <h2 id="rashifal-title">आज का राशिफल</h2>
           <p className="rashifal-intro">अपनी राशि चुनें और आज का फल, शुभ अंक व शुभ रंग पढ़ें।</p>
         </div>
-        <div className="rashifal-date"><span>दैनिक संस्करण</span><time dateTime={edition.date}>{date}</time></div>
+        <div className="rashifal-date">
+          <span>दैनिक संस्करण</span>
+          <time dateTime={edition.date}>{date}</time>
+        </div>
       </div>
       <Tabs.Root defaultValue={readings[0]?.sign ?? 'aries'} orientation="horizontal">
         <Tabs.List className="rashi-signs" aria-label="अपनी राशि चुनें">
           {readings.map((sign) => (
-            <Tabs.Trigger key={sign.sign} className="rashi-sign" value={sign.sign} aria-label={`${sign.name} राशिफल`}>
+            <Tabs.Trigger
+              key={sign.sign}
+              className="rashi-sign"
+              value={sign.sign}
+              aria-label={`${sign.name} राशिफल`}
+            >
               <ZodiacArt sign={sign.sign} />
               <span className="rashi-sign-name">{sign.name}</span>
-              <span className="rashi-sign-english" lang="en" aria-hidden="true">{zodiacFor(sign.sign)?.englishName}</span>
+              <span className="rashi-sign-english" lang="en" aria-hidden="true">
+                {zodiacFor(sign.sign)?.englishName}
+              </span>
             </Tabs.Trigger>
           ))}
         </Tabs.List>
@@ -47,10 +57,16 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
             >
               <figure className="rashi-portrait">
                 <ZodiacArt sign={sign.sign} large />
-                <figcaption><span>{zodiacFor(sign.sign)?.motif}</span><span lang="en">{zodiacFor(sign.sign)?.englishName}</span></figcaption>
+                <figcaption>
+                  <span>{zodiacFor(sign.sign)?.motif}</span>
+                  <span lang="en">{zodiacFor(sign.sign)?.englishName}</span>
+                </figcaption>
               </figure>
               <div className="rashi-copy">
-                <header><p className="eyebrow">आपकी राशि · आज का फल</p><h3>{sign.name} राशिफल</h3></header>
+                <header>
+                  <p className="eyebrow">आपकी राशि · आज का फल</p>
+                  <h3>{sign.name} राशिफल</h3>
+                </header>
                 <p className="rashi-text">{sign.reading}</p>
                 <dl className="rashi-details">
                   <div>
@@ -59,7 +75,16 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
                   </div>
                   <div>
                     <dt>शुभ रंग</dt>
-                    <dd>{luckyColourSwatch(sign.luckyColour) && <span className="rashi-colour-chip" style={{ backgroundColor: luckyColourSwatch(sign.luckyColour) }} aria-hidden="true" />}<span>{sign.luckyColour || '—'}</span></dd>
+                    <dd>
+                      {luckyColourSwatch(sign.luckyColour) && (
+                        <span
+                          className="rashi-colour-chip"
+                          style={{ backgroundColor: luckyColourSwatch(sign.luckyColour) }}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span>{sign.luckyColour || '—'}</span>
+                    </dd>
                   </div>
                 </dl>
               </div>
