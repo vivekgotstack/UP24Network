@@ -11,7 +11,13 @@ public interface ArticleDesk {
                  @Size(max=2000) String videoUrl,@Pattern(regexp="^$|^[A-Za-z0-9_-]{11}$") String youtubeId,
                  @NotBlank @Size(max=100000) String body,@PositiveOrZero Long version,
                  @Size(max=10000) String sourceNotes,
-                 @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region) {}
+                 @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region,
+                 @Size(max=100) String byline) {
+        public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
+                     String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region) {
+            this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,null);
+        }
+    }
     record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article,String sourceNotes,String region) {}
     record Imported(String upstreamKey,String slug,String title,String summary,String category,String city,
                     String image,String imageAlt,String videoUrl,String youtubeId,List<String> paragraphs,
@@ -20,6 +26,9 @@ public interface ArticleDesk {
     Optional<Managed> find(UUID id);
     Managed save(UUID id,Input input,UUID actor,String author);
     Managed publish(UUID id,long version,boolean published,boolean breaking);
+    default Managed publish(UUID id,long version,boolean published,boolean breaking,UUID actor) {
+        return publish(id,version,published,breaking);
+    }
     List<ArticleView> published();
     ArticlePage browse(ArticleQuery query);
     Optional<ArticleView> findPublished(String slug);

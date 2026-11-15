@@ -3,6 +3,8 @@ import { connection } from 'next/server';
 import './globals.css';
 import { ReadingProgress } from '@/components/reading-progress';
 import { SiteFooter } from '@/components/site-footer';
+import { AppFrame } from '@/components/app-frame';
+import { PwaInstall } from '@/components/pwa-install';
 import { Providers } from '@/components/providers';
 import { brand } from '@/lib/brand';
 import officialLogo from '@/public/brand/up24-logo.png';
@@ -25,10 +27,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body id="top">
         <Providers>
           <ReadingProgress />
-          <div className="site-shell">
-            {children}
-            <SiteFooter />
-          </div>
+          <AppFrame footer={<SiteFooter />}>{children}</AppFrame>
+          <PwaInstall />
         </Providers>
       </body>
     </html>
