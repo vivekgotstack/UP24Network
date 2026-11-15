@@ -57,8 +57,18 @@ async function proxy(request: NextRequest, context: Context) {
     return problem('Query parameters are not supported on this endpoint', 400);
   const mutation = request.method !== 'GET';
   if (mutation) {
-    const expected = new URL(process.env.SITE_URL ?? 'http://127.0.0.1:3000').origin;
-    if (request.headers.get('origin') !== expected) return problem('Invalid request origin', 403);
+    const site = new URL(process.env.SITE_URL ?? 'http://127.0.0.1:3000');
+    const origins = new Set([site.origin]);
+    if (['127.0.0.1', 'localhost'].includes(site.hostname)) {
+      // Both loopback spellings work locally; deployed origins remain explicit.
+      for (const hostname of ['127.0.0.1', 'localhost']) {
+        const local = new URL(site.origin);
+        local.hostname = hostname;
+        origins.add(local.origin);
+      }
+    }
+    if (!origins.has(request.headers.get('origin') ?? ''))
+      return problem('Invalid request origin', 403);
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
   try {

@@ -60,7 +60,7 @@ class SecurityConfiguration {
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/me","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
-                .formLogin(form -> form.loginProcessingUrl("/api/auth/login").usernameParameter("email")
+                .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login").usernameParameter("email")
                         .successHandler((request,response,authentication) -> {
                             var account=accounts.find(authentication.getName()).orElseThrow();
                             // A new password login supersedes this browser's previous refresh session.
