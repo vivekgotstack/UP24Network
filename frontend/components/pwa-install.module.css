@@ -1,3 +1,20 @@
-.panel { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 18px; border-top: 1px solid var(--line); background: var(--paper); }
-.panel button { min-height: 44px; }
-@media (max-width: 540px) { .panel { justify-content: space-between; } .panel > button:first-child { flex: 1; } }
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+.panel button {
+  min-height: 44px;
+}
+@media (max-width: 540px) {
+  .panel {
+    justify-content: space-between;
+  }
+  .panel > button:first-child {
+    flex: 1;
+  }
+}

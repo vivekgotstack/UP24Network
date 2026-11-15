@@ -24,7 +24,7 @@ const apiUrl = process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080';
 
 async function request(path: string) {
   return fetch(`${apiUrl}${path}`, {
-    cache: 'no-store',
+    next: { revalidate: 30, tags: ['articles'] },
     signal: AbortSignal.timeout(5000),
   });
 }

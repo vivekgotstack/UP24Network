@@ -19,7 +19,7 @@ export class CmsError extends Error {
   }
 }
 
-async function csrfHeaders() {
+export async function csrfHeaders() {
   const response = await fetch('/api/cms/auth/csrf', { cache: 'no-store' });
   if (!response.ok)
     throw new CmsError(response.status, 'The newsroom service is unavailable. Please try again.');

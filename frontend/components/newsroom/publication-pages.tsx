@@ -34,11 +34,13 @@ function PageEditor({
   onSaved,
   onDirty,
   onReload,
+  onBusy,
 }: {
   initial: EditablePublicationDocument;
   onSaved: (page: EditablePublicationDocument) => void;
   onDirty: (dirty: boolean) => void;
   onReload: () => Promise<unknown>;
+  onBusy: (busy: boolean) => void;
 }) {
   const [draft, setDraft] = useState(() => toDraft(initial));
   const [dirty, setDirty] = useState(false);
@@ -80,6 +82,7 @@ function PageEditor({
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
+    onBusy(true);
     setError('');
     setMessage('');
     try {
@@ -115,6 +118,7 @@ function PageEditor({
       setError(reason instanceof Error ? reason.message : 'The page could not be saved.');
     } finally {
       setBusy(false);
+      onBusy(false);
     }
   }
   return (
@@ -327,7 +331,6 @@ function PageEditor({
                       <input
                         required
                         maxLength={500}
-                        pattern="/[A-Za-z0-9/#?=&%._~-]*"
                         value={link.href}
                         onChange={(event) =>
                           section(index, (previous) => ({
@@ -414,6 +417,7 @@ export function PublicationPagesPanel() {
   const [selected, setSelected] = useState('/about');
   const [pending, setPending] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
   const document = pages.data?.find((page) => page.path === selected) ?? pages.data?.[0];
   async function reload() {
@@ -440,6 +444,7 @@ export function PublicationPagesPanel() {
             <label className={styles.picker}>
               Choose a page
               <select
+                disabled={busy}
                 value={document.path}
                 onChange={(event) => {
                   if (dirty) setPending(event.target.value);
@@ -457,6 +462,7 @@ export function PublicationPagesPanel() {
               key={`${document.path}:${revision}`}
               initial={document}
               onDirty={setDirty}
+              onBusy={setBusy}
               onReload={reload}
               onSaved={(saved) =>
                 pages.setData(

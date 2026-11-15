@@ -3,7 +3,13 @@ import Link from 'next/link';
 import { BrandLogo } from '@/components/brand-logo';
 import bannerArtwork from '@/public/brand/newsroom-banner-balanced.png';
 
-export function EditionArt({ sizes = '(max-width: 1400px) 100vw, 1304px' }: { sizes?: string }) {
+export function EditionArt({
+  sizes = '(max-width: 1400px) 100vw, 1304px',
+  tagline = 'खबर हमारी यकीन आपका',
+}: {
+  sizes?: string;
+  tagline?: string;
+}) {
   return (
     <section className="edition-art" aria-label="UP24Network editorial identity">
       <Image
@@ -16,7 +22,7 @@ export function EditionArt({ sizes = '(max-width: 1400px) 100vw, 1304px' }: { si
         <span className="edition-logo">
           <BrandLogo />
         </span>
-        <span className="edition-tagline">खबर हमारी यकीन आपका</span>
+        <span className="edition-tagline">{tagline}</span>
       </Link>
     </section>
   );

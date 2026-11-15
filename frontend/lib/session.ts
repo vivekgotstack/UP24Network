@@ -37,5 +37,6 @@ export function useNewsroomResource<T>(
   const key = ['newsroom', account?.id, path] as const;
   const result = useQuery<T, CmsError>({ queryKey: key,
     queryFn: ({ signal }) => cms<T>(path, 'GET', undefined, { signal }), enabled: Boolean(account && permitted) });
-  return { ...result, setData: (data: T) => client.setQueryData(key, data) };
+  const refresh = useCallback(() => account && permitted ? result.refetch() : Promise.resolve(undefined), [account,permitted,result.refetch]);
+  return { ...result, refetch: refresh, setData: (data: T) => client.setQueryData(key, data) };
 }

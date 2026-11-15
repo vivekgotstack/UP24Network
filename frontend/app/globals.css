@@ -5,6 +5,7 @@
 @import './daily-edition.css';
 @import './publication.css';
 @import './coverage.css';
+@import './admin-controls.css';
 @font-face {
   font-family: 'Noto Serif Devanagari';
   font-weight: 400 700;
