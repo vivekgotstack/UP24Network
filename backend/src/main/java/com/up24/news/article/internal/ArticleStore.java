@@ -33,13 +33,13 @@ class ArticleStore implements ArticleDesk {
                 : jdbc.query("SELECT * FROM article_record WHERE author_id=? AND status IN ('DRAFT','PUBLISHED') ORDER BY updated_at DESC LIMIT 150",this::map,authorId);
     }
     @Override public Optional<Managed> find(UUID id) { return jdbc.query("SELECT * FROM article_record WHERE id=?",this::map,id).stream().findFirst(); }
-    @Cacheable("article-feed")
+    @Cacheable(cacheNames="article-feed",condition="@articleCacheInvalidation.readable()")
     @Override public List<ArticleView> published() {
         return jdbc.query("SELECT "+SUMMARY_COLUMNS+" FROM article_record WHERE status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP ORDER BY published_at DESC LIMIT 100",(row,index)->ArticleRows.summary(row))
                 .stream().map(Managed::article).toList();
     }
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
-    @Cacheable("article-discovery")
+    @Cacheable(cacheNames="article-discovery",condition="@articleCacheInvalidation.readable()")
     @Override public ArticlePage browse(ArticleQuery query) {
         var sql = new StringBuilder(" FROM article_record WHERE status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP");
         Map<String, Object> parameters = new HashMap<>();
@@ -73,7 +73,7 @@ class ArticleStore implements ArticleDesk {
                 .stream().map(Managed::article).toList();
         return new ArticlePage(items, total, page, query.size(), pages);
     }
-    @Cacheable("article-detail")
+    @Cacheable(cacheNames="article-detail",condition="@articleCacheInvalidation.readable()")
     @Override public Optional<ArticleView> findPublished(String slug) {
         return jdbc.query("SELECT * FROM article_record WHERE slug=? AND status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP",this::map,slug)
                 .stream().map(Managed::article).findFirst();

@@ -1,0 +1,46 @@
+plugins { id 'com.android.application' }
+
+def rootDirectory = rootProject.projectDir.parentFile
+def signingFile = new File(rootDirectory, '.local/android-upload/signing.properties')
+def signing = new Properties()
+if (signingFile.exists()) signingFile.withInputStream { signing.load(it) }
+def origin = providers.gradleProperty('up24SiteOrigin').getOrElse('https://www.up24network.com')
+def website = new URI(origin)
+if (website.scheme != 'https' || !website.host || website.userInfo || (website.path && website.path != '/')) {
+    throw new GradleException('up24SiteOrigin must be a public HTTPS origin.')
+}
+
+android {
+    namespace 'com.up24network.news'
+    compileSdk 37
+    defaultConfig {
+        applicationId 'com.up24network.news'
+        minSdk 23
+        targetSdk 37
+        versionCode providers.gradleProperty('up24VersionCode').getOrElse('1').toInteger()
+        versionName providers.gradleProperty('up24VersionName').getOrElse('1.0.0')
+        resValue 'string', 'launch_url', origin + '/'
+        resValue 'string', 'host_name', website.host
+        resValue 'string', 'asset_statements', '[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"web","site":"' + origin + '"}}]'
+    }
+    signingConfigs {
+        release {
+            if (signingFile.exists()) {
+                storeFile file(signing.storeFile)
+                storePassword signing.storePassword
+                keyAlias signing.keyAlias
+                keyPassword signing.keyPassword
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+    }
+}
+
+dependencies { implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2' }
