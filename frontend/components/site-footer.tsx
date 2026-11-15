@@ -9,7 +9,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
-        <EditionArt />
+        <EditionArt sizes="(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px" />
         <nav className="social-links" aria-label="Official UP24Network channels">
           <h2 className="footer-social-heading" lang="hi">
             आधिकारिक चैनल

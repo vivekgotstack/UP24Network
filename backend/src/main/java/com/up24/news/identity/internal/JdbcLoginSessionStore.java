@@ -32,11 +32,15 @@ class JdbcLoginSessionStore implements LoginSessionStore {
                 (row,index) -> session(row),id,Timestamp.from(now)).stream().findFirst();
     }
     @Override public Optional<Refresh> lockRefresh(String digest) {
-        return jdbc.query("""
-                SELECT s.*,t.consumed_at FROM identity_login_session s
-                JOIN identity_refresh_token t ON t.session_id=s.id WHERE t.digest=? FOR UPDATE OF s
-                """, (row,index) -> new Refresh(session(row),instant(row,"consumed_at"),row.getTimestamp("revoked_at") != null),digest)
-                .stream().findFirst();
+        var ids=jdbc.query("SELECT session_id FROM identity_refresh_token WHERE digest=?",(row,index) -> row.getObject(1,UUID.class),digest);
+        if (ids.isEmpty()) return Optional.empty();
+        var session=jdbc.query("SELECT * FROM identity_login_session WHERE id=? FOR UPDATE",
+                (row,index) -> new Refresh(session(row),null,row.getTimestamp("revoked_at")!=null),ids.getFirst()).stream().findFirst();
+        if (session.isEmpty()) return Optional.empty();
+        // Read consumption AFTER acquiring the family lock, in a new READ COMMITTED snapshot.
+        // A concurrent refresh must observe the first request's committed rotation.
+        return jdbc.query("SELECT consumed_at FROM identity_refresh_token WHERE digest=?",
+                (row,index) -> new Refresh(session.get().session(),instant(row,"consumed_at"),session.get().revoked()),digest).stream().findFirst();
     }
     @Override public void rotate(UUID id, String previous, String replacement, Instant now) {
         jdbc.update("UPDATE identity_refresh_token SET consumed_at=? WHERE digest=?",Timestamp.from(now),previous);

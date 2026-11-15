@@ -9,7 +9,9 @@ if (-not (Test-Path -LiteralPath $keyPath)) {
     $previousPassword = $env:UP24_LOCAL_KEY_PASSWORD
     try {
         $env:UP24_LOCAL_KEY_PASSWORD = $password
-        & keytool.exe -genkeypair -alias up24 -keyalg RSA -keysize 3072 -validity 3650 -storetype PKCS12 -keystore $keyPath -storepass:env UP24_LOCAL_KEY_PASSWORD -dname 'CN=UP24Network Local Signing' -noprompt
+        $keytool = Join-Path $env:JAVA_HOME 'bin/keytool.exe'
+        if (-not (Test-Path -LiteralPath $keytool)) { $keytool = (Get-Command keytool.exe -ErrorAction Stop).Source }
+        & $keytool -genkeypair -alias up24 -keyalg RSA -keysize 3072 -validity 3650 -storetype PKCS12 -keystore $keyPath -storepass:env UP24_LOCAL_KEY_PASSWORD -dname 'CN=UP24Network Local Signing' -noprompt
         if ($LASTEXITCODE -ne 0) { throw 'Could not generate the local authentication signing key.' }
     } finally { $env:UP24_LOCAL_KEY_PASSWORD = $previousPassword }
     $configuration['up24.auth.key-store-password'] = $password

@@ -12,6 +12,14 @@ import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.context.NullSecurityContextRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import com.up24.news.identity.Accounts;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Set;
 
 @Configuration
 @EnableMethodSecurity
@@ -26,16 +34,39 @@ class SecurityConfiguration {
         provider.setUserDetailsPasswordService(passwords);
         return provider;
     }
-    @Bean SecurityFilterChain security(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(auth -> auth
+    @Bean SecurityFilterChain security(HttpSecurity http, LoginSessions sessions, TokenCookies cookies,
+            Accounts accounts, @Value("${up24.auth.cookie-secure}") boolean secure) throws Exception {
+        var csrf=new CookieCsrfTokenRepository();
+        csrf.setHeaderName("X-CSRF-TOKEN");
+        csrf.setCookieCustomizer(cookie -> cookie.httpOnly(true).secure(secure).sameSite("Strict").path("/"));
+        var bearer=new DefaultBearerTokenResolver();
+        var principal=new JwtAuthenticationConverter();
+        principal.setPrincipalClaimName("email");
+        var anonymousTokenPaths=Set.of("/api/auth/login","/api/auth/register","/api/auth/csrf","/api/auth/refresh","/api/auth/logout");
+        return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
+                .requestCache(cache -> cache.disable())
+                .csrf(config -> config.csrfTokenRepository(csrf))
+                .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/me","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
+                .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
+                .requestMatchers("/api/auth/me","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
                 .formLogin(form -> form.loginProcessingUrl("/api/auth/login").usernameParameter("email")
-                        .successHandler((request,response,authentication) -> { response.setContentType("application/json"); response.getWriter().write("{\"authenticated\":true}"); })
+                        .successHandler((request,response,authentication) -> {
+                            var account=accounts.find(authentication.getName()).orElseThrow();
+                            // A new password login supersedes this browser's previous refresh session.
+                            sessions.logout(TokenCookies.read(request,TokenCookies.REFRESH));
+                            cookies.write(response,sessions.start(account));
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"authenticated\":true}");
+                        })
                         .failureHandler((request,response,exception) -> response.sendError(401,"Invalid email or password")))
-                .logout(logout -> logout.logoutUrl("/api/auth/logout").deleteCookies("JSESSIONID")
-                        .logoutSuccessHandler((request,response,authentication) -> response.setStatus(204)))
+                .logout(logout -> logout.disable())
+                .oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> {
+                    if (anonymousTokenPaths.contains(request.getServletPath())) return null;
+                    var header=bearer.resolve(request);
+                    return header!=null ? header : TokenCookies.read(request,TokenCookies.ACCESS);
+                }).jwt(jwt -> jwt.jwtAuthenticationConverter(principal)))
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request,response,exception) -> response.sendError(401)))
                 .build();
     }
