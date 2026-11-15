@@ -6,7 +6,10 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import java.util.List;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 /** Role/CSRF fixtures; identity integration tests exercise actual signed cookies and OTP. */
 public final class VerifiedLogin {
@@ -15,6 +18,9 @@ public final class VerifiedLogin {
         var id=UUID.randomUUID();
         jdbc.update("INSERT INTO identity_login_session(id,account_id,created_at,expires_at,verified_until,verified_role) VALUES (?,?,?,?,?,?)",
                 id,account.id(),Timestamp.from(now),Timestamp.from(now.plusSeconds(3600)),Timestamp.from(now.plusSeconds(1800)),account.role().name());
-        return jwt().jwt(token -> token.subject(account.id().toString()).claim("email",account.email()).claim("sid",id.toString()));
+        var jwt=Jwt.withTokenValue("role-fixture").header("alg","RS256").subject(account.id().toString())
+                .claim("email",account.email()).claim("sid",id.toString()).issuedAt(now).expiresAt(now.plusSeconds(300)).build();
+        // jwt() deliberately skips CSRF in Spring's test support; these tests must exercise CSRF.
+        return authentication(new JwtAuthenticationToken(jwt,List.of()));
     }
 }

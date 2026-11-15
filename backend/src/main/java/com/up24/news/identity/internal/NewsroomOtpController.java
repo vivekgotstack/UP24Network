@@ -2,6 +2,7 @@ package com.up24.news.identity.internal;
 
 import com.up24.news.identity.Access;
 import com.up24.news.identity.Accounts;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -17,8 +18,9 @@ class NewsroomOtpController {
     private final NewsroomPolicy policy;
     private final EmailOtpService otp;
     private final CurrentLogin login;
-    NewsroomOtpController(Access access,NewsroomPolicy policy,EmailOtpService otp,CurrentLogin login) {
-        this.access=access; this.policy=policy; this.otp=otp; this.login=login;
+    private final TokenCookies cookies;
+    NewsroomOtpController(Access access,NewsroomPolicy policy,EmailOtpService otp,CurrentLogin login,TokenCookies cookies) {
+        this.access=access; this.policy=policy; this.otp=otp; this.login=login; this.cookies=cookies;
     }
     private Accounts.Account staff() {
         var account=access.current();
@@ -31,10 +33,11 @@ class NewsroomOtpController {
         return otp.issue(account.email(),login.id().toString());
     }
     @PostMapping("/verify") @ResponseStatus(HttpStatus.NO_CONTENT)
-    void verify(@Valid @RequestBody Verification input) {
+    void verify(@Valid @RequestBody Verification input,HttpServletResponse response) {
         var account=staff();
         if (!otp.verify(account.email(),login.id().toString(),input.code()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"The code is invalid or expired. Request a new code after five unsuccessful attempts.");
-        policy.markVerified(account);
+        var tokens=policy.markVerified(account).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        cookies.write(response,tokens);
     }
 }

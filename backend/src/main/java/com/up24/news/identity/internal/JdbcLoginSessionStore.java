@@ -31,6 +31,10 @@ class JdbcLoginSessionStore implements LoginSessionStore {
         return jdbc.query("SELECT * FROM identity_login_session WHERE id=? AND revoked_at IS NULL AND expires_at>?",
                 (row,index) -> session(row),id,Timestamp.from(now)).stream().findFirst();
     }
+    @Override public Optional<Session> lockActive(UUID id, Instant now) {
+        return jdbc.query("SELECT * FROM identity_login_session WHERE id=? AND revoked_at IS NULL AND expires_at>? FOR UPDATE",
+                (row,index) -> session(row),id,Timestamp.from(now)).stream().findFirst();
+    }
     @Override public Optional<Refresh> lockRefresh(String digest) {
         var ids=jdbc.query("SELECT session_id FROM identity_refresh_token WHERE digest=?",(row,index) -> row.getObject(1,UUID.class),digest);
         if (ids.isEmpty()) return Optional.empty();

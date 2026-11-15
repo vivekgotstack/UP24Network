@@ -35,7 +35,9 @@ events and never reach into another module's internal repositories.
 - Article discovery uses bounded database pagination, category/city filters and keyword search instead of filtering the latest 100 reports in the browser.
 - Local preview includes 35 published Hindi stories across the new desks and cities, plus the daily Rashifal; operational data stays separate.
 - Rashifal now uses twelve original zodiac illustrations, picture selectors and a larger reading panel with lucky-number and colour cards.
-- Next small step: dedicated photo-story publishing and topic collections, using the existing editorial permissions.
+- Identity now separates account policy, credential storage, JWT signing and session persistence. Five-minute RSA access tokens use HttpOnly cookies, rotating refresh tokens, persisted revocation and OTP step-up; logout can end one login or every device.
+- Phone/tablet refinements include readable form controls, larger touch buttons and wrapping automation cards.
+- Next small step: add account recovery and login throttling before extending photo-story publishing.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
@@ -110,7 +112,7 @@ Windows PowerShell 5.1 without requiring another PowerShell installation.
 For a plain Java command outside these launchers, start the database first with
 `./scripts/Start-LocalDatabase.ps1`.
 
-The preview includes twelve Hindi stories, video, a daily Rashifal edition and
+The preview includes 35 Hindi stories, video, a daily Rashifal edition and
 sample Editor/Reporter accounts in an isolated `local_preview` schema. Credentials
 are in `backend/.local/preview-login.txt`. Request a sign-in code, then read
 `backend/.local/preview-mailbox/latest-message.txt`; preview sends no external mail.

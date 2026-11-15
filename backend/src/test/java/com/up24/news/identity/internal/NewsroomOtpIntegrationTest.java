@@ -17,6 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
+import java.util.List;
+import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
@@ -43,6 +46,8 @@ class NewsroomOtpIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired CapturedMail mail;
     @Autowired EmailOtpService otp;
+    @Autowired JwtDecoder jwtDecoder;
+    @Autowired JwtEncoder jwtEncoder;
     private static final String OWNER="owner@identity.test";
     private static final String PASSWORD="Identity-local-test-2026!";
     @BeforeEach void accounts() {
@@ -70,8 +75,10 @@ class NewsroomOtpIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT code_digest FROM identity_newsroom_otp WHERE email=?",String.class,OWNER)).hasSize(64).doesNotContain(code);
         mvc.perform(post("/api/auth/newsroom/verify").cookie(login(OWNER)).with(csrf())
                 .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isUnauthorized());
-        mvc.perform(post("/api/auth/newsroom/verify").cookie(session).with(csrf())
-                .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isNoContent());
+        var steppedUp=mvc.perform(post("/api/auth/newsroom/verify").cookie(session).with(csrf())
+                .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isNoContent()).andReturn();
+        mvc.perform(get("/api/auth/me").cookie(session)).andExpect(status().isUnauthorized());
+        session=new Cookie[]{steppedUp.getResponse().getCookie(TokenCookies.ACCESS),steppedUp.getResponse().getCookie(TokenCookies.REFRESH)};
         mvc.perform(get("/api/auth/me").cookie(session)).andExpect(jsonPath("$.newsroomAccess").value(true));
         mvc.perform(get("/api/admin/accounts").cookie(session)).andExpect(status().isOk());
         mvc.perform(post("/api/auth/newsroom/verify").cookie(session).with(csrf())
@@ -133,5 +140,25 @@ class NewsroomOtpIntegrationTest {
         mvc.perform(post("/api/auth/register").with(csrf()).contentType("application/json").content(body.replace("new-reader@identity.test",OWNER)))
                 .andExpect(status().isConflict());
         assertThatThrownBy(() -> accounts.create("invalid-email"," ",PASSWORD,Accounts.Role.REPORTER)).isInstanceOf(AccountException.class);
+    }
+
+    @Test void signedTokensRequireCorrectIssuerAudienceExpiryAndSignature() throws Exception {
+        var session=login(OWNER);
+        var valid=jwtDecoder.decode(session[0].getValue());
+        assertThat(valid.getHeaders().get("alg")).isEqualTo("RS256");
+        assertThat(valid.getExpiresAt().getEpochSecond()-valid.getIssuedAt().getEpochSecond()).isEqualTo(300);
+        for (String invalid:List.of("issuer","audience","expiry")) {
+            var claims=JwtClaimsSet.builder().claims(values -> values.putAll(valid.getClaims()));
+            switch(invalid) {
+                case "issuer" -> claims.issuer("urn:wrong:issuer");
+                case "audience" -> claims.audience(List.of("different-api"));
+                default -> claims.issuedAt(Instant.now().minusSeconds(600)).notBefore(Instant.now().minusSeconds(600)).expiresAt(Instant.now().minusSeconds(90));
+            }
+            var token=jwtEncoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(),claims.build())).getTokenValue();
+            mvc.perform(get("/api/auth/me").cookie(new Cookie(TokenCookies.ACCESS,token))).andExpect(status().isUnauthorized());
+        }
+        var parts=session[0].getValue().split("\\.");
+        parts[2]=(parts[2].startsWith("a")?"b":"a")+parts[2].substring(1);
+        mvc.perform(get("/api/auth/me").cookie(new Cookie(TokenCookies.ACCESS,String.join(".",parts)))).andExpect(status().isUnauthorized());
     }
 }

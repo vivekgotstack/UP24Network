@@ -24,8 +24,6 @@ class NewsroomPolicy {
                 && account.role().name().equals(session.verifiedRole()) && session.verifiedUntil()!=null
                 && clock.instant().isBefore(session.verifiedUntil())).isPresent();
     }
-    void markVerified(Accounts.Account account) {
-        sessions.verify(login.id(),account);
-    }
+    java.util.Optional<LoginSessions.Tokens> markVerified(Accounts.Account account) { return sessions.stepUp(login.id(),account); }
     void clear() { sessions.clearVerification(login.id()); }
 }

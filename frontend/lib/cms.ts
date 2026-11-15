@@ -46,11 +46,11 @@ export function renewLogin(): Promise<boolean> {
     if (!response.ok) throw new CmsError(response.status, 'Your account could not be refreshed.');
     return true;
   };
-  renewal = (
+  const synchronizedRenew = async () =>
     typeof navigator !== 'undefined' && navigator.locks
-      ? Promise.resolve(navigator.locks.request('up24-login-renewal', renew)).then(value => value)
-      : renew()
-  ).finally(() => {
+      ? await navigator.locks.request('up24-login-renewal', renew)
+      : await renew();
+  renewal = synchronizedRenew().finally(() => {
     renewal = undefined;
   });
   return renewal;

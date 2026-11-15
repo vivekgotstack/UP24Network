@@ -9,6 +9,7 @@ interface LoginSessionStore {
     record Refresh(Session session, Instant consumedAt, boolean revoked) {}
     void create(UUID id, UUID accountId, Instant now, Instant expiresAt, String refreshDigest);
     Optional<Session> active(UUID id, Instant now);
+    Optional<Session> lockActive(UUID id, Instant now);
     Optional<Refresh> lockRefresh(String digest);
     void rotate(UUID sessionId, String previousDigest, String replacementDigest, Instant now);
     void revoke(UUID id, Instant now);
