@@ -1,0 +1,42 @@
+.workspace { display: grid; gap: 28px; min-width: 0; }
+.intro { max-width: 760px; color: var(--muted); font: 400 16px/1.8 var(--sans); }
+.form { display: grid; gap: 24px; min-width: 0; }
+.form label { display: grid; gap: 8px; min-width: 0; font: 600 14px/1.6 var(--sans); }
+.form input:not([type='checkbox']), .form textarea, .form select, .picker select {
+  width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 4px;
+  color: var(--ink); background: #fff; padding: 11px 13px; font: 400 16px/1.7 var(--sans);
+}
+.form textarea { resize: vertical; min-height: 116px; }
+.form input:focus-visible, .form textarea:focus-visible, .form select:focus-visible, .picker select:focus-visible {
+  outline: 2px solid var(--ring); outline-offset: 3px;
+}
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.card { min-width: 0; display: grid; gap: 22px; padding: 25px; border: 1px solid var(--line); background: #fff7; border-radius: 5px; }
+.card h2 { font: 700 27px/1.35 var(--serif); }
+.card h3 { font: 600 21px/1.4 var(--serif); }
+.card > p { font-size: 15px; line-height: 1.7; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.actions > span { color: var(--muted); font-size: 14px; }
+.toggle { display: flex !important; gap: 12px !important; align-items: flex-start; font-size: 16px !important; }
+.toggle input { width: 20px; height: 20px; accent-color: var(--brand-navy); flex: 0 0 auto; margin-top: 4px; }
+.toggle span { display: grid; gap: 4px; }
+.toggle small { color: var(--muted); font-size: 14px; font-weight: 400; }
+.picker { display: grid; gap: 8px; max-width: 440px; font-size: 14px; font-weight: 600; }
+.sectionHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.sectionList { display: grid; gap: 25px; }
+.section { display: grid; gap: 22px; min-width: 0; border: 1px solid var(--line); padding: 25px; background: #fff7; border-radius: 5px; }
+.section h3 { font: 600 22px/1.4 var(--serif); overflow-wrap: anywhere; }
+.section textarea { font-family: var(--serif); line-height: 1.85; }
+.links { display: grid; gap: 14px; }
+.link { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.feedback { padding: 14px 18px; border: 1px solid var(--line); background: #fff; font-size: 15px; line-height: 1.7; overflow-wrap: anywhere; }
+.error { border-color: #ac263a; color: #892235; }
+.helper { color: var(--muted); font-size: 14px; line-height: 1.7; }
+@media (max-width: 760px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .card, .section { padding: 18px; }
+  .link { grid-template-columns: minmax(0, 1fr); }
+  .link > button { justify-self: start; }
+  .picker { max-width: none; }
+  .actions > button { min-height: 44px; }
+}

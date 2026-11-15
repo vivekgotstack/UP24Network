@@ -43,7 +43,7 @@ services:
     stop_grace_period: 40s
     mem_limit: 768m
     pids_limit: 150
-    networks: [internal]
+    networks: [internal, application]
     logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
 
   frontend:
@@ -68,7 +68,7 @@ services:
     stop_grace_period: 20s
     mem_limit: 512m
     pids_limit: 100
-    networks: [internal, edge]
+    networks: [application, edge]
     logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
 
   proxy:
@@ -88,7 +88,8 @@ services:
     logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
 
 networks:
-  internal: { internal: false }
+  internal: { internal: true }
+  application:
   edge:
 volumes:
   postgres_data:

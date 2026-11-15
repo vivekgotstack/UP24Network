@@ -1,6 +1,6 @@
 {$SITE_HOST} {
     encode zstd gzip
-    request_body { max_size 10MB }
+    request_body { max_size 12MB }
     header {
         -Server
         Strict-Transport-Security "max-age=31536000"

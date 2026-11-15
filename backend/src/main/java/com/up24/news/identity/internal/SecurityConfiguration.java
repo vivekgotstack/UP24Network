@@ -58,8 +58,9 @@ class SecurityConfiguration {
                 }))
                 .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET,"/media/**","/api/publication/**").permitAll()
                 .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
-                .requestMatchers("/api/auth/me","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
+                .requestMatchers("/api/auth/me","/api/auth/workflow","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
                 .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login").usernameParameter("email")
                         .successHandler((request,response,authentication) -> {
                             var account=accounts.find(authentication.getName()).orElseThrow();
