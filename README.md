@@ -131,8 +131,8 @@ npm ci
 ```
 
 Open [the reader](http://127.0.0.1:3000). The backend listens on `127.0.0.1:8080`.
-Local administrator credentials are saved in `backend/.local/admin-login.txt`;
-that folder and startup logs are excluded from Git. Do not commit credentials.
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env`, which is excluded from Git.
+Restarting applies a changed admin password and revokes existing admin logins.
 Optional frontend environment overrides are documented in `frontend/.env.example`;
 copy it to `.env.local` if you need to change the defaults.
 

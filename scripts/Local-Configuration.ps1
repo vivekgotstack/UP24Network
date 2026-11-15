@@ -11,7 +11,7 @@ function New-Up24LocalSecret {
 
 function Write-Up24Utf8File {
     param([Parameter(Mandatory)][string]$Path,
-          [Parameter(Mandatory)][string[]]$Lines)
+          [Parameter(Mandatory)][AllowEmptyString()][string[]]$Lines)
     # Java properties and PostgreSQL password files must not acquire a UTF-8 BOM.
     [System.IO.File]::WriteAllLines($Path, $Lines, [System.Text.UTF8Encoding]::new($false))
 }

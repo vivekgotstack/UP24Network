@@ -86,6 +86,6 @@ class LocalPreviewData implements ApplicationRunner {
                     "local-preview","fixture-"+day,"preview-v1");
         }
         horoscopes.setVisible(true);
-        Files.writeString(Path.of(".local","preview-login.txt"),"LOCAL PREVIEW ONLY\nAdmin: "+adminEmail+" (password in admin-login.txt)\nEditor: "+editor.email()+"\nReporter: "+reporter.email()+"\nStaff password: "+password+"\nStaff sign-in: http://127.0.0.1:3000/newsroom/sign-in\nOTP mailbox: backend/.local/preview-mailbox/latest-message.txt\n");
+        Files.writeString(Path.of(".local","preview-login.txt"),"LOCAL PREVIEW ONLY\nAdmin: "+adminEmail+" (password in backend/.env)\nEditor: "+editor.email()+"\nReporter: "+reporter.email()+"\nStaff password: "+password+"\nStaff sign-in: http://127.0.0.1:3000/newsroom/sign-in\nOTP mailbox: backend/.local/preview-mailbox/latest-message.txt\n");
     }
 }
