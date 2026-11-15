@@ -12,6 +12,7 @@ class PublicationController {
     private final Publication publication;
     PublicationController(Publication publication) { this.publication=publication; }
     @GetMapping("/api/publication/settings") Publication.Settings settings() { return publication.settings(); }
+    @GetMapping("/api/publication/navigation") List<Publication.PageLink> navigation() { return publication.navigation(); }
     @GetMapping("/api/publication/pages/{slug}") Publication.Document page(@PathVariable String slug) {
         return publication.page(slug).orElseThrow(() -> new PublicationException(PublicationException.Reason.NOT_FOUND,"Publication page not found."));
     }

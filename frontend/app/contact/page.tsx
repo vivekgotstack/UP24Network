@@ -3,7 +3,9 @@ import { PublicationDocument } from '@/components/publication-document';
 import { publicationDocuments } from '@/lib/publication';
 
 const document = publicationDocuments.contact;
-export async function generateMetadata() { return publicationMetadata(document); }
+export async function generateMetadata() {
+  return publicationMetadata(document);
+}
 export default function Page() {
   return <PublicationDocument document={document} />;
 }

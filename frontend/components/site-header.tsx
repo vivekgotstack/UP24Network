@@ -5,6 +5,7 @@ import { SearchLink } from '@/components/search-link';
 import { BrandLogo } from '@/components/brand-logo';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { getPublicationSettings } from '@/lib/publication-api';
+import { DashboardLink } from '@/components/dashboard-link';
 
 export async function SiteHeader({
   category = '',
@@ -29,6 +30,7 @@ export async function SiteHeader({
           <SearchLink />
           <Link href="/saved">Saved</Link>
           <Link href="/account">My account</Link>
+          <DashboardLink />
         </div>
       </div>
       <header className={`compact-header ${compact ? 'compact-header-minimal' : ''}`}>
@@ -83,14 +85,16 @@ export async function SiteHeader({
           </Link>
         ))}
         <Link href="/regions">राज्य और शहर</Link>
-        {settings.showVideo && <Link
-          href="/watch"
-          className="watch-nav"
-          aria-current={category === 'Videos' ? 'page' : undefined}
-        >
-          <Play size={13} aria-hidden="true" />
-          वीडियो
-        </Link>}
+        {settings.showVideo && (
+          <Link
+            href="/watch"
+            className="watch-nav"
+            aria-current={category === 'Videos' ? 'page' : undefined}
+          >
+            <Play size={13} aria-hidden="true" />
+            वीडियो
+          </Link>
+        )}
         <SectionMenu />
       </nav>
       <nav className="secondary-nav" aria-label="More news sections">
@@ -104,19 +108,23 @@ export async function SiteHeader({
           'Lifestyle',
           'Auto',
           'Explainers',
-        ].filter(section => settings.showRashifal || section !== 'Rashifal').map((section) => (
-          <Link
-            key={section}
-            href={sectionHref(section)}
-            aria-current={category === section ? 'page' : undefined}
-          >
-            {sectionTitle(section)}
-          </Link>
-        ))}
+        ]
+          .filter((section) => settings.showRashifal || section !== 'Rashifal')
+          .map((section) => (
+            <Link
+              key={section}
+              href={sectionHref(section)}
+              aria-current={category === section ? 'page' : undefined}
+            >
+              {sectionTitle(section)}
+            </Link>
+          ))}
       </nav>
-      {settings.announcementEnabled && settings.announcement && <aside className="site-announcement" aria-label="Publication announcement">
-        <p>{settings.announcement}</p>
-      </aside>}
+      {settings.announcementEnabled && settings.announcement && (
+        <aside className="site-announcement" aria-label="Publication announcement">
+          <p>{settings.announcement}</p>
+        </aside>
+      )}
     </>
   );
 }

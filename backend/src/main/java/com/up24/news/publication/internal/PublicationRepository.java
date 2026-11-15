@@ -9,6 +9,7 @@ interface PublicationRepository {
     Settings settings();
     Optional<Document> page(String slug);
     List<Document> pages();
+    List<PageLink> navigation();
     boolean updateSettings(SettingsInput input, Instant now);
     boolean updatePage(String slug, DocumentInput input, Instant now);
     void seedSettings(SettingsInput input, Instant now);

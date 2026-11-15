@@ -21,6 +21,7 @@ class PublicationService implements Publication {
     }
     @Override public Settings settings() { return repository.settings(); }
     @Override public List<Document> pages() { return repository.pages(); }
+    @Override public List<PageLink> navigation() { return repository.navigation(); }
     @Override public Optional<Document> page(String slug) { return repository.page(slug); }
 
     private void validate(Object input) {

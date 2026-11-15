@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
-import { publicationNavigation, type PublicationDocument as Document } from '@/lib/publication';
-import { getPublicationPage } from '@/lib/publication-api';
+import type { PublicationDocument as Document } from '@/lib/publication';
+import { getPublicationPage, getPublicationNavigation } from '@/lib/publication-api';
 
 export async function PublicationDocument({ document: initial }: { document: Document }) {
-  const persisted = await getPublicationPage(initial.path);
+  const [persisted, publicationNavigation] = await Promise.all([
+    getPublicationPage(initial.path),
+    getPublicationNavigation(),
+  ]);
   const document = persisted ?? initial;
   return (
     <>
@@ -20,11 +23,17 @@ export async function PublicationDocument({ document: initial }: { document: Doc
           <p className="eyebrow">THE PUBLICATION</p>
           <h1>{document.title}</h1>
           <p className="publication-intro">{document.intro}</p>
-          {persisted?.updatedAt && <p className="publication-date">
-            Updated <time dateTime={persisted.updatedAt}>{new Intl.DateTimeFormat('en-IN', {
-              dateStyle: 'long', timeZone: 'Asia/Kolkata',
-            }).format(new Date(persisted.updatedAt))}</time>
-          </p>}
+          {persisted?.updatedAt && (
+            <p className="publication-date">
+              Updated{' '}
+              <time dateTime={persisted.updatedAt}>
+                {new Intl.DateTimeFormat('en-IN', {
+                  dateStyle: 'long',
+                  timeZone: 'Asia/Kolkata',
+                }).format(new Date(persisted.updatedAt))}
+              </time>
+            </p>
+          )}
         </header>
         <div className="publication-layout">
           <aside className="publication-sidebar">

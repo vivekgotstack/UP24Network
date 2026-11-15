@@ -3,11 +3,13 @@ import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
 import { regions } from '@/lib/regions';
-import { publicationNavigation } from '@/lib/publication';
-import { getPublicationSettings } from '@/lib/publication-api';
+import { getPublicationSettings, getPublicationNavigation } from '@/lib/publication-api';
 
 export async function SiteFooter() {
-  const settings = await getPublicationSettings();
+  const [settings, publicationNavigation] = await Promise.all([
+    getPublicationSettings(),
+    getPublicationNavigation(),
+  ]);
   return (
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
@@ -24,7 +26,11 @@ export async function SiteFooter() {
           ))}
         </nav>
       </div>
-      {settings.footerDescription && <p className="footer-description" lang="hi">{settings.footerDescription}</p>}
+      {settings.footerDescription && (
+        <p className="footer-description" lang="hi">
+          {settings.footerDescription}
+        </p>
+      )}
       <div className="footer-directory">
         {sectionGroups.map((group) => (
           <nav key={group.title} aria-label={group.title}>

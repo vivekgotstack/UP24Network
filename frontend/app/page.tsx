@@ -88,12 +88,8 @@ export default async function Home({
         ) : (
           <EmptyState />
         )}
-        <Reveal>
-          {settings.showVideo && <WatchSection articles={articles} />}
-        </Reveal>
-        <Suspense fallback={null}>
-          {settings.showRashifal && <RashifalSection />}
-        </Suspense>
+        <Reveal>{settings.showVideo && <WatchSection articles={articles} />}</Reveal>
+        <Suspense fallback={null}>{settings.showRashifal && <RashifalSection />}</Suspense>
         {remaining.length > 0 && (
           <section className="more-stories">
             <div className="section-heading">

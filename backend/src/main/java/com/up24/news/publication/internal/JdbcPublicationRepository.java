@@ -46,6 +46,10 @@ class JdbcPublicationRepository implements PublicationRepository {
     @Override public List<Document> pages() {
         return jdbc.query("SELECT slug,content,version,updated_at FROM publication_page ORDER BY position,slug",this::document);
     }
+    @Override public List<PageLink> navigation() {
+        return jdbc.query("SELECT slug,content->>'label' AS label FROM publication_page ORDER BY position,slug",
+                (row,index) -> new PageLink("/"+row.getString("slug"),row.getString("label")));
+    }
     @Override public boolean updateSettings(SettingsInput input, Instant now) {
         return jdbc.update("UPDATE publication_settings SET content=?::jsonb,version=version+1,updated_at=? WHERE id=1 AND version=?",
                 content(input),Timestamp.from(now),input.version())==1;
