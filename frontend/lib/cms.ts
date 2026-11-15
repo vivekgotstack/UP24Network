@@ -60,6 +60,7 @@ export async function cms<T>(
   path: string,
   method = 'GET',
   body?: object | URLSearchParams,
+  options?: { signal?: AbortSignal },
 ): Promise<T> {
   let headers = new Headers();
   if (method !== 'GET') {
@@ -78,6 +79,7 @@ export async function cms<T>(
       method,
       headers,
       cache: 'no-store',
+      signal: options?.signal,
       body: body ? (form ? (body as URLSearchParams) : JSON.stringify(body)) : undefined,
     });
   try {

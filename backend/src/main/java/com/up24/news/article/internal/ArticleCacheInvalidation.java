@@ -1,0 +1,20 @@
+package com.up24.news.article.internal;
+
+import com.up24.news.article.ArticleChanged;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import java.util.List;
+
+@Component
+class ArticleCacheInvalidation {
+    private final CacheManager caches;
+    ArticleCacheInvalidation(CacheManager caches) { this.caches=caches; }
+    @EventListener void changed(ArticleChanged event) {
+        // The transaction-aware cache manager applies these clears after commit.
+        for (var name:List.of("article-feed","article-discovery","article-detail")) {
+            var cache=caches.getCache(name);
+            if (cache!=null) cache.clear();
+        }
+    }
+}

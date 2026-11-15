@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SavedStories } from '@/components/saved-stories';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { useSession } from '@/lib/session';
 
 export function AccountConsole() {
@@ -24,7 +25,7 @@ export function AccountConsole() {
       <section className="empty-state" role="alert">
         <h1>Your account could not be opened.</h1>
         <p>{session.error.message}</p>
-        <Button onClick={() => session.mutate()}>Try again</Button>
+        <Button onClick={() => session.refetch()}>Try again</Button>
       </section>
     );
   if (!session.data)
@@ -42,6 +43,11 @@ export function AccountConsole() {
         <p>{user.email}</p>
         <span className="role-badge">{user.role.toLowerCase()}</span>
         <div className="account-actions">
+          {user.newsroomEligible && <Button asChild><Link href={user.role === 'ADMIN'
+            ? user.newsroomAccess ? '/admin' : '/admin/sign-in'
+            : user.newsroomAccess ? '/newsroom' : '/newsroom/sign-in'}>
+            {user.role === 'ADMIN' ? 'Open administration' : 'Open newsroom'}
+          </Link></Button>}
           <Button
             variant="outline"
             onClick={async () => {

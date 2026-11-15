@@ -2,8 +2,11 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
 import { publicationNavigation, type PublicationDocument as Document } from '@/lib/publication';
+import { getPublicationPage } from '@/lib/publication-api';
 
-export function PublicationDocument({ document }: { document: Document }) {
+export async function PublicationDocument({ document: initial }: { document: Document }) {
+  const persisted = await getPublicationPage(initial.path);
+  const document = persisted ?? initial;
   return (
     <>
       <SiteHeader compact />
@@ -17,9 +20,11 @@ export function PublicationDocument({ document }: { document: Document }) {
           <p className="eyebrow">THE PUBLICATION</p>
           <h1>{document.title}</h1>
           <p className="publication-intro">{document.intro}</p>
-          <p className="publication-date">
-            Updated <time dateTime="2026-11-13">13 November 2026</time>
-          </p>
+          {persisted?.updatedAt && <p className="publication-date">
+            Updated <time dateTime={persisted.updatedAt}>{new Intl.DateTimeFormat('en-IN', {
+              dateStyle: 'long', timeZone: 'Asia/Kolkata',
+            }).format(new Date(persisted.updatedAt))}</time>
+          </p>}
         </header>
         <div className="publication-layout">
           <aside className="publication-sidebar">

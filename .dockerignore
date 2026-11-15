@@ -1,0 +1,16 @@
+.git
+.worknotes
+**/.local
+**/.env
+**/.env.*
+**/node_modules
+**/.next
+**/target
+**/*.log
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/build
+**/.gradle
+android/.android-sdk

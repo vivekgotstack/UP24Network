@@ -1,13 +1,9 @@
-import type { Metadata } from 'next';
+import { publicationMetadata } from '@/lib/publication-api';
 import { PublicationDocument } from '@/components/publication-document';
 import { publicationDocuments } from '@/lib/publication';
 
 const document = publicationDocuments.contact;
-export const metadata: Metadata = {
-  title: document.title,
-  description: document.description,
-  alternates: { canonical: document.path },
-};
+export async function generateMetadata() { return publicationMetadata(document); }
 export default function Page() {
   return <PublicationDocument document={document} />;
 }

@@ -1,0 +1,104 @@
+name: up24network
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: up24network
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: [postgres, -c, shared_buffers=128MB, -c, max_connections=40, -c, default_toast_compression=lz4, -c, log_min_duration_statement=1000]
+    secrets: [postgres-password, application-db-password, migration-db-password]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/01-roles.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d up24network']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+    pids_limit: 100
+    networks: [internal]
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
+  backend:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    restart: unless-stopped
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/secrets/backend.properties
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_SHUTDOWN: graceful
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
+      UP24_MEDIA_DIRECTORY: /app/uploads
+      AUTH_COOKIE_SECURE: 'true'
+    secrets: [backend.properties, jwt-signing.p12]
+    volumes: [uploads:/app/uploads]
+    tmpfs: [/tmp:size=64m,mode=1777]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on: { db: { condition: service_healthy } }
+    stop_grace_period: 40s
+    mem_limit: 768m
+    pids_limit: 150
+    networks: [internal]
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args: { SITE_URL: '${SITE_URL:?Run node scripts/prepare-deployment.mjs first}', NEWS_API_URL: 'http://backend:8080' }
+    restart: unless-stopped
+    environment:
+      SITE_URL: ${SITE_URL:?Set SITE_URL in deployment.env}
+      SITE_INDEXABLE: ${SITE_INDEXABLE:-false}
+      NEWS_API_URL: http://backend:8080
+      NODE_OPTIONS: --max-old-space-size=384
+      ANDROID_APP_ID: com.up24network.news
+      ANDROID_SHA256_CERT_FINGERPRINTS: ${ANDROID_SHA256_CERT_FINGERPRINTS:-}
+    volumes: [frontend_cache:/app/.next/cache]
+    tmpfs: [/tmp:size=32m,mode=1777]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on: { backend: { condition: service_healthy } }
+    stop_grace_period: 20s
+    mem_limit: 512m
+    pids_limit: 100
+    networks: [internal, edge]
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment: { SITE_HOST: '${SITE_HOST:?Set SITE_HOST in deployment.env}' }
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: { frontend: { condition: service_healthy } }
+    mem_limit: 128m
+    pids_limit: 100
+    security_opt: [no-new-privileges:true]
+    networks: [edge]
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
+networks:
+  internal: { internal: false }
+  edge:
+volumes:
+  postgres_data:
+  uploads:
+  frontend_cache:
+  caddy_data:
+  caddy_config:
+secrets:
+  postgres-password: { file: './.local/deployment/postgres-password' }
+  application-db-password: { file: './.local/deployment/application-db-password' }
+  migration-db-password: { file: './.local/deployment/migration-db-password' }
+  backend.properties: { file: './.local/deployment/backend.properties' }
+  jwt-signing.p12: { file: './.local/deployment/jwt-signing.p12' }

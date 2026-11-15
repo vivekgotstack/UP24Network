@@ -16,21 +16,20 @@ export function AuthPage({
 }) {
   const session = useSession(),
     router = useRouter();
-  const destination = editorial
-    ? session.data?.role === 'ADMIN'
-      ? '/admin'
-      : '/newsroom'
+  const destination = session.data?.newsroomEligible
+    ? session.data.newsroomAccess
+      ? session.data.role === 'ADMIN' ? '/admin' : '/newsroom'
+      : session.data.role === 'ADMIN' ? '/admin/sign-in' : '/newsroom/sign-in'
     : '/account';
   useEffect(() => {
     if (session.data && (!editorial || session.data.newsroomAccess)) router.replace(destination);
   }, [session.data, destination, editorial, router]);
   async function authenticated(account: Account) {
-    await session.mutate(account, { revalidate: false });
+    await session.setAccount(account);
     router.replace(
-      editorial && account.newsroomAccess
-        ? account.role === 'ADMIN'
-          ? '/admin'
-          : '/newsroom'
+      account.newsroomEligible ? account.newsroomAccess
+        ? account.role === 'ADMIN' ? '/admin' : '/newsroom'
+        : account.role === 'ADMIN' ? '/admin/sign-in' : '/newsroom/sign-in'
         : '/account',
     );
   }

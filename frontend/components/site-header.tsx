@@ -4,8 +4,9 @@ import { SectionMenu } from '@/components/section-menu';
 import { SearchLink } from '@/components/search-link';
 import { BrandLogo } from '@/components/brand-logo';
 import { sectionHref, sectionTitle } from '@/lib/sections';
+import { getPublicationSettings } from '@/lib/publication-api';
 
-export function SiteHeader({
+export async function SiteHeader({
   category = '',
   latest = false,
   compact = false,
@@ -16,6 +17,7 @@ export function SiteHeader({
   compact?: boolean;
   home?: boolean;
 }) {
+  const settings = await getPublicationSettings();
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -37,7 +39,7 @@ export function SiteHeader({
             </span>
           </Link>
           <p className="compact-tagline" lang="hi">
-            खबर हमारी यकीन आपका
+            {settings.tagline}
           </p>
         </div>
         <form action="/search" role="search" className="header-search">
@@ -81,14 +83,14 @@ export function SiteHeader({
           </Link>
         ))}
         <Link href="/regions">राज्य और शहर</Link>
-        <Link
+        {settings.showVideo && <Link
           href="/watch"
           className="watch-nav"
           aria-current={category === 'Videos' ? 'page' : undefined}
         >
           <Play size={13} aria-hidden="true" />
           वीडियो
-        </Link>
+        </Link>}
         <SectionMenu />
       </nav>
       <nav className="secondary-nav" aria-label="More news sections">
@@ -102,7 +104,7 @@ export function SiteHeader({
           'Lifestyle',
           'Auto',
           'Explainers',
-        ].map((section) => (
+        ].filter(section => settings.showRashifal || section !== 'Rashifal').map((section) => (
           <Link
             key={section}
             href={sectionHref(section)}
@@ -112,6 +114,9 @@ export function SiteHeader({
           </Link>
         ))}
       </nav>
+      {settings.announcementEnabled && settings.announcement && <aside className="site-announcement" aria-label="Publication announcement">
+        <p>{settings.announcement}</p>
+      </aside>}
     </>
   );
 }

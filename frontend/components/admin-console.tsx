@@ -60,8 +60,8 @@ export function AdminConsole({
       router.replace(`${basePath}/sign-in`);
   }, [session.isLoading, session.data, router, basePath]);
   useEffect(() => {
-    if (loadError?.status === 401) void session.mutate();
-  }, [loadError?.status, session.mutate]);
+    if (loadError?.status === 401) void session.refetch();
+  }, [loadError?.status, session.refetch]);
   async function act<T>(
     action: () => Promise<T>,
     success?: string,
@@ -76,8 +76,8 @@ export function AdminConsole({
       return result;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The action could not be completed.');
-      if (reason instanceof CmsError && [401, 403].includes(reason.status)) void session.mutate();
-      if (reason instanceof CmsError && reason.status === 409) void articleData.mutate();
+      if (reason instanceof CmsError && [401, 403].includes(reason.status)) void session.refetch();
+      if (reason instanceof CmsError && reason.status === 409) void articleData.refetch();
       if (propagate) throw reason;
       return undefined;
     } finally {
@@ -95,7 +95,7 @@ export function AdminConsole({
       <main id="main-content" className="empty-state" role="alert">
         <h1>The newsroom could not be opened.</h1>
         <p>{session.error.message}</p>
-        <Button onClick={() => session.mutate()}>Try again</Button>
+        <Button onClick={() => session.refetch()}>Try again</Button>
       </main>
     );
   if (
@@ -138,17 +138,17 @@ export function AdminConsole({
   const published = articles.filter((item) => item.status === 'PUBLISHED').length;
   const refresh = () =>
     Promise.all([
-      articleData.mutate(),
-      reportData.mutate(),
-      accountData.mutate(),
-      jobData.mutate(),
+      articleData.refetch(),
+      reportData.refetch(),
+      accountData.refetch(),
+      jobData.refetch(),
     ]);
   async function publication(item: ManagedArticle, publish: boolean, breaking: boolean) {
     return Boolean(
       await act(
         async () => {
           await articleDesk.publish(item, publish, breaking);
-          await articleData.mutate();
+          await articleData.refetch();
           return true;
         },
         publish ? 'Report published.' : 'Report returned to drafts.',
@@ -322,8 +322,8 @@ export function AdminConsole({
               user={user}
               articles={articles}
               busy={blocked}
-              refreshing={articleData.isValidating}
-              onRefresh={() => act(() => articleData.mutate())}
+              refreshing={articleData.isFetching}
+              onRefresh={() => act(() => articleData.refetch())}
               onPublish={publication}
             />
           )}
@@ -353,7 +353,7 @@ export function AdminConsole({
                   act(
                     async () => {
                       const saved = await articleDesk.save(articleId, draft);
-                      await reportData.mutate(saved, { revalidate: false });
+                      await reportData.setData(saved);
                       setDirty(false);
                       if (preview) router.push(`${basePath}/articles/${saved.id}/preview`);
                       else if (!articleId) router.replace(`${basePath}/articles/${saved.id}`);
@@ -385,7 +385,7 @@ export function AdminConsole({
                 Boolean(
                   await act(async () => {
                     await cms('admin/accounts', 'POST', account);
-                    await accountData.mutate();
+                    await accountData.refetch();
                     return true;
                   }, 'Account created.'),
                 )
@@ -393,7 +393,7 @@ export function AdminConsole({
               onRole={(account, role: Role) =>
                 act(async () => {
                   await cms(`admin/accounts/${account.id}`, 'PATCH', { role });
-                  await accountData.mutate();
+                  await accountData.refetch();
                 }, 'Account role updated.')
               }
             />
@@ -405,13 +405,13 @@ export function AdminConsole({
               onSettings={async (job, enabled, intervalMinutes) => {
                 await act(async () => {
                   await cms(`admin/automations/${job.key}`, 'PATCH', { enabled, intervalMinutes });
-                  await jobData.mutate();
+                  await jobData.refetch();
                 }, 'Automation settings saved.');
               }}
               onRun={async (job) => {
                 await act(async () => {
                   await cms(`admin/automations/${job.key}/run`, 'POST');
-                  await jobData.mutate();
+                  await jobData.refetch();
                 }, 'Source check finished. Review its result.');
               }}
             />

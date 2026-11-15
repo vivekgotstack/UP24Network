@@ -217,3 +217,18 @@
     break-inside: avoid;
   }
 }
+.site-announcement {
+  border-block: 1px solid var(--line);
+  background: var(--brand-navy);
+  color: var(--paper);
+  padding: 12px 18px;
+  font: 600 16px/1.7 var(--sans);
+  overflow-wrap: anywhere;
+}
+.footer-description {
+  max-width: 760px;
+  color: var(--muted);
+  font: 400 16px/1.8 var(--sans);
+  margin: 0 0 28px;
+  overflow-wrap: anywhere;
+}

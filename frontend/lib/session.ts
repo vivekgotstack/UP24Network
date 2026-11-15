@@ -1,38 +1,41 @@
 'use client';
 
-import useSWR, { useSWRConfig } from 'swr';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cms, CmsError, type Account } from '@/lib/cms';
 
-async function session() {
+const sessionKey = ['identity', 'session'] as const;
+async function session(signal?: AbortSignal) {
   try {
-    return await cms<Account>('auth/me');
+    return await cms<Account>('auth/me', 'GET', undefined, { signal });
   } catch (error) {
     if (error instanceof CmsError && error.status === 401) return null;
     throw error;
   }
 }
 export function useSession() {
-  const result = useSWR<Account | null, CmsError>('auth/me', session, {
-    shouldRetryOnError: false,
-  });
-  const { mutate } = useSWRConfig();
+  const client = useQueryClient();
+  const result = useQuery<Account | null, CmsError>({ queryKey: sessionKey,
+    queryFn: ({ signal }) => session(signal), staleTime: 15_000 });
+  const setAccount = useCallback(async (account: Account | null) => {
+    await client.cancelQueries({ queryKey: ['newsroom'] });
+    client.removeQueries({ queryKey: ['newsroom'] });
+    client.setQueryData(sessionKey, account);
+  }, [client]);
   async function signOut(everywhere = false) {
     await cms(everywhere ? 'auth/logout-all' : 'auth/logout', 'POST');
-    await mutate((key) => Array.isArray(key) && key[0] === 'newsroom', undefined, {
-      revalidate: false,
-    });
-    await result.mutate(null, { revalidate: false });
+    await setAccount(null);
   }
-  return { ...result, signOut };
+  return { ...result, setAccount, signOut };
 }
 export function useNewsroomResource<T>(
   account: Account | null | undefined,
   path: string,
   permitted = true,
 ) {
-  return useSWR<T, CmsError>(
-    account && permitted ? ['newsroom', account.id, path] : null,
-    ([, , resource]: [string, string, string]) => cms<T>(resource),
-    { shouldRetryOnError: false, keepPreviousData: false },
-  );
+  const client = useQueryClient();
+  const key = ['newsroom', account?.id, path] as const;
+  const result = useQuery<T, CmsError>({ queryKey: key,
+    queryFn: ({ signal }) => cms<T>(path, 'GET', undefined, { signal }), enabled: Boolean(account && permitted) });
+  return { ...result, setData: (data: T) => client.setQueryData(key, data) };
 }

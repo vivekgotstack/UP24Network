@@ -13,6 +13,7 @@ import { WatchSection } from '@/components/watch-section';
 import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
 import { RashifalSection } from '@/components/rashifal-section';
+import { getPublicationSettings } from '@/lib/publication-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,8 @@ export default async function Home({
   if (typeof filters.category === 'string' && newsSections.some((s) => s.name === filters.category))
     redirect(sectionHref(filters.category));
   if (filters.view === 'latest') redirect('/latest');
-  const articles = newest(await getArticles());
+  const [reports, settings] = await Promise.all([getArticles(), getPublicationSettings()]);
+  const articles = newest(reports);
   const lead =
     articles.find((a) => a.breaking && Date.now() - Date.parse(a.publishedAt) < 86400000) ??
     articles[0];
@@ -87,10 +89,10 @@ export default async function Home({
           <EmptyState />
         )}
         <Reveal>
-          <WatchSection articles={articles} />
+          {settings.showVideo && <WatchSection articles={articles} />}
         </Reveal>
         <Suspense fallback={null}>
-          <RashifalSection />
+          {settings.showRashifal && <RashifalSection />}
         </Suspense>
         {remaining.length > 0 && (
           <section className="more-stories">
