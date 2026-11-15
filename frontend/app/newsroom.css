@@ -213,7 +213,7 @@
     border-radius: 3px;
     background: #fffc;
     color: var(--ink);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 400;
   }
   .cms-form textarea {
@@ -476,7 +476,7 @@
   }
   .cms-account-list select {
     width: 135px;
-    font-size: 12px;
+    font-size: 16px;
     padding: 8px;
   }
   .role-guide {
@@ -504,11 +504,13 @@
   }
   .cms-job-list {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 22px;
     margin-top: 28px;
   }
   .cms-job-list article {
+    min-width: 0;
+    overflow-wrap: anywhere;
     border: 1px solid var(--line);
     padding: 25px;
     background: #fff6;
@@ -542,7 +544,7 @@
   }
   .cms-job-list select {
     width: 125px;
-    font-size: 13px;
+    font-size: 16px;
     padding: 7px 10px;
   }
   .cms-switch {
@@ -749,7 +751,7 @@
     .cms-editor-grid,
     .team-layout,
     .cms-job-list {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .cms-tabs {
       gap: 25px;

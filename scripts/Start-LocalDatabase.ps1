@@ -67,5 +67,6 @@ $configurationLines = @($configuration.GetEnumerator() | Sort-Object Name | ForE
 Write-Up24Utf8File -Path $configurationPath -Lines $configurationLines
 Write-Up24Utf8File -Path (Join-Path $localRoot 'admin-login.txt') -Lines @('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $configuration['up24.bootstrap.admin-password']))
 & (Join-Path $PSScriptRoot 'Set-LocalDatabaseRoles.ps1') -PostgresBin $postgresBin
+  & (Join-Path $PSScriptRoot 'Initialize-AuthKeys.ps1')
 Write-Output 'UP24Network database ready on 127.0.0.1:55432.'
 Write-Output 'Local admin credentials: backend/.local/admin-login.txt (excluded from Git).'
