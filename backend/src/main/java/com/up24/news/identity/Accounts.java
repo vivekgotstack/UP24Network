@@ -8,6 +8,7 @@ public interface Accounts {
     enum Role { ADMIN, EDITOR, REPORTER, SUBSCRIBER }
     record Account(UUID id, String email, String displayName, Role role) {}
     Optional<Account> find(String email);
+    Optional<Account> find(UUID id);
     List<Account> list();
     Account create(String email, String displayName, String password, Role role);
     Account changeRole(UUID id, Role role, UUID actor);

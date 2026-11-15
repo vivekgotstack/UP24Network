@@ -16,8 +16,8 @@ export function useSession() {
     shouldRetryOnError: false,
   });
   const { mutate } = useSWRConfig();
-  async function signOut() {
-    await cms('auth/logout', 'POST');
+  async function signOut(everywhere = false) {
+    await cms(everywhere ? 'auth/logout-all' : 'auth/logout', 'POST');
     await mutate((key) => Array.isArray(key) && key[0] === 'newsroom', undefined, {
       revalidate: false,
     });

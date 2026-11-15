@@ -35,6 +35,7 @@ class AccountService implements Accounts {
     }
 
     @Override public Optional<Account> find(String email) { return accounts.find(EmailAddresses.normalize(email)); }
+    @Override public Optional<Account> find(UUID id) { return accounts.find(id); }
     @Override public List<Account> list() { return accounts.list(); }
 
     @Override public Account create(String email, String name, String password, Role role) {

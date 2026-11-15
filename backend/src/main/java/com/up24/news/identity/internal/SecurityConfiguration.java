@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import com.up24.news.identity.Accounts;
@@ -46,7 +48,14 @@ class SecurityConfiguration {
         return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 .requestCache(cache -> cache.disable())
-                .csrf(config -> config.csrfTokenRepository(csrf))
+                .csrf(config -> config.csrfTokenRepository(csrf).withObjectPostProcessor(new ObjectPostProcessor<CsrfFilter>() {
+                    @Override public <O extends CsrfFilter> O postProcess(O filter) {
+                        // Resource Server normally exempts bearer requests. Our browser bearer is
+                        // carried by a cookie, so every unsafe request still requires CSRF proof.
+                        filter.setRequireCsrfProtectionMatcher(CsrfFilter.DEFAULT_CSRF_MATCHER);
+                        return filter;
+                    }
+                }))
                 .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
@@ -63,7 +72,7 @@ class SecurityConfiguration {
                         .failureHandler((request,response,exception) -> response.sendError(401,"Invalid email or password")))
                 .logout(logout -> logout.disable())
                 .oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> {
-                    if (anonymousTokenPaths.contains(request.getServletPath())) return null;
+                    if (anonymousTokenPaths.contains(request.getRequestURI().substring(request.getContextPath().length()))) return null;
                     var header=bearer.resolve(request);
                     return header!=null ? header : TokenCookies.read(request,TokenCookies.ACCESS);
                 }).jwt(jwt -> jwt.jwtAuthenticationConverter(principal)))

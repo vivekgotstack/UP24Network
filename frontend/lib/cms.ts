@@ -18,35 +18,76 @@ export class CmsError extends Error {
     this.name = 'CmsError';
   }
 }
+
+async function csrfHeaders() {
+  const response = await fetch('/api/cms/auth/csrf', { cache: 'no-store' });
+  if (!response.ok)
+    throw new CmsError(response.status, 'The newsroom service is unavailable. Please try again.');
+  const csrf: { headerName: string; token: string } = await response.json();
+  return new Headers({ [csrf.headerName]: csrf.token });
+}
+
+let renewal: Promise<boolean> | undefined;
+
+/** One renewal per origin, across components and (where supported) browser tabs. */
+export function renewLogin(): Promise<boolean> {
+  if (renewal) return renewal;
+  const renew = async () => {
+    const current = await fetch('/api/cms/auth/me', { cache: 'no-store' });
+    if (current.ok) return true;
+    if (current.status !== 401)
+      throw new CmsError(current.status, 'Your account could not be refreshed.');
+    const response = await fetch('/api/cms/auth/refresh', {
+      method: 'POST',
+      headers: await csrfHeaders(),
+      cache: 'no-store',
+    });
+    if (response.status === 401) return false;
+    if (!response.ok) throw new CmsError(response.status, 'Your account could not be refreshed.');
+    return true;
+  };
+  renewal = (
+    typeof navigator !== 'undefined' && navigator.locks
+      ? Promise.resolve(navigator.locks.request('up24-login-renewal', renew)).then(value => value)
+      : renew()
+  ).finally(() => {
+    renewal = undefined;
+  });
+  return renewal;
+}
+
 export async function cms<T>(
   path: string,
   method = 'GET',
   body?: object | URLSearchParams,
 ): Promise<T> {
-  const headers = new Headers();
+  let headers = new Headers();
   if (method !== 'GET') {
-    let response: Response;
     try {
-      response = await fetch('/api/cms/auth/csrf', { cache: 'no-store' });
+      headers = await csrfHeaders();
     } catch {
       throw new CmsError(503, 'The newsroom service is unavailable. Please try again.');
     }
-    if (!response.ok)
-      throw new CmsError(response.status, 'The newsroom service is unavailable. Please try again.');
-    const csrf: { headerName: string; token: string } = await response.json();
-    headers.set(csrf.headerName, csrf.token);
   }
   const form = body instanceof URLSearchParams;
   if (body)
     headers.set('content-type', form ? 'application/x-www-form-urlencoded' : 'application/json');
   let response: Response;
-  try {
-    response = await fetch(`/api/cms/${path}`, {
+  const send = () =>
+    fetch(`/api/cms/${path}`, {
       method,
       headers,
       cache: 'no-store',
       body: body ? (form ? (body as URLSearchParams) : JSON.stringify(body)) : undefined,
     });
+  try {
+    response = await send();
+    if (
+      response.status === 401 &&
+      !['auth/login', 'auth/register', 'auth/refresh', 'auth/logout'].includes(path) &&
+      (await renewLogin())
+    )
+      response = await send();
   } catch {
     throw new CmsError(503, 'The newsroom service is unavailable. Please try again.');
   }

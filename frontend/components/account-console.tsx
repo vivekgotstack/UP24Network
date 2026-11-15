@@ -54,6 +54,18 @@ export function AccountConsole() {
           >
             Sign out
           </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await session.signOut(true);
+              } catch (reason) {
+                setError(reason instanceof Error ? reason.message : 'Sign-out failed.');
+              }
+            }}
+          >
+            Sign out everywhere
+          </Button>
         </div>
       </div>
       {error && (

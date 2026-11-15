@@ -8,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays;
+import java.util.UUID;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 /** Read database roles so revocation applies to already signed-in users. */
 @Component("access")
@@ -21,7 +23,9 @@ class SessionAccess implements Access {
         if (authentication == null || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken)
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        return accounts.find(authentication.getName())
+        var account = authentication instanceof JwtAuthenticationToken jwt
+                ? accounts.find(UUID.fromString(jwt.getToken().getSubject())) : accounts.find(authentication.getName());
+        return account
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 

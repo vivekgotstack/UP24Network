@@ -1,6 +1,8 @@
 package com.up24.news.identity.internal;
 
 import com.up24.news.identity.Accounts;
+import com.up24.news.identity.AccountException;
+import jakarta.servlet.http.Cookie;
 import com.up24.news.notification.LoginCodeDelivery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
@@ -50,22 +51,30 @@ class NewsroomOtpIntegrationTest {
         accounts.create("reader@identity.test","Reader",PASSWORD,Accounts.Role.SUBSCRIBER);
     }
 
+    private Cookie[] login(String email) throws Exception {
+        var result=mvc.perform(formLogin("/api/auth/login").user("email",email).password(PASSWORD))
+                .andExpect(status().isOk()).andExpect(cookie().httpOnly(TokenCookies.ACCESS,true))
+                .andExpect(cookie().httpOnly(TokenCookies.REFRESH,true)).andReturn();
+        assertThat(result.getRequest().getSession(false)).isNull();
+        return new Cookie[]{result.getResponse().getCookie(TokenCookies.ACCESS),result.getResponse().getCookie(TokenCookies.REFRESH)};
+    }
+
     @Test void passwordAloneDoesNotOpenNewsroomAndCodeIsSessionBoundAndSingleUse() throws Exception {
-        var login=mvc.perform(formLogin("/api/auth/login").user("email",OWNER).password(PASSWORD)).andExpect(status().isOk()).andReturn();
-        var session=(MockHttpSession)login.getRequest().getSession(false);
-        mvc.perform(get("/api/admin/accounts").session(session)).andExpect(status().isForbidden());
-        mvc.perform(post("/api/auth/newsroom/code").session(session).with(csrf())).andExpect(status().isOk())
+        var session=login(OWNER);
+        mvc.perform(get("/api/admin/accounts").cookie(session)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/auth/newsroom/code").cookie(session)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/auth/newsroom/code").cookie(session).with(csrf())).andExpect(status().isOk())
                 .andExpect(jsonPath("$.expiresAt").exists()).andExpect(jsonPath("$.code").doesNotExist());
         String code=mail.code;
         assertThat(code).matches("[0-9]{6}");
         assertThat(jdbc.queryForObject("SELECT code_digest FROM identity_newsroom_otp WHERE email=?",String.class,OWNER)).hasSize(64).doesNotContain(code);
-        mvc.perform(post("/api/auth/newsroom/verify").with(user(OWNER)).with(csrf()).session(new MockHttpSession())
+        mvc.perform(post("/api/auth/newsroom/verify").cookie(login(OWNER)).with(csrf())
                 .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isUnauthorized());
-        mvc.perform(post("/api/auth/newsroom/verify").session(session).with(csrf())
+        mvc.perform(post("/api/auth/newsroom/verify").cookie(session).with(csrf())
                 .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isNoContent());
-        mvc.perform(get("/api/auth/me").session(session)).andExpect(jsonPath("$.newsroomAccess").value(true));
-        mvc.perform(get("/api/admin/accounts").session(session)).andExpect(status().isOk());
-        mvc.perform(post("/api/auth/newsroom/verify").session(session).with(csrf())
+        mvc.perform(get("/api/auth/me").cookie(session)).andExpect(jsonPath("$.newsroomAccess").value(true));
+        mvc.perform(get("/api/admin/accounts").cookie(session)).andExpect(status().isOk());
+        mvc.perform(post("/api/auth/newsroom/verify").cookie(session).with(csrf())
                 .contentType("application/json").content("{\"code\":\""+code+"\"}")).andExpect(status().isUnauthorized());
     }
 
@@ -82,6 +91,47 @@ class NewsroomOtpIntegrationTest {
         assertThat(otp.verify(email,"test-session",code)).isFalse();
         mvc.perform(post("/api/auth/newsroom/code").with(user("reader@identity.test")).with(csrf())).andExpect(status().isForbidden());
         assertThatThrownBy(()->accounts.create("other-admin@identity.test","Other",PASSWORD,Accounts.Role.ADMIN))
-                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+                .isInstanceOf(AccountException.class);
+    }
+
+    @Test void refreshRotatesAndReplayRevokesTheWholeLogin() throws Exception {
+        var original=login(OWNER);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM identity_refresh_token WHERE digest=?",Integer.class,
+                LoginSessions.digest(original[1].getValue()))).isEqualTo(1);
+        var rotated=mvc.perform(post("/api/auth/refresh").cookie(original).with(csrf()))
+                .andExpect(status().isNoContent()).andReturn();
+        var access=rotated.getResponse().getCookie(TokenCookies.ACCESS);
+        var refresh=rotated.getResponse().getCookie(TokenCookies.REFRESH);
+        assertThat(access.getValue()).isNotEqualTo(original[0].getValue());
+        assertThat(refresh.getValue()).isNotEqualTo(original[1].getValue());
+        mvc.perform(get("/api/auth/me").cookie(access)).andExpect(status().isOk());
+        mvc.perform(post("/api/auth/refresh").cookie(original).with(csrf())).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me").cookie(access)).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/refresh").cookie(refresh).with(csrf())).andExpect(status().isUnauthorized());
+    }
+
+    @Test void logoutRevokesImmediatelyAndLogoutEverywhereRevokesOtherDevices() throws Exception {
+        var first=login(OWNER); var second=login(OWNER); var third=login(OWNER);
+        mvc.perform(post("/api/auth/logout").cookie(first)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/auth/logout").cookie(first).with(csrf())).andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge(TokenCookies.ACCESS,0)).andExpect(cookie().maxAge(TokenCookies.REFRESH,0));
+        mvc.perform(get("/api/auth/me").cookie(first)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me").cookie(second)).andExpect(status().isOk());
+        mvc.perform(post("/api/auth/logout-all").cookie(second).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/api/auth/me").cookie(second)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me").cookie(third)).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/refresh").cookie(first).with(csrf())).andExpect(status().isUnauthorized());
+    }
+
+    @Test void publicRegistrationCannotClaimTheOwnerOrAssignStaffRoles() throws Exception {
+        var body="{\"email\":\"new-reader@identity.test\",\"displayName\":\"Reader\",\"password\":\""+PASSWORD+"\",\"role\":\"ADMIN\"}";
+        mvc.perform(post("/api/auth/register").with(csrf()).contentType("application/json").content(body))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("SUBSCRIBER"))
+                .andExpect(jsonPath("$.password").doesNotExist()).andExpect(jsonPath("$.passwordHash").doesNotExist());
+        // The address is reserved even in an empty database before bootstrap.
+        jdbc.update("DELETE FROM identity_account WHERE email=?",OWNER);
+        mvc.perform(post("/api/auth/register").with(csrf()).contentType("application/json").content(body.replace("new-reader@identity.test",OWNER)))
+                .andExpect(status().isConflict());
+        assertThatThrownBy(() -> accounts.create("invalid-email"," ",PASSWORD,Accounts.Role.REPORTER)).isInstanceOf(AccountException.class);
     }
 }
