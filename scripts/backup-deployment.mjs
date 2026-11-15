@@ -1,4 +1,4 @@
-import { mkdirSync, openSync, closeSync, cpSync, writeFileSync } from 'node:fs';
+import { mkdirSync, openSync, closeSync, cpSync, writeFileSync, unlinkSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
@@ -20,4 +20,5 @@ await capture(['exec','-T','db','pg_dump','--username=postgres','--format=custom
 await capture(['exec','-T','backend','tar','-czf','-','-C','/app/uploads','.'],'uploads.tar.gz');
 cpSync(join(root,'.local/deployment'),join(destination,'deployment'),{recursive:true});
 writeFileSync(join(destination,'COMPLETE'),'Database, media and deployment secrets captured. Keep this directory private and copy it off the VPS.\n',{mode:0o600});
+unlinkSync(join(destination,'INCOMPLETE'));
 console.log('Private recovery point created: '+destination);

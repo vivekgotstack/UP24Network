@@ -2,11 +2,12 @@ import type { Article } from '@/lib/articles';
 export type ManagedArticle = {
   id: string;
   authorId: string | null;
-  status: 'DRAFT' | 'PUBLISHED';
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'TRASH';
   manualOverride: boolean;
   version: number;
   article: Article;
   sourceNotes: string;
+  byline: string;
   region: string;
 };
 export type Draft = {
@@ -37,6 +38,7 @@ export const emptyDraft: Draft = {
   youtubeId: '',
   body: '',
   sourceNotes: '',
+  byline: '',
 };
 export function toDraft(row?: ManagedArticle | null): Draft {
   return row
@@ -53,6 +55,7 @@ export function toDraft(row?: ManagedArticle | null): Draft {
         youtubeId: row.article.youtubeId ?? '',
         body: row.article.paragraphs.join('\n\n'),
         sourceNotes: row.sourceNotes ?? '',
+        byline: row.article.author,
       }
     : { ...emptyDraft };
 }
@@ -89,6 +92,7 @@ export function videoId(input: string) {
 }
 export function allowedMedia(input: string, image = true) {
   if (!input) return true;
+  if (image && /^\/media\/[a-f0-9]{64}\.webp$/.test(input)) return true;
   if (/^\/(images|brand|videos)\/[A-Za-z0-9._/-]+$/.test(input) && !input.includes('..'))
     return true;
   try {

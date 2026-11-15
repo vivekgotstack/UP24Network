@@ -33,7 +33,7 @@ export const config = {
   matcher: [
     {
       source:
-        '/((?!api|_next/static|_next/image|favicon.ico|brand/|fonts/|images/|videos/|robots.txt|sitemap.xml).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|brand/|fonts/|images/|videos/|media/|icons/|sw.js|offline.html|manifest.webmanifest|\\.well-known/|robots.txt|sitemap.xml).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },

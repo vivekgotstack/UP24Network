@@ -21,7 +21,7 @@ function run(program,args,options={}) {
   let executable=program, commandArgs=args;
   if (windows && /\.(bat|cmd)$/i.test(program)) {
     const literal=value=>"'"+value.replaceAll("'","''")+"'";
-    const script='& '+literal(program)+' '+args.map(literal).join(' ')+'; exit $LASTEXITCODE';
+    const script="$ProgressPreference='SilentlyContinue'; & "+literal(program)+' '+args.map(literal).join(' ')+'; exit $LASTEXITCODE';
     executable='powershell.exe'; commandArgs=['-NoLogo','-NoProfile','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')];
   }
   const result=spawnSync(executable,commandArgs,{cwd:join(root,'android'),env:{...process.env,ANDROID_HOME:sdk,ANDROID_SDK_ROOT:sdk,GRADLE_USER_HOME:join(tools,'gradle-home')},stdio:'inherit',...options});
@@ -49,7 +49,7 @@ function extract(archive,destination) {
   inside(archive); inside(destination); mkdirSync(destination,{recursive:true});
   if (windows) {
     const literal=value=>"'"+value.replaceAll("'","''")+"'";
-    const script=`Expand-Archive -LiteralPath ${literal(archive)} -DestinationPath ${literal(destination)} -Force`;
+    const script=`$ProgressPreference='SilentlyContinue'; Expand-Archive -LiteralPath ${literal(archive)} -DestinationPath ${literal(destination)} -Force`;
     const result=spawnSync('powershell.exe',['-NoLogo','-NoProfile','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{stdio:'inherit'});
     if (result.status!==0) throw new Error('Could not unpack official Android tools.');
   } else if(spawnSync('unzip',['-q','-o',archive,'-d',destination],{stdio:'inherit'}).status!==0) throw new Error('Install unzip to unpack Android tools.');
@@ -69,9 +69,9 @@ if (!existsSync(sdkmanager) || !existsSync(gradle)) {
     const platform=windows?'windows':process.platform==='darwin'?'macosx':'linux';
     const archive=archives.find(entry=>entry[0].includes(`<host-os>${platform}</host-os>`))?.[0];
     const filename=archive?.match(/<url>([^<]+)<\/url>/)?.[1];
-    const checksum=archive?.match(/<checksum type="([^"]+)">([^<]+)<\/checksum>/);
+    const checksum=archive?.match(/<checksum(?: type="([^"]+)")?>([^<]+)<\/checksum>/);
     if (!filename || !checksum) throw new Error('Official SDK archive or checksum missing.');
-    const zip=join(tools,filename); await download('https://dl.google.com/android/repository/'+filename,zip,checksum[2],checksum[1]);
+    const zip=join(tools,filename); await download('https://dl.google.com/android/repository/'+filename,zip,checksum[2],checksum[1] ?? (checksum[2].length===40?'sha1':'sha256'));
     const unpack=join(tools,'cmdline-extract'); extract(zip,unpack);
     const target=inside(join(sdk,'cmdline-tools/latest')); mkdirSync(dirname(target),{recursive:true});
     renameSync(inside(join(unpack,'cmdline-tools')),target);

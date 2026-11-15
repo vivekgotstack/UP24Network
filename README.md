@@ -29,6 +29,19 @@ events and never reach into another module's internal repositories.
 
 ## Current checkpoint
 
+### Administration build map
+
+- Private entry: `/admin/sign-in` → password → email code → `/admin`. Reader sign-in now also routes staff to their verified workspace; no public admin navigation is exposed to visitors.
+- Four roles: Admin, Editor, Reporter, Subscriber. Reporters edit their own drafts; editors publish; administration controls all content, accounts, workflows and sources.
+- Admin navigation: articles, trash/archive, media, publication pages, team, employee workflows, automations and site settings. Article history keeps 20 revisions; restoration returns to draft. Deleted imports are suppressed from future fetches.
+- Frontend data: `frontend/lib/session.ts` owns account-scoped TanStack Query hooks; SWR is removed. Public fetches use tagged server caching; successful content changes invalidate those tags.
+- Backend data: explicit module APIs and storage ports; transaction-aware Caffeine caches have bounded memory/expiry. Public lists omit article bodies, private lists paginate in SQL, JSON responses compress, long PostgreSQL values use LZ4.
+- Media: `/api/media` bounds original uploads at 12 MB/24 megapixels, produces proportional WebP copies up to 1920 px/2 MB, strips metadata, hashes/deduplicates storage. Two concurrent conversions; images referenced by articles or revisions cannot be deleted.
+- Per-employee workflow: `identity/WorkflowPolicies` → `/admin/workflows`; dateline/source/media requirements, section/city defaults and metadata helper access. These checks are enforced by the backend.
+- Publication: `publication` module and `/admin/pages`, `/admin/settings`; full structured policy documents, site tagline, announcement and home-section controls. Admin email remains private.
+- Deployment/installability stage: Docker/Caddy/PostgreSQL stack, PWA and Android packaging are being completed. Local hints and component maps are in ignored `.worknotes/*-controls.md` and `.worknotes/deployment-pwa.md`.
+
+
 - Expanded reader navigation: 32 sections, nested subject pages, 8 regional hubs and 22 city editions.
 - Compact logo/category header; the sitewide footer pairs the uncropped illustrated
   banner and official logo with verified social channels and grouped navigation.
