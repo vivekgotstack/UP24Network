@@ -3,7 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ArticleConflict } from '@/components/newsroom/article-conflict';
-import { CmsError } from '@/lib/cms';
+import { cms, CmsError } from '@/lib/cms';
+import { useSession, useNewsroomResource } from '@/lib/session';
+import { MediaUpload } from '@/components/newsroom/media-upload';
+import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
+import styles from './article-admin.module.css';
 
 import { sections } from '@/lib/sections';
 import { cities, regions } from '@/lib/regions';
@@ -24,14 +28,32 @@ export function ArticleEditor({
   onDirty,
   onCancel,
   adminMode = false,
+  onPublish,
 }: {
   article: ManagedArticle | null;
   busy: boolean;
-  onSave: (draft: SaveArticle, preview?: boolean) => Promise<ManagedArticle | undefined>;
+  onSave: (
+    draft: SaveArticle,
+    preview?: boolean,
+    stayInEditor?: boolean,
+  ) => Promise<ManagedArticle | undefined>;
+  onPublish?: (saved: ManagedArticle) => Promise<ManagedArticle | undefined>;
   onDirty: (dirty: boolean) => void;
   onCancel: () => void;
   adminMode?: boolean;
 }) {
+  const session = useSession();
+  const workflow = useNewsroomResource<WorkflowPolicy>(session.data, 'auth/workflow', !adminMode);
+  const policy = workflow.data ?? defaultWorkflow;
+  const [helpersEnabled, setHelpersEnabled] = useState(true),
+    [assisting, setAssisting] = useState(false),
+    [assistNotice, setAssistNotice] = useState('');
+  const helpersAllowed = (adminMode || policy.autofill) && helpersEnabled;
+  const requireDateline = !adminMode && policy.requireDateline;
+  const requireSources = !adminMode && policy.requireSources;
+  const requireMedia = !adminMode && policy.requireMedia;
+  const touched = useRef(false),
+    defaultsApplied = useRef(Boolean(article));
   const [draft, setDraft] = useState(() => toDraft(article));
   const [saved, setSaved] = useState(() => JSON.stringify(toDraft(article)));
   const [error, setError] = useState('');
@@ -40,6 +62,22 @@ export function ArticleEditor({
   const [confirmClose, setConfirmClose] = useState(false);
   const allowLeave = useRef(false);
   const dirty = JSON.stringify(draft) !== saved;
+  useEffect(() => {
+    if (defaultsApplied.current || !workflow.data) return;
+    defaultsApplied.current = true;
+    if (touched.current || article) return;
+    const next = {
+      ...toDraft(),
+      category: workflow.data.defaultCategory || 'Uttar Pradesh',
+      city: workflow.data.defaultCity,
+    };
+    const known = cities.find((item) =>
+      item.aliases.some((alias) => alias.toLowerCase() === next.city.trim().toLowerCase()),
+    );
+    next.region = known?.region ?? '';
+    setDraft(next);
+    setSaved(JSON.stringify(next));
+  }, [workflow.data, article]);
   useEffect(() => {
     onDirty(dirty);
   }, [dirty, onDirty]);
@@ -51,55 +89,115 @@ export function ArticleEditor({
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
-  const set = (key: keyof Draft, value: string) =>
+  const set = (key: keyof Draft, value: string) => {
+    touched.current = true;
     setDraft((current) => ({ ...current, [key]: value }));
+  };
   function headline(value: string) {
+    touched.current = true;
     setDraft((current) => ({
       ...current,
       title: value,
       slug:
-        current.slug === slugify(current.title) || !current.slug ? slugify(value) : current.slug,
+        helpersAllowed && (current.slug === slugify(current.title) || !current.slug)
+          ? slugify(value)
+          : current.slug,
     }));
   }
   function validated() {
-    if (!adminMode && (!draft.city.trim() || !draft.sourceNotes.trim()))
-      throw new Error('Add a location and reporting sources before saving.');
+    if (requireDateline && !draft.city.trim())
+      throw new Error('Add a location or dateline before saving.');
+    if (requireSources && !draft.sourceNotes.trim())
+      throw new Error('Add your reporting sources before saving.');
     if (
-      !adminMode &&
+      requireMedia &&
       !draft.videoUrl &&
       !draft.youtubeId &&
       (!draft.image || draft.image.startsWith('/brand/'))
     )
       throw new Error('Choose a photograph or video for this report.');
-    if (!adminMode && draft.image && !draft.imageAlt.trim())
+    if (!adminMode && draft.image && !draft.image.startsWith('/brand/') && !draft.imageAlt.trim())
       throw new Error('Add a description for the photograph.');
     if (!draft.slug.trim() || !/^[\p{L}\p{N}\p{M}_-]+$/u.test(draft.slug))
       throw new Error('Use letters, numbers and hyphens for the article slug.');
     if (!allowedMedia(draft.image) || !allowedMedia(draft.videoUrl, false))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
-    return { ...draft, version, youtubeId: videoId(draft.youtubeId.trim()) };
+    return {
+      ...draft,
+      version,
+      byline: adminMode ? draft.byline : '',
+      youtubeId: videoId(draft.youtubeId.trim()),
+    };
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
     try {
       const submitter = (event.nativeEvent as SubmitEvent).submitter;
-      const result = await onSave(
-        validated(),
-        submitter instanceof HTMLButtonElement && submitter.value === 'preview',
-      );
+      const intent = submitter instanceof HTMLButtonElement ? submitter.value : '';
+      const result = await onSave(validated(), intent === 'preview', intent === 'publish');
       if (result) {
         const next = toDraft(result);
         setDraft(next);
         setSaved(JSON.stringify(next));
         setVersion(result.version);
         setConflict(false);
+        if (intent === 'publish' && onPublish) {
+          const published = await onPublish(result);
+          if (published) {
+            const finalDraft = toDraft(published);
+            setDraft(finalDraft);
+            setSaved(JSON.stringify(finalDraft));
+            setVersion(published.version);
+          }
+        }
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Check the article fields.');
       setConflict(
         reason instanceof CmsError && reason.problemType === 'urn:up24:article-version-conflict',
       );
+    }
+  }
+  async function fetchVideoDetails() {
+    setAssisting(true);
+    setError('');
+    setAssistNotice('');
+    try {
+      const id = videoId(draft.youtubeId.trim());
+      if (!id) throw new Error('Enter a YouTube video link or ID first.');
+      const details = await cms<{
+        title: string;
+        author: string;
+        thumbnail: string;
+        youtubeId: string;
+        url: string;
+      }>('admin/assist/video', 'POST', { videoId: id });
+      touched.current = true;
+      setDraft((current) => {
+        const title = current.title || details.title.slice(0, 500);
+        const source = `Video source: ${details.url}${details.author ? ' · ' + details.author : ''}`;
+        return {
+          ...current,
+          title,
+          slug: current.slug || slugify(title),
+          youtubeId: details.youtubeId,
+          image: current.image || details.thumbnail,
+          imageAlt:
+            current.imageAlt ||
+            (!current.image ? `Video thumbnail: ${details.title}`.slice(0, 500) : ''),
+          sourceNotes: current.sourceNotes.includes(details.url)
+            ? current.sourceNotes
+            : [current.sourceNotes, source].filter(Boolean).join('\n').slice(0, 10000),
+        };
+      });
+      setAssistNotice(
+        'Video metadata added. Your existing headline and photograph were preserved. Review the source and write the report before publication.',
+      );
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Video details could not be fetched.');
+    } finally {
+      setAssisting(false);
     }
   }
   const wordCount = draft.body.trim().split(/\s+/u).filter(Boolean).length;
@@ -114,8 +212,30 @@ export function ArticleEditor({
           {busy ? 'Saving…' : dirty ? 'Unsaved changes' : article ? 'Saved' : 'New draft'}
         </span>
       </div>
-      <form className="cms-form editor-form" onSubmit={submit} aria-busy={busy}>
-        <fieldset className="editor-fields" disabled={busy}>
+      {!adminMode && workflow.error && (
+        <p className="inline-error" role="alert">
+          Your workflow settings could not be loaded. The full reporting checklist applies until
+          they are available.
+        </p>
+      )}
+      <form className="cms-form editor-form" onSubmit={submit} aria-busy={busy || assisting}>
+        <fieldset className="editor-fields" disabled={busy || assisting}>
+          {(adminMode || policy.autofill) && (
+            <div className={styles.assist}>
+              <label className={styles.autofill}>
+                <input
+                  type="checkbox"
+                  checked={helpersEnabled}
+                  onChange={(event) => setHelpersEnabled(event.target.checked)}
+                />
+                Use draft helpers
+              </label>
+              <p className={styles.hint}>
+                Suggest the article address and reuse source metadata without overwriting your
+                writing.
+              </p>
+            </div>
+          )}
           <label>
             Headline
             <input
@@ -137,7 +257,7 @@ export function ArticleEditor({
               onChange={(event) => set('slug', event.target.value)}
             />
             <span className="field-help">/news/{draft.slug || 'article-slug'}</span>
-            {adminMode && (
+            {helpersAllowed && (
               <Button
                 type="button"
                 size="sm"
@@ -148,6 +268,22 @@ export function ArticleEditor({
               </Button>
             )}
           </label>
+          {adminMode && (
+            <label>
+              Public byline
+              <input
+                name="byline"
+                maxLength={100}
+                value={draft.byline}
+                onChange={(event) => set('byline', event.target.value)}
+                placeholder="UP24Network Editorial Team"
+              />
+              <span className="field-help">
+                Set the name readers see on this report. Leave blank to keep the publication
+                default.
+              </span>
+            </label>
+          )}
           <div className="cms-form-row">
             <label>
               Section
@@ -166,10 +302,11 @@ export function ArticleEditor({
               <input
                 name="city"
                 list="newsroom-cities"
-                required={!adminMode}
+                required={requireDateline}
                 value={draft.city}
                 maxLength={100}
                 onChange={(event) => {
+                  touched.current = true;
                   const city = event.target.value;
                   const known = cities.find((item) =>
                     item.aliases.some((alias) => alias.toLowerCase() === city.trim().toLowerCase()),
@@ -216,10 +353,30 @@ export function ArticleEditor({
               value={draft.summary}
               onChange={(event) => set('summary', event.target.value)}
             />
+            {helpersAllowed && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={!draft.body.trim()}
+                onClick={() =>
+                  set(
+                    'summary',
+                    draft.body
+                      .trim()
+                      .split(/\n\s*\n/)[0]
+                      .replace(/\s+/g, ' ')
+                      .slice(0, 350),
+                  )
+                }
+              >
+                Use opening paragraph as summary
+              </Button>
+            )}
           </label>
           <details className="reporting-notes" open={adminMode ? undefined : true}>
             <summary>
-              Reporting sources & verification{adminMode ? ' · Optional' : ' · Required'}
+              Reporting sources & verification{requireSources ? ' · Required' : ' · Optional'}
             </summary>
             <label>
               Private source notes
@@ -227,7 +384,7 @@ export function ArticleEditor({
                 name="sourceNotes"
                 rows={4}
                 maxLength={10000}
-                required={!adminMode}
+                required={requireSources}
                 value={draft.sourceNotes}
                 onChange={(event) => set('sourceNotes', event.target.value)}
                 placeholder="Record the source, how the facts were checked, and any response received."
@@ -255,6 +412,10 @@ export function ArticleEditor({
           </label>
           <fieldset className="media-fields">
             <legend>Photograph & video</legend>
+            <MediaUpload
+              disabled={busy || assisting}
+              onUploaded={(asset) => set('image', asset.url)}
+            />
             <label>
               Photograph
               <input
@@ -285,6 +446,18 @@ export function ArticleEditor({
                 placeholder="Video link or 11-character ID"
               />
             </label>
+            {helpersAllowed && (
+              <div className={styles.assist}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!draft.youtubeId.trim() || assisting}
+                  onClick={() => void fetchVideoDetails()}
+                >
+                  {assisting ? 'Fetching video details…' : 'Fetch video details'}
+                </Button>
+              </div>
+            )}
             <label>
               Direct video source
               <input
@@ -305,6 +478,11 @@ export function ArticleEditor({
               {error}
             </p>
           )}
+          {assistNotice && (
+            <p className="field-help" role="status">
+              {assistNotice}
+            </p>
+          )}
           <div className="editor-actions">
             <Button disabled={busy} type="submit">
               {busy ? 'Saving…' : 'Save article'}
@@ -312,6 +490,11 @@ export function ArticleEditor({
             <Button type="submit" name="intent" value="preview" disabled={busy}>
               Save &amp; preview
             </Button>
+            {adminMode && onPublish && (
+              <Button type="submit" name="intent" value="publish" disabled={busy}>
+                Save &amp; publish
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"

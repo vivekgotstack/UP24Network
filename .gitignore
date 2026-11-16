@@ -32,3 +32,10 @@ Thumbs.db
 
 # Agent navigation notes and temporary implementation helpers
 .worknotes/
+
+# Android tooling state and generated distribution artifacts
+android/.gradle/
+android/**/build/
+android/local.properties
+*.apk
+*.aab

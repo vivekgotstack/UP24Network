@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { connection } from 'next/server';
 import './globals.css';
-import { ReadingProgress } from '@/components/reading-progress';
 import { SiteFooter } from '@/components/site-footer';
 import { AppFrame } from '@/components/app-frame';
 import { PwaInstall } from '@/components/pwa-install';
@@ -29,7 +28,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="hi" data-scroll-behavior="smooth">
       <body id="top">
         <Providers>
-          <ReadingProgress />
           <AppFrame footer={<SiteFooter />}>{children}</AppFrame>
           <PwaInstall />
         </Providers>

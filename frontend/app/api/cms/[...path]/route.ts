@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
+import { allowedBrowserOrigin, backendRequestHeaders, readLimitedBody } from '@/lib/server/browser-boundary';
 
 export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ path: string[] }> };
@@ -36,29 +37,7 @@ function problem(detail: string, status: number, headers?: HeadersInit) {
   return response;
 }
 async function readBody(request: NextRequest) {
-  const declared = Number(request.headers.get('content-length') ?? 0);
-  if (!Number.isFinite(declared) || declared < 0 || declared > MAX_BODY_BYTES) return null;
-  if (!request.body) return new Uint8Array();
-  const reader = request.body.getReader();
-  const parts: Uint8Array[] = [];
-  let length = 0;
-  while (true) {
-    const chunk = await reader.read();
-    if (chunk.done) break;
-    length += chunk.value.byteLength;
-    if (length > MAX_BODY_BYTES) {
-      await reader.cancel();
-      return null;
-    }
-    parts.push(chunk.value);
-  }
-  const result = new Uint8Array(length);
-  let offset = 0;
-  for (const part of parts) {
-    result.set(part, offset);
-    offset += part.byteLength;
-  }
-  return result;
+  return readLimitedBody(request, MAX_BODY_BYTES);
 }
 async function proxy(request: NextRequest, context: Context) {
   const path = (await context.params).path.join('/');
@@ -77,17 +56,7 @@ async function proxy(request: NextRequest, context: Context) {
   }
   const mutation = request.method !== 'GET';
   if (mutation) {
-    const site = new URL(process.env.SITE_URL ?? 'http://127.0.0.1:3000');
-    const origins = new Set([site.origin]);
-    if (['127.0.0.1', 'localhost'].includes(site.hostname)) {
-      // Both loopback spellings work locally; deployed origins remain explicit.
-      for (const hostname of ['127.0.0.1', 'localhost']) {
-        const local = new URL(site.origin);
-        local.hostname = hostname;
-        origins.add(local.origin);
-      }
-    }
-    if (!origins.has(request.headers.get('origin') ?? ''))
+    if (!allowedBrowserOrigin(request.headers.get('origin')))
       return problem('Invalid request origin', 403);
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
@@ -109,11 +78,7 @@ async function proxy(request: NextRequest, context: Context) {
         }
       }
     }
-    const headers = new Headers();
-    for (const name of ['cookie', 'content-type', 'x-csrf-token']) {
-      const value = request.headers.get(name);
-      if (value) headers.set(name, value);
-    }
+    const headers = backendRequestHeaders(request);
     const response = await fetch(
       `${process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080'}/api/${path}${request.nextUrl.search}`,
       {

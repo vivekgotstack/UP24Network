@@ -24,7 +24,7 @@ function run(program,args,options={}) {
     const script="$ProgressPreference='SilentlyContinue'; & "+literal(program)+' '+args.map(literal).join(' ')+'; exit $LASTEXITCODE';
     executable='powershell.exe'; commandArgs=['-NoLogo','-NoProfile','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')];
   }
-  const result=spawnSync(executable,commandArgs,{cwd:join(root,'android'),env:{...process.env,ANDROID_HOME:sdk,ANDROID_SDK_ROOT:sdk,GRADLE_USER_HOME:join(tools,'gradle-home')},stdio:'inherit',...options});
+  const result=spawnSync(executable,commandArgs,{cwd:join(root,'android'),env:{...process.env,ANDROID_HOME:sdk,ANDROID_SDK_ROOT:sdk,ANDROID_USER_HOME:join(tools,'user-home'),GRADLE_USER_HOME:join(tools,'gradle-home')},stdio:'inherit',...options});
   if (result.status!==0) throw new Error(`Command failed: ${program}. Review .local/android-tools build logs if present.`);
   return result;
 }
@@ -56,11 +56,11 @@ function extract(archive,destination) {
 }
 
 const sdk=process.env.ANDROID_HOME || join(tools,'sdk');
-let sdkmanager=join(sdk,'cmdline-tools/latest/bin',windows?'sdkmanager.bat':'sdkmanager');
+const androidCli=join(sdk,'cmdline-tools/latest/bin',windows?'android.exe':'android');
 let gradle=join(tools,'gradle-9.6.0/bin',windows?'gradle.bat':'gradle');
-if (!existsSync(sdkmanager) || !existsSync(gradle)) {
+if (!existsSync(androidCli) || !existsSync(gradle)) {
   if (!process.argv.includes('--setup')) throw new Error('Build tools are not installed. Run again with --setup to install the official SDK and Gradle locally.');
-  if (!existsSync(sdkmanager)) {
+  if (!existsSync(androidCli)) {
     const metadata=await (await fetch('https://dl.google.com/android/repository/repository2-1.xml')).text();
     const packages=[...metadata.matchAll(/<remotePackage\b[^>]*path="([^"]+)"[\s\S]*?<\/remotePackage>/g)];
     const candidate=packages.find(entry=>entry[1]==='cmdline-tools;latest') ?? packages.filter(entry=>/^cmdline-tools;[0-9.]+$/.test(entry[1]) && /channel-0/.test(entry[0])).sort((a,b)=>parseFloat(b[1].split(';')[1])-parseFloat(a[1].split(';')[1]))[0];
@@ -88,8 +88,8 @@ if (!existsSync(join(sdk,'platforms/android-37/android.jar')) || !existsSync(joi
   const log=openSync(join(tools,'sdk-install.log'),'a',0o600);
   try {
     console.log('Installing official SDK 37/build tools; progress is in .local/android-tools/sdk-install.log.');
-    run(sdkmanager,[`--sdk_root=${sdk}`,'--licenses'],{input:'y\n'.repeat(100),stdio:['pipe',log,log]});
-    run(sdkmanager,[`--sdk_root=${sdk}`,'platforms;android-37','build-tools;37.0.0','platform-tools'],{stdio:['ignore',log,log]});
+    for (const name of ['platforms/android-37','build-tools/37.0.0'])
+      run(androidCli,['--no-metrics',`--sdk=${sdk}`,'sdk','install',name],{input:'y\n'.repeat(100),stdio:['pipe',log,log]});
   } finally { closeSync(log); }
 }
 const signingFile=join(upload,'signing.properties');

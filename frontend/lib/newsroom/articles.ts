@@ -1,9 +1,21 @@
 import { cms } from '@/lib/cms';
 import type { ManagedArticle, SaveArticle } from '@/lib/newsroom/types';
 
-export type DeskPage = { items: ManagedArticle[]; total: number; page: number; size: number; pages: number;
-  counts: Record<ManagedArticle['status'], number> };
-export type ArticleRevision = { version: number; savedAt: string; title: string; status: string; actorId: string | null };
+export type DeskPage = {
+  items: ManagedArticle[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+  counts: Record<ManagedArticle['status'], number>;
+};
+export type ArticleRevision = {
+  version: number;
+  savedAt: string;
+  title: string;
+  status: string;
+  actorId: string | null;
+};
 export type LifecycleAction = 'ARCHIVE' | 'TRASH' | 'RESTORE';
 export function articlePagePath(status = 'ALL', q = '', page = 1, size = 20) {
   return `admin/articles/browse?${new URLSearchParams({ status, q, page: String(page), size: String(size) })}`;
@@ -21,8 +33,14 @@ export const articleDesk = {
       breaking,
     }),
   lifecycle: (article: ManagedArticle, action: LifecycleAction) =>
-    cms<ManagedArticle>(`admin/articles/${article.id}/lifecycle`, 'POST', { version: article.version, action }),
-  purge: (article: ManagedArticle) => cms<void>(`admin/articles/${article.id}`, 'DELETE', { version: article.version }),
+    cms<ManagedArticle>(`admin/articles/${article.id}/lifecycle`, 'POST', {
+      version: article.version,
+      action,
+    }),
+  purge: (article: ManagedArticle) =>
+    cms<void>(`admin/articles/${article.id}`, 'DELETE', { version: article.version }),
   restoreRevision: (article: ManagedArticle, version: number) =>
-    cms<ManagedArticle>(`admin/articles/${article.id}/revisions/${version}/restore`, 'POST', { version: article.version }),
+    cms<ManagedArticle>(`admin/articles/${article.id}/revisions/${version}/restore`, 'POST', {
+      version: article.version,
+    }),
 };

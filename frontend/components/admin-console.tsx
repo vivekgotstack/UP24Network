@@ -3,19 +3,23 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Users, Settings2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useSession, useNewsroomResource } from '@/lib/session';
-import { cms, CmsError, type Account, type Role } from '@/lib/cms';
+import { cms, CmsError, type Role } from '@/lib/cms';
 import { ArticleWorkspace } from '@/components/newsroom/article-workspace';
 import { ArticleEditor } from '@/components/newsroom/article-editor';
 import { ArticlePreview } from '@/components/newsroom/article-preview';
+import { ArticleRevisions } from '@/components/newsroom/article-revisions';
+import { AdminNavigation } from '@/components/newsroom/admin-workspace';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { TeamPanel } from '@/components/newsroom/team-panel';
 import { AutomationPanel, type AutomationJob } from '@/components/newsroom/automation-panel';
 import type { ManagedArticle } from '@/lib/newsroom/types';
-import { articleDesk } from '@/lib/newsroom/articles';
+import { articleDesk, articlePagePath, type DeskPage } from '@/lib/newsroom/articles';
 
-type Section = 'overview' | 'articles' | 'editor' | 'preview' | 'accounts' | 'automations';
+type Section =
+  'overview' | 'articles' | 'trash' | 'editor' | 'preview' | 'accounts' | 'automations';
 export function AdminConsole({
   section = 'overview',
   articleId,
@@ -28,19 +32,23 @@ export function AdminConsole({
   const session = useSession(),
     router = useRouter(),
     user = session.data;
+  const client = useQueryClient();
+  const [createdId, setCreatedId] = useState<string>();
+  const [editorGeneration, setEditorGeneration] = useState(0);
+  const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
+  const effectiveId = articleId ?? createdId;
   const editorial = Boolean(user?.newsroomAccess);
   const basePath = workspace === 'admin' ? '/admin' : '/newsroom';
-  const needsArticles = editorial && ['overview', 'articles'].includes(section);
-  const articleData = useNewsroomResource<ManagedArticle[]>(user, 'admin/articles', needsArticles);
+  const needsArticles = editorial && section === 'overview';
+  const articleData = useNewsroomResource<DeskPage>(
+    user,
+    articlePagePath('ALL', '', 1, 6),
+    needsArticles,
+  );
   const reportData = useNewsroomResource<ManagedArticle>(
     user,
-    `admin/articles/${articleId}`,
-    editorial && Boolean(articleId) && ['editor', 'preview'].includes(section),
-  );
-  const accountData = useNewsroomResource<Account[]>(
-    user,
-    'admin/accounts',
-    user?.role === 'ADMIN' && section === 'accounts',
+    `admin/articles/${effectiveId}`,
+    editorial && Boolean(effectiveId) && ['editor', 'preview'].includes(section),
   );
   const jobData = useNewsroomResource<AutomationJob[]>(
     user,
@@ -51,10 +59,9 @@ export function AdminConsole({
     [dirty, setDirty] = useState(false);
   const [notice, setNotice] = useState(''),
     [error, setError] = useState('');
-  const articles = articleData.data ?? [],
-    accounts = accountData.data ?? [],
+  const articles = articleData.data?.items ?? [],
     jobs = jobData.data ?? [];
-  const loadError = articleData.error ?? reportData.error ?? accountData.error ?? jobData.error;
+  const loadError = articleData.error ?? reportData.error ?? jobData.error;
   useEffect(() => {
     if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess)
       router.replace(`${basePath}/sign-in`);
@@ -98,11 +105,7 @@ export function AdminConsole({
         <Button onClick={() => session.refetch()}>Try again</Button>
       </main>
     );
-  if (
-    !user ||
-    !editorial ||
-    (['accounts', 'automations'].includes(section) && user.role !== 'ADMIN')
-  )
+  if (!user || !editorial || (workspace === 'admin' && user.role !== 'ADMIN'))
     return (
       <main id="main-content" className="empty-state">
         <h1>Editorial access required.</h1>
@@ -115,48 +118,44 @@ export function AdminConsole({
   const titles = {
     overview: workspace === 'admin' ? 'Administration' : 'Reporting desk',
     articles: 'Article desk',
+    trash: 'Trash & archive',
     editor: articleId ? 'Edit report' : 'Create a draft',
     preview: 'Private preview',
     accounts: 'Team and readers',
     automations: 'Automation controls',
   };
   const active = ['editor', 'preview'].includes(section) ? 'articles' : section;
-  const nav = [
-    { key: 'overview', href: basePath, label: 'Overview', icon: LayoutDashboard },
-    { key: 'articles', href: `${basePath}/articles`, label: 'Articles', icon: FileText },
-    ...(user.role === 'ADMIN'
-      ? [
-          { key: 'accounts', href: '/admin/accounts', label: 'Accounts', icon: Users },
-          { key: 'automations', href: '/admin/automations', label: 'Automations', icon: Settings2 },
-        ]
-      : []),
-  ];
-  const row = articleId ? reportData.data : null;
-  const loading =
-    articleData.isLoading || reportData.isLoading || accountData.isLoading || jobData.isLoading;
+  const row = effectiveId ? reportData.data : null;
+  const loading = articleData.isLoading || reportData.isLoading || jobData.isLoading;
   const blocked = busy || Boolean(loadError);
-  const published = articles.filter((item) => item.status === 'PUBLISHED').length;
+  const counts = articleData.data?.counts;
+  const published = counts?.PUBLISHED ?? 0;
   const refresh = () =>
-    Promise.all([
-      articleData.refetch(),
-      reportData.refetch(),
-      accountData.refetch(),
-      jobData.refetch(),
-    ]);
-  async function publication(item: ManagedArticle, publish: boolean, breaking: boolean) {
-    return Boolean(
-      await act(
-        async () => {
-          await articleDesk.publish(item, publish, breaking);
-          await articleData.refetch();
-          return true;
-        },
-        publish ? 'Report published.' : 'Report returned to drafts.',
-      ),
-    );
-  }
+    Promise.all([articleData.refetch(), reportData.refetch(), jobData.refetch()]);
+  const refreshArticles = () =>
+    client.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey[0] === 'newsroom' &&
+        query.queryKey[1] === user.id &&
+        String(query.queryKey[2]).startsWith('admin/articles'),
+    });
   return (
-    <main id="main-content" className="cms-shell" lang="en">
+    <main
+      id="main-content"
+      className="cms-shell"
+      lang="en"
+      onClickCapture={(event) => {
+        if (!dirty || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        const anchor = event.target instanceof Element ? event.target.closest('a') : null;
+        if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+        const next = new URL(anchor.href);
+        if (next.origin === window.location.origin && next.href !== window.location.href) {
+          event.preventDefault();
+          event.stopPropagation();
+          setNavigationTarget(next.pathname + next.search + next.hash);
+        }
+      }}
+    >
       <header className="cms-heading">
         <div>
           <a href="/" className="cms-home">
@@ -178,18 +177,7 @@ export function AdminConsole({
           </Button>
         </div>
       </header>
-      <nav className="cms-tabs cms-nav" aria-label="Newsroom pages">
-        {nav.map((item) => (
-          <a
-            key={item.key}
-            href={item.href}
-            aria-current={active === item.key ? 'page' : undefined}
-          >
-            <item.icon size={16} aria-hidden="true" />
-            {item.label}
-          </a>
-        ))}
-      </nav>
+      <AdminNavigation active={active} staff={workspace === 'staff'} />
       {(error || notice) && (
         <div
           className={error ? 'cms-feedback is-error' : 'cms-feedback'}
@@ -238,14 +226,12 @@ export function AdminConsole({
                   <span>Published reports</span>
                 </div>
                 <div>
-                  <strong>{articles.length - published}</strong>
+                  <strong>{counts?.DRAFT ?? 0}</strong>
                   <span>Drafts</span>
                 </div>
                 <div>
-                  <strong>
-                    {articles.filter((a) => a.article.breaking && a.status === 'PUBLISHED').length}
-                  </strong>
-                  <span>Breaking reports</span>
+                  <strong>{(counts?.ARCHIVED ?? 0) + (counts?.TRASH ?? 0)}</strong>
+                  <span>Archived / trashed reports</span>
                 </div>
                 {user.role === 'ADMIN' && (
                   <div>
@@ -254,6 +240,62 @@ export function AdminConsole({
                   </div>
                 )}
               </div>
+              {user.role === 'ADMIN' && (
+                <div className="admin-tools-grid">
+                  {[
+                    [
+                      '/admin/articles/new',
+                      'Write & publish',
+                      'Create a report, edit every paragraph and publish directly.',
+                    ],
+                    [
+                      '/admin/articles',
+                      'Manage all reports',
+                      'Find any report, update its byline, review versions and control publication.',
+                    ],
+                    [
+                      '/admin/trash',
+                      'Recover or remove',
+                      'Archive, restore and permanently delete old reports.',
+                    ],
+                    [
+                      '/admin/media',
+                      'Media library',
+                      'Upload optimized photographs and remove unused files.',
+                    ],
+                    [
+                      '/admin/pages',
+                      'Publication pages',
+                      'Edit About, Contact, editorial standards and every policy page.',
+                    ],
+                    [
+                      '/admin/settings',
+                      'Site settings',
+                      'Change the tagline, announcement and homepage sections.',
+                    ],
+                    [
+                      '/admin/accounts',
+                      'Team & readers',
+                      'Create employees and assign the four relevant account roles.',
+                    ],
+                    [
+                      '/admin/workflows',
+                      'Employee workflows',
+                      'Choose each employee’s requirements, defaults and helper access.',
+                    ],
+                    [
+                      '/admin/automations',
+                      'Automatic sources',
+                      'Control source schedules and review fetching results.',
+                    ],
+                  ].map(([href, title, description]) => (
+                    <Link href={href} key={href} className="admin-tool">
+                      <strong>{title}</strong>
+                      <p>{description}</p>
+                    </Link>
+                  ))}
+                </div>
+              )}
               <div className="dashboard-grid">
                 <section className="cms-card">
                   <p className="eyebrow">PUBLICATION WORKFLOW</p>
@@ -316,19 +358,11 @@ export function AdminConsole({
               </div>
             </>
           )}
-          {section === 'articles' && (
-            <ArticleWorkspace
-              basePath={basePath}
-              user={user}
-              articles={articles}
-              busy={blocked}
-              refreshing={articleData.isFetching}
-              onRefresh={() => act(() => articleData.refetch())}
-              onPublish={publication}
-            />
+          {(section === 'articles' || section === 'trash') && (
+            <ArticleWorkspace basePath={basePath} user={user} trashMode={section === 'trash'} />
           )}
           {section === 'editor' &&
-            (articleId && !row ? (
+            (effectiveId && !row ? (
               <section className="empty-state">
                 <h2>Report not available.</h2>
                 <p>It may be outside your editorial permissions.</p>
@@ -336,34 +370,85 @@ export function AdminConsole({
                   Back to article desk
                 </Link>
               </section>
-            ) : user.role === 'REPORTER' && row?.status === 'PUBLISHED' ? (
+            ) : row &&
+              (['ARCHIVED', 'TRASH'].includes(row.status) ||
+                (user.role === 'REPORTER' && row.status !== 'DRAFT')) ? (
               <p className="inline-error">
-                A reporter can edit their own drafts. Contact an editor for changes to a published
-                report.
+                {row && ['ARCHIVED', 'TRASH'].includes(row.status)
+                  ? 'Restore this report to a draft from Trash & archive before editing.'
+                  : 'A reporter can edit their own drafts. Contact an editor for changes to a published report.'}
               </p>
             ) : (
-              <ArticleEditor
-                adminMode={user.role === 'ADMIN'}
-                key={articleId ?? 'new'}
-                article={row ?? null}
-                busy={blocked}
-                onDirty={setDirty}
-                onCancel={() => window.location.assign(`${basePath}/articles`)}
-                onSave={(draft, preview) =>
-                  act(
-                    async () => {
-                      const saved = await articleDesk.save(articleId, draft);
-                      await reportData.setData(saved);
-                      setDirty(false);
-                      if (preview) router.push(`${basePath}/articles/${saved.id}/preview`);
-                      else if (!articleId) router.replace(`${basePath}/articles/${saved.id}`);
-                      return saved;
-                    },
-                    'Article saved.',
-                    true,
-                  )
-                }
-              />
+              <>
+                <ArticleEditor
+                  adminMode={user.role === 'ADMIN'}
+                  key={`${articleId ?? 'new'}:${editorGeneration}`}
+                  article={row ?? null}
+                  busy={blocked}
+                  onDirty={setDirty}
+                  onCancel={() => window.location.assign(`${basePath}/articles`)}
+                  onSave={(draft, preview, stayInEditor) =>
+                    act(
+                      async () => {
+                        const saved = await articleDesk.save(effectiveId, draft);
+                        setCreatedId(saved.id);
+                        client.setQueryData(
+                          ['newsroom', user.id, `admin/articles/${saved.id}`],
+                          saved,
+                        );
+                        await refreshArticles();
+                        setDirty(false);
+                        if (preview) router.push(`${basePath}/articles/${saved.id}/preview`);
+                        else if (!articleId && !stayInEditor)
+                          router.replace(`${basePath}/articles/${saved.id}`);
+                        return saved;
+                      },
+                      'Article saved.',
+                      true,
+                    )
+                  }
+                  onPublish={
+                    user.role === 'ADMIN'
+                      ? (saved) =>
+                          act(
+                            async () => {
+                              const published = await articleDesk.publish(
+                                saved,
+                                true,
+                                saved.article.breaking,
+                              );
+                              client.setQueryData(
+                                ['newsroom', user.id, `admin/articles/${published.id}`],
+                                published,
+                              );
+                              await refreshArticles();
+                              if (!articleId)
+                                router.replace(`${basePath}/articles/${published.id}`);
+                              return published;
+                            },
+                            'Report published.',
+                            true,
+                          )
+                      : undefined
+                  }
+                />
+                {user.role === 'ADMIN' && row && (
+                  <ArticleRevisions
+                    user={user}
+                    article={row}
+                    disabled={dirty || busy}
+                    onRestored={async (restored) => {
+                      client.setQueryData(
+                        ['newsroom', user.id, `admin/articles/${restored.id}`],
+                        restored,
+                      );
+                      setEditorGeneration((value) => value + 1);
+                      setNotice('Saved version restored as a draft.');
+                      router.refresh();
+                    }}
+                  />
+                )}
+              </>
             ))}
           {section === 'preview' &&
             (row ? (
@@ -378,14 +463,19 @@ export function AdminConsole({
             ))}
           {section === 'accounts' && (
             <TeamPanel
-              accounts={accounts}
+              accounts={[]}
               currentUser={user}
               busy={blocked}
               onCreate={async (account) =>
                 Boolean(
                   await act(async () => {
                     await cms('admin/accounts', 'POST', account);
-                    await accountData.refetch();
+                    await client.invalidateQueries({
+                      predicate: (query) =>
+                        query.queryKey[0] === 'newsroom' &&
+                        query.queryKey[1] === user.id &&
+                        String(query.queryKey[2]).startsWith('admin/accounts'),
+                    });
                     return true;
                   }, 'Account created.'),
                 )
@@ -393,7 +483,12 @@ export function AdminConsole({
               onRole={(account, role: Role) =>
                 act(async () => {
                   await cms(`admin/accounts/${account.id}`, 'PATCH', { role });
-                  await accountData.refetch();
+                  await client.invalidateQueries({
+                    predicate: (query) =>
+                      query.queryKey[0] === 'newsroom' &&
+                      query.queryKey[1] === user.id &&
+                      String(query.queryKey[2]).startsWith('admin/accounts'),
+                  });
                 }, 'Account role updated.')
               }
             />
@@ -418,6 +513,21 @@ export function AdminConsole({
           )}
         </>
       )}
+      <ConfirmDialog
+        open={Boolean(navigationTarget)}
+        onOpenChange={(open) => {
+          if (!open) setNavigationTarget(null);
+        }}
+        title="Leave this unsaved report?"
+        description="Your unsaved changes will be lost. Save the report or keep editing to preserve them."
+        confirmLabel="Discard changes and leave"
+        cancelLabel="Keep editing"
+        destructive
+        onConfirm={() => {
+          setDirty(false);
+          if (navigationTarget) router.push(navigationTarget);
+        }}
+      />
     </main>
   );
 }

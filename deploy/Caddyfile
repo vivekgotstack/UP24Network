@@ -1,10 +1,15 @@
 {$SITE_HOST} {
     encode zstd gzip
-    request_body { max_size 12MB }
+    request_body { max_size 13MB }
     header {
         -Server
         Strict-Transport-Security "max-age=31536000"
     }
-    reverse_proxy frontend:3000
+    reverse_proxy frontend:3000 {
+        # Only this public ingress supplies the client address to the private BFF.
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto https
+        header_up -Forwarded
+    }
     log { output stdout }
 }

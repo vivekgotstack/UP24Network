@@ -15,13 +15,22 @@ async function session(signal?: AbortSignal) {
 }
 export function useSession() {
   const client = useQueryClient();
-  const result = useQuery<Account | null, CmsError>({ queryKey: sessionKey,
-    queryFn: ({ signal }) => session(signal), staleTime: 15_000 });
-  const setAccount = useCallback(async (account: Account | null) => {
-    await client.cancelQueries({ queryKey: ['newsroom'] });
-    client.removeQueries({ queryKey: ['newsroom'] });
-    client.setQueryData(sessionKey, account);
-  }, [client]);
+  const result = useQuery<Account | null, CmsError>({
+    queryKey: sessionKey,
+    queryFn: ({ signal }) => session(signal),
+    staleTime: 15_000,
+  });
+  const setAccount = useCallback(
+    async (account: Account | null) => {
+      await Promise.all([
+        client.cancelQueries({ queryKey: sessionKey }),
+        client.cancelQueries({ queryKey: ['newsroom'] }),
+      ]);
+      client.removeQueries({ queryKey: ['newsroom'] });
+      client.setQueryData(sessionKey, account);
+    },
+    [client],
+  );
   async function signOut(everywhere = false) {
     await cms(everywhere ? 'auth/logout-all' : 'auth/logout', 'POST');
     await setAccount(null);
@@ -35,8 +44,14 @@ export function useNewsroomResource<T>(
 ) {
   const client = useQueryClient();
   const key = ['newsroom', account?.id, path] as const;
-  const result = useQuery<T, CmsError>({ queryKey: key,
-    queryFn: ({ signal }) => cms<T>(path, 'GET', undefined, { signal }), enabled: Boolean(account && permitted) });
-  const refresh = useCallback(() => account && permitted ? result.refetch() : Promise.resolve(undefined), [account,permitted,result.refetch]);
+  const result = useQuery<T, CmsError>({
+    queryKey: key,
+    queryFn: ({ signal }) => cms<T>(path, 'GET', undefined, { signal }),
+    enabled: Boolean(account && permitted),
+  });
+  const refresh = useCallback(
+    () => (account && permitted ? result.refetch() : Promise.resolve(undefined)),
+    [account, permitted, result.refetch],
+  );
   return { ...result, refetch: refresh, setData: (data: T) => client.setQueryData(key, data) };
 }

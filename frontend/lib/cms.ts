@@ -19,8 +19,8 @@ export class CmsError extends Error {
   }
 }
 
-export async function csrfHeaders() {
-  const response = await fetch('/api/cms/auth/csrf', { cache: 'no-store' });
+export async function csrfHeaders(signal?: AbortSignal) {
+  const response = await fetch('/api/cms/auth/csrf', { cache: 'no-store', signal });
   if (!response.ok)
     throw new CmsError(response.status, 'The newsroom service is unavailable. Please try again.');
   const csrf: { headerName: string; token: string } = await response.json();
@@ -28,6 +28,19 @@ export async function csrfHeaders() {
 }
 
 let renewal: Promise<boolean> | undefined;
+let localAuthQueue: Promise<unknown> = Promise.resolve();
+
+/** Serialize cookie-changing responses, including refresh, across browser tabs. */
+async function withAuthCookieLock<T>(action: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.locks)
+    return await navigator.locks.request('up24-login-renewal', action);
+  const pending = localAuthQueue.then(action, action);
+  localAuthQueue = pending.then(
+    () => undefined,
+    () => undefined,
+  );
+  return await pending;
+}
 
 /** One renewal per origin, across components and (where supported) browser tabs. */
 export function renewLogin(): Promise<boolean> {
@@ -46,11 +59,7 @@ export function renewLogin(): Promise<boolean> {
     if (!response.ok) throw new CmsError(response.status, 'Your account could not be refreshed.');
     return true;
   };
-  const synchronizedRenew = async () =>
-    typeof navigator !== 'undefined' && navigator.locks
-      ? await navigator.locks.request('up24-login-renewal', renew)
-      : await renew();
-  renewal = synchronizedRenew().finally(() => {
+  renewal = withAuthCookieLock(renew).finally(() => {
     renewal = undefined;
   });
   return renewal;
@@ -62,35 +71,38 @@ export async function cms<T>(
   body?: object | URLSearchParams,
   options?: { signal?: AbortSignal },
 ): Promise<T> {
-  let headers = new Headers();
-  if (method !== 'GET') {
-    try {
-      headers = await csrfHeaders();
-    } catch {
-      throw new CmsError(503, 'The newsroom service is unavailable. Please try again.');
-    }
-  }
+  const headers = new Headers();
   const form = body instanceof URLSearchParams;
   if (body)
     headers.set('content-type', form ? 'application/x-www-form-urlencoded' : 'application/json');
   let response: Response;
-  const send = () =>
-    fetch(`/api/cms/${path}`, {
+  const send = async () => {
+    // Password login and OTP can rotate CSRF cookies. Read the proof immediately
+    // before every send, including the retry after renewing expired credentials.
+    if (method !== 'GET') {
+      const proof = await csrfHeaders(options?.signal);
+      proof.forEach((value, key) => headers.set(key, value));
+    }
+    return fetch(`/api/cms/${path}`, {
       method,
       headers,
       cache: 'no-store',
       signal: options?.signal,
       body: body ? (form ? (body as URLSearchParams) : JSON.stringify(body)) : undefined,
     });
+  };
+  const sendRequest = () =>
+    method !== 'GET' && path.startsWith('auth/') ? withAuthCookieLock(send) : send();
   try {
-    response = await send();
+    response = await sendRequest();
     if (
       response.status === 401 &&
       !['auth/login', 'auth/register', 'auth/refresh', 'auth/logout'].includes(path) &&
       (await renewLogin())
     )
-      response = await send();
-  } catch {
+      response = await sendRequest();
+  } catch (error) {
+    if (options?.signal?.aborted || error instanceof CmsError) throw error;
     throw new CmsError(503, 'The newsroom service is unavailable. Please try again.');
   }
   if (!response.ok) {

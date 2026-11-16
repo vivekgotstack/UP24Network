@@ -26,7 +26,7 @@ export function AuthPage({
   }, [session.data, destination, editorial, router]);
   async function authenticated(account: Account) {
     await session.setAccount(account);
-    router.replace(
+    window.location.replace(
       account.newsroomEligible ? account.newsroomAccess
         ? account.role === 'ADMIN' ? '/admin' : '/newsroom'
         : account.role === 'ADMIN' ? '/admin/sign-in' : '/newsroom/sign-in'

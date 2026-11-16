@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -37,7 +38,8 @@ class SecurityConfiguration {
         return provider;
     }
     @Bean SecurityFilterChain security(HttpSecurity http, LoginSessions sessions, TokenCookies cookies,
-            Accounts accounts, @Value("${up24.auth.cookie-secure}") boolean secure) throws Exception {
+            Accounts accounts, PasswordLoginRateLimitFilter passwordLoginRateLimitFilter,
+            @Value("${up24.auth.cookie-secure}") boolean secure) throws Exception {
         var csrf=new CookieCsrfTokenRepository();
         csrf.setHeaderName("X-CSRF-TOKEN");
         csrf.setCookieCustomizer(cookie -> cookie.httpOnly(true).secure(secure).sameSite("Strict").path("/"));
@@ -48,6 +50,7 @@ class SecurityConfiguration {
         return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 .requestCache(cache -> cache.disable())
+                .addFilterBefore(passwordLoginRateLimitFilter,UsernamePasswordAuthenticationFilter.class)
                 .csrf(config -> config.csrfTokenRepository(csrf).withObjectPostProcessor(new ObjectPostProcessor<CsrfFilter>() {
                     @Override public <O extends CsrfFilter> O postProcess(O filter) {
                         // Resource Server normally exempts bearer requests. Our browser bearer is

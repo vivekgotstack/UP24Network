@@ -7,7 +7,6 @@ export type ManagedArticle = {
   version: number;
   article: Article;
   sourceNotes: string;
-  byline: string;
   region: string;
 };
 export type Draft = {
@@ -23,6 +22,7 @@ export type Draft = {
   youtubeId: string;
   body: string;
   sourceNotes: string;
+  byline: string;
 };
 export type SaveArticle = Draft & { version: number | null };
 export const emptyDraft: Draft = {
