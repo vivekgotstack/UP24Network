@@ -55,7 +55,12 @@ events and never reach into another module's internal repositories.
 - Rashifal now uses twelve original zodiac illustrations, picture selectors and a larger reading panel with lucky-number and colour cards.
 - Identity now separates account policy, credential storage, JWT signing and session persistence. Five-minute RSA access tokens use HttpOnly cookies, rotating refresh tokens, persisted revocation and OTP step-up; logout can end one login or every device.
 - Phone/tablet refinements include readable form controls, larger touch buttons and wrapping automation cards.
-- Password login throttling is persisted; admin can edit profiles, suspend/restore accounts, revoke logins and delete suspended accounts. Next small product step: reader password recovery and a dedicated photo-story format.
+- Password login throttling is persisted; admin can edit profiles, suspend/restore accounts, revoke logins and delete suspended accounts.
+- Account recovery: `/account/recover` uses single-use email codes, five-attempt limits, ten-minute expiry, persisted throttling and a bounded mail queue. Resets revoke all sessions; account-version checks also reject a password login racing a reset. The designated admin credential remains environment-controlled. Local recovery mail is in ignored `backend/.local/preview-mailbox/latest-recovery.txt`.
+- Schema migrations V16/V17 add recovery records, normalized-account/publication constraints, a single-admin invariant and indexed media/revision references. Expired identity records are removed in bounded scheduled batches. Integration checks now use a separate `up24_test` schema.
+- Discovery: `/sitemap-index.xml` links the static page sitemap and lean article sitemaps of 1,000 reports each, including older reports outside the latest-100 feed. Indexing remains disabled in local preview.
+- Release checkpoint: backend packaging, frontend production build, password-recovery/account checks and targeted recovery UI checks at 320/768 px passed. The local optimized preview is running on ports 3000/8080. The Docker backup script now holds the media catalogue lock across database/file capture; Docker execution remains unverified because Docker is absent locally.
+- Next storage milestone: public historical archives with permanent URLs, S3-backed media delivery and a separate retention policy for published renditions, private masters and unused uploads. Existing CMS `Archive` currently withdraws an article from public access; age-based public archiving must be a separate behavior.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage

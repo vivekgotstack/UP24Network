@@ -12,6 +12,8 @@ The backend uses a restricted runtime database login and a distinct migration ow
 Volumes retain PostgreSQL, uploaded media, image cache and TLS certificates.
 Before upgrades, run `node scripts/backup-deployment.mjs`; keep the resulting
 private backup off the VPS. Restore database/media/signing material together.
+The backup holds the media catalogue lock while copying the database and files;
+uploads and media removal wait during capture so referenced photographs remain consistent.
 Never use `docker compose down -v` for an upgrade: that removes persistent volumes.
 
 Change `ADMIN_PASSWORD` in `backend/.env`, rerun the generator, then recreate the
