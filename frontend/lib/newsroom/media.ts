@@ -9,6 +9,10 @@ export type MediaAsset = {
   width: number;
   height: number;
   createdAt: string;
+  storageBackend: 'LOCAL' | 'S3';
+  archiveEligible: boolean;
+  version: number;
+  retentionSyncPending: boolean;
 };
 export type MediaPage = {
   items: MediaAsset[];

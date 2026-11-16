@@ -119,16 +119,32 @@ class MediaStorageTest {
         when(usage.inUse(url)).thenReturn(true);
         assertThatThrownBy(() -> tx.executeWithoutResult(status -> media.remove(asset.id())))
                 .isInstanceOfSatisfying(MediaProblem.class,problem -> assertThat(problem.reason).isEqualTo(MediaProblem.Reason.IN_USE));
-        assertThat(files.delivery(files.target(asset.id())).file()).exists();
+        assertThat(DIRECTORY.resolve(asset.id()+".webp")).exists();
         assertThat(store.find(asset.id())).isPresent();
         when(usage.inUse(url)).thenReturn(false);
         tx.executeWithoutResult(status -> {
             media.remove(asset.id());
-            assertThat(files.delivery(files.target(asset.id())).file()).exists();
+            assertThat(DIRECTORY.resolve(asset.id()+".webp")).exists();
             assertThat(store.find(asset.id())).isEmpty();
         });
-        assertThat(files.delivery(files.target(asset.id())).file()).doesNotExist();
+        assertThat(DIRECTORY.resolve(asset.id()+".webp")).doesNotExist();
         assertThat(media.list(1,24).storedBytes()).isEqualTo(baseline);
         mvc.perform(get(url).header("If-None-Match",etag)).andExpect(status().isNotFound());
+    }
+    @Test void aFailedPhysicalRemovalIsRetriedAndStillCountsTowardStorageAllowance() throws Exception {
+        var broken=mock(BinaryStorage.class);
+        doThrow(new IOException("temporary storage failure")).when(broken).delete(any(StorageLocation.class));
+        var retry=new UnusedMediaCleanup(store,broken);
+        var media=new MediaService(store,files,usage,Clock.systemUTC(),baseline+red.length,retry);
+        var asset=tx.execute(status -> media.upload("retry.webp",red,1000,actor));
+        tx.executeWithoutResult(status -> media.remove(asset.id()));
+        assertThat(store.find(asset.id())).isEmpty();
+        assertThat(store.deletions(asset.id())).hasSize(1);
+        assertThat(media.list(1,24).storedBytes()).isEqualTo(baseline+red.length);
+        assertThat(jdbc.queryForObject("SELECT attempts FROM media_pending_deletion WHERE asset_id=?",Integer.class,asset.id())).isEqualTo(1);
+        cleanup.removeIfUnreferenced(asset.id());
+        assertThat(store.deletions(asset.id())).isEmpty();
+        assertThat(DIRECTORY.resolve(asset.id()+".webp")).doesNotExist();
+        assertThat(media.list(1,24).storedBytes()).isEqualTo(baseline);
     }
 }

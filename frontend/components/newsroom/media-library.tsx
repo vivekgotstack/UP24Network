@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { AdminWorkspace } from '@/components/newsroom/admin-workspace';
 import { MediaUpload } from '@/components/newsroom/media-upload';
+import { MediaStoragePanel } from '@/components/newsroom/media-storage-panel';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { useSession, useNewsroomResource } from '@/lib/session';
@@ -30,6 +31,7 @@ export function MediaLibrary() {
     });
   return (
     <AdminWorkspace title="Media library" active="media">
+      <MediaStoragePanel />
       <section className="admin-card">
         <h2>Publication photographs</h2>
         <p>
@@ -73,6 +75,7 @@ export function MediaLibrary() {
             <article className="media-item" key={asset.id}>
               <Image
                 src={asset.url}
+                unoptimized
                 alt={asset.name}
                 width={asset.width}
                 height={asset.height}
@@ -82,6 +85,7 @@ export function MediaLibrary() {
               <p>
                 {asset.width} × {asset.height} · {(asset.bytes / 1024).toFixed(0)} KB
               </p>
+              <p className="field-help">{asset.storageBackend === 'S3' ? 'Amazon S3' : 'Local storage'} · {asset.archiveEligible ? 'Eligible for GIR' : 'Excluded from GIR'}{asset.retentionSyncPending ? ' · Sync pending' : ''}</p>
               <div className="cms-row-actions">
                 <Button
                   variant="outline"
@@ -99,10 +103,17 @@ export function MediaLibrary() {
                 <Button variant="destructive" onClick={() => setSelected(asset)}>
                   Delete unused image
                 </Button>
+                <Button variant="outline" onClick={async () => {
+                  try {
+                    await cms(`admin/media/${asset.id}/retention`, 'PATCH', { eligible: !asset.archiveEligible, version: asset.version });
+                    setError(''); await refresh();
+                  } catch (reason) { setError(reason instanceof Error ? reason.message : 'Retention could not be updated.'); }
+                }}>{asset.archiveEligible ? 'Exclude from GIR' : 'Allow GIR transition'}</Button>
               </div>
             </article>
           ))}
         </div>
+        <p className="field-help">Exclusions prevent future automatic transitions after synchronization. An object already in GIR stays in its current class.</p>
         <div className="cms-row-actions">
           <Button
             variant="outline"

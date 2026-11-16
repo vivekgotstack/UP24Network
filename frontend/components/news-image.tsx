@@ -33,6 +33,7 @@ export function NewsImage({
   return (
     <Image
       src={src}
+      unoptimized={src.startsWith('/media/')}
       alt={alt}
       fill
       sizes={sizes}

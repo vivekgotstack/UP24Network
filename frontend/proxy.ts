@@ -4,15 +4,22 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const development = process.env.NODE_ENV === 'development';
+  let mediaOrigin = '';
+  if (process.env.MEDIA_CDN_URL) {
+    const media = new URL(process.env.MEDIA_CDN_URL);
+    if (media.protocol !== 'https:' || media.username || media.password || media.search || media.hash || !['', '/'].includes(media.pathname))
+      throw new Error('MEDIA_CDN_URL must be an HTTPS media origin.');
+    mediaOrigin = ` ${media.origin}`;
+  }
   const policy = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob:${mediaOrigin}`,
     "font-src 'self'",
     "worker-src 'self'",
     `connect-src 'self'${development ? ' ws: wss:' : ''}`,
-    "media-src 'self' https://up24network.com https://www.up24network.com",
+    `media-src 'self' https://up24network.com https://www.up24network.com${mediaOrigin}`,
     'frame-src https://www.youtube-nocookie.com',
     "object-src 'none'",
     "base-uri 'self'",

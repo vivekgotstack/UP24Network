@@ -89,9 +89,19 @@ const settings={
 for (const key of ['up24.providers.brevo.api-key','up24.providers.brevo.sender-email','up24.providers.astrologics.api-key']) {
   const value=local[key] || existing[key]; if (value) settings[key]=value;
 }
+const mediaKeys={
+  UP24_MEDIA_STORAGE:'up24.media.storage',UP24_S3_BUCKET:'up24.media.s3.bucket',AWS_REGION:'up24.media.s3.region',
+  UP24_S3_PREFIX:'up24.media.s3.prefix',UP24_MEDIA_CDN_URL:'up24.media.s3.cdn-url',
+  AWS_ACCESS_KEY_ID:'up24.media.s3.access-key-id',AWS_SECRET_ACCESS_KEY:'up24.media.s3.secret-access-key',AWS_SESSION_TOKEN:'up24.media.s3.session-token',
+};
+for(const [variable,key] of Object.entries(mediaKeys)) {
+  const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key];
+  if(value!==undefined) settings[key]=value;
+}
 const escape = value => String(value).replaceAll('\\','\\\\').replaceAll('\n','\\n').replaceAll('\r','\\r').replaceAll('\t','\\t').replaceAll('\f','\\f').replaceAll(' ','\\ ');
 writePrivate(join(directory,'backend.properties'),Object.entries(settings).map(([key,value])=>`${key}=${escape(value)}`).join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:previousPublic.SITE_INDEXABLE ?? 'false',
+  MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
   ANDROID_SHA256_CERT_FINGERPRINTS:previousPublic.ANDROID_SHA256_CERT_FINGERPRINTS ?? ''};
 writePrivate(join(directory,'deployment.env'),Object.entries(publicConfig).map(([key,value])=>`${key}=${value}`).join('\n')+'\n');
 console.log('Deployment configuration prepared in ignored .local/deployment; existing secrets were preserved.');

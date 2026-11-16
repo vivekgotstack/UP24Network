@@ -67,6 +67,7 @@ services:
       SITE_URL: ${SITE_URL:?Set SITE_URL in deployment.env}
       SITE_INDEXABLE: ${SITE_INDEXABLE:-false}
       NEWS_API_URL: http://backend:8080
+      MEDIA_CDN_URL: ${MEDIA_CDN_URL:-}
       UP24_TRUST_PROXY_HEADERS: 'true'
       NODE_OPTIONS: --max-old-space-size=384
       ANDROID_APP_ID: com.up24network.news

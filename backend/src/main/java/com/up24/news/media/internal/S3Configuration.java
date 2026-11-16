@@ -18,16 +18,18 @@ import java.time.Duration;
 @ConditionalOnProperty(name="up24.media.storage",havingValue="s3")
 @Profile("!local-preview")
 class S3Configuration {
-    @Bean(destroyMethod="close") S3Client mediaS3Client(S3Settings settings,
+    @Bean AwsCredentialsProvider mediaAwsCredentials(
             @Value("${up24.media.s3.access-key-id:}") String accessKey,
             @Value("${up24.media.s3.secret-access-key:}") String secretKey,
             @Value("${up24.media.s3.session-token:}") String sessionToken) {
-        settings.validate();
         if(accessKey.isBlank()!=secretKey.isBlank()) throw new IllegalStateException("Set both AWS access credentials, or use the AWS credential provider chain.");
-        AwsCredentialsProvider credentials=accessKey.isBlank()?DefaultCredentialsProvider.builder().build():
+        return accessKey.isBlank()?DefaultCredentialsProvider.builder().build():
                 StaticCredentialsProvider.create(sessionToken.isBlank()?AwsBasicCredentials.create(accessKey,secretKey):
                         AwsSessionCredentials.create(accessKey,secretKey,sessionToken));
-        return S3Client.builder().region(Region.of(settings.region())).credentialsProvider(credentials)
+    }
+    @Bean(destroyMethod="close") S3Client mediaS3Client(S3Settings settings,AwsCredentialsProvider mediaAwsCredentials) {
+        settings.validate();
+        return S3Client.builder().region(Region.of(settings.region())).credentialsProvider(mediaAwsCredentials)
                 .httpClientBuilder(UrlConnectionHttpClient.builder().connectionTimeout(Duration.ofSeconds(3)).socketTimeout(Duration.ofSeconds(5)))
                 .overrideConfiguration(config -> config.apiCallTimeout(Duration.ofSeconds(12)).apiCallAttemptTimeout(Duration.ofSeconds(6))
                         .retryStrategy(StandardRetryStrategy.builder().maxAttempts(2).build())).build();
