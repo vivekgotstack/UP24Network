@@ -58,8 +58,9 @@ class MediaService implements MediaLibrary {
                 if(safeName.isEmpty()) safeName="Photograph";
                 safeName=safeName.substring(0,Math.min(255,safeName.length()));
                 var asset=new Asset(id,"/media/"+id+".webp",safeName,bytes.length,originalBytes,width,height,clock.instant());
-                var reservation=media.reserve(asset,actor,quotaBytes);
-                if(reservation.inserted()) storage.put(id,bytes);
+                var location=storage.target(id);
+                var reservation=media.reserve(asset,actor,quotaBytes,location);
+                if(reservation.inserted()) storage.put(location,bytes);
                 return reservation.asset();
             } finally { reader.dispose(); }
         } catch(IOException exception) { throw new MediaProblem(MediaProblem.Reason.STORAGE,"The image could not be stored. Try again."); }

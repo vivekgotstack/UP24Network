@@ -75,7 +75,8 @@ class MediaStorageTest {
     @AfterEach void clean() throws IOException {
         for(String id:fixtureIds) {
             jdbc.update("DELETE FROM media_asset WHERE id=? AND uploaded_by=?",id,actor);
-            if(store.find(id).isEmpty()) files.delete(id);
+            if(store.find(id).isEmpty()) files.delete(files.target(id));
+            jdbc.update("DELETE FROM media_pending_deletion WHERE asset_id=?",id);
         }
         jdbc.update("DELETE FROM identity_account WHERE id=?",actor);
         fixtureIds.clear();
@@ -111,22 +112,22 @@ class MediaStorageTest {
     @Test void referencedImagesAreProtectedAndUnreferencedFilesAreRemovedOnlyAfterCommit() throws Exception {
         var media=service(baseline+red.length);
         var asset=tx.execute(status -> media.upload("report.webp",red,1000,actor));
-        var mvc=MockMvcBuilders.standaloneSetup(new MediaController(media,files,mock(Access.class))).build();
+        var mvc=MockMvcBuilders.standaloneSetup(new MediaController(media,files,mock(Access.class),store)).build();
         String url=asset.url(); String etag="\""+asset.id()+"\"";
         mvc.perform(get(url)).andExpect(status().isOk()).andExpect(header().string("ETag",etag));
         mvc.perform(get(url).header("If-None-Match",etag)).andExpect(status().isNotModified()).andExpect(content().string(""));
         when(usage.inUse(url)).thenReturn(true);
         assertThatThrownBy(() -> tx.executeWithoutResult(status -> media.remove(asset.id())))
                 .isInstanceOfSatisfying(MediaProblem.class,problem -> assertThat(problem.reason).isEqualTo(MediaProblem.Reason.IN_USE));
-        assertThat(files.path(asset.id())).exists();
+        assertThat(files.delivery(files.target(asset.id())).file()).exists();
         assertThat(store.find(asset.id())).isPresent();
         when(usage.inUse(url)).thenReturn(false);
         tx.executeWithoutResult(status -> {
             media.remove(asset.id());
-            assertThat(files.path(asset.id())).exists();
+            assertThat(files.delivery(files.target(asset.id())).file()).exists();
             assertThat(store.find(asset.id())).isEmpty();
         });
-        assertThat(files.path(asset.id())).doesNotExist();
+        assertThat(files.delivery(files.target(asset.id())).file()).doesNotExist();
         assertThat(media.list(1,24).storedBytes()).isEqualTo(baseline);
         mvc.perform(get(url).header("If-None-Match",etag)).andExpect(status().isNotFound());
     }

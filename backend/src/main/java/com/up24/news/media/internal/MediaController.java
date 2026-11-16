@@ -3,6 +3,7 @@ package com.up24.news.media.internal;
 import com.up24.news.identity.Access;
 import com.up24.news.media.MediaLibrary;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,8 @@ class MediaController {
     private final MediaLibrary media;
     private final BinaryStorage storage;
     private final Access access;
-    MediaController(MediaLibrary media,BinaryStorage storage,Access access) { this.media=media; this.storage=storage; this.access=access; }
+    private final MediaStore catalogue;
+    MediaController(MediaLibrary media,BinaryStorage storage,Access access,MediaStore catalogue) { this.media=media; this.storage=storage; this.access=access;this.catalogue=catalogue; }
     @GetMapping("/api/admin/media") @PreAuthorize("@access.hasAny('ADMIN')")
     MediaLibrary.Page list(@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="24") int size) { return media.list(page,size); }
     @PostMapping(value="/api/admin/media",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -29,9 +31,13 @@ class MediaController {
     @DeleteMapping("/api/admin/media/{id}") @PreAuthorize("@access.hasAny('ADMIN')") @ResponseStatus(HttpStatus.NO_CONTENT)
     void remove(@PathVariable String id) { media.remove(id); }
     @GetMapping("/media/{id:[a-f0-9]{64}}.webp")
-    ResponseEntity<FileSystemResource> image(@PathVariable String id,WebRequest request) {
+    ResponseEntity<Resource> image(@PathVariable String id,WebRequest request) throws IOException {
         var asset=media.find(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        var path=storage.path(id);
+        var location=catalogue.location(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        var delivery=storage.delivery(location);
+        if(delivery.redirect()!=null) return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).location(delivery.redirect())
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(5)).cachePublic()).build();
+        var path=delivery.file();
         if (!Files.isRegularFile(path)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         var cache=CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
         var etag="\""+id+"\"";

@@ -14,10 +14,14 @@ class UnusedMediaCleanup {
     @Transactional(propagation=Propagation.REQUIRES_NEW)
     public void removeIfUnreferenced(String id) {
         media.lockQuota();
-        if(media.find(id).isPresent()) return;
-        try { storage.delete(id); }
-        catch(IOException exception) {
-            System.getLogger(UnusedMediaCleanup.class.getName()).log(System.Logger.Level.WARNING,"Unused image cleanup will need retry: "+id);
+        var active=media.location(id);
+        for(var deletion:media.deletions(id)) {
+            if(active.filter(deletion.location()::equals).isPresent()) { media.completedDeletion(deletion);continue; }
+            try { storage.delete(deletion.location()); media.completedDeletion(deletion); }
+            catch(IOException|RuntimeException exception) {
+                media.failedDeletion(deletion);
+                System.getLogger(UnusedMediaCleanup.class.getName()).log(System.Logger.Level.WARNING,"Unused media removal is queued for retry.");
+            }
         }
     }
 }
