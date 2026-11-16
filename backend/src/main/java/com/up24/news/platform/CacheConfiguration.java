@@ -17,7 +17,7 @@ class CacheConfiguration {
         var caches=new CaffeineCacheManager("article-feed","article-discovery","article-detail");
         caches.setCaffeine(Caffeine.newBuilder().maximumWeight(8L * 1024 * 1024)
                 .weigher((Object key,Object value) -> {
-                    try { return Math.max(64,Math.multiplyExact(json.writeValueAsBytes(value).length,2)); }
+                    try { return Math.addExact(128,Math.multiplyExact(Math.addExact(json.writeValueAsBytes(key).length,json.writeValueAsBytes(value).length),2)); }
                     catch (Exception ignored) { return 8 * 1024 * 1024; }
                 }).expireAfterWrite(Duration.ofSeconds(30)).recordStats());
         return new TransactionAwareCacheManagerProxy(caches);

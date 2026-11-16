@@ -1,0 +1,130 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.filters label:first-child {
+  flex: 1 1 220px;
+}
+.filters label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.filters input,
+.filters select,
+.role select {
+  min-height: 44px;
+  font: 400 16px var(--sans);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff9;
+  padding: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+.filters input {
+  width: 100%;
+}
+.accountCard {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  border: 1px solid var(--line);
+  padding: 18px;
+  border-radius: 7px;
+  margin-bottom: 14px;
+}
+.details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.details strong {
+  display: block;
+}
+.details p {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 5px;
+}
+.status {
+  display: inline-block;
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--surface);
+}
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.role {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.profile {
+  grid-column: 1 / -1;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.toggle input {
+  width: 18px;
+  height: 18px;
+}
+.feedback {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.passwordTools {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.selector {
+  display: grid;
+  gap: 18px;
+}
+@media (max-width: 540px) {
+  .accountCard {
+    padding: 14px;
+  }
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .filters label:first-child {
+    flex-basis: auto;
+  }
+  .actions {
+    gap: 10px;
+  }
+  .role {
+    width: 100%;
+  }
+  .role select {
+    width: 100%;
+  }
+}

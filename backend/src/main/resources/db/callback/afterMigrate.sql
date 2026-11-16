@@ -5,6 +5,7 @@ DECLARE relation RECORD;
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'up24_app') THEN
         EXECUTE format('GRANT USAGE ON SCHEMA %I TO up24_app',current_schema());
+        EXECUTE format('REVOKE ALL ON TABLE %I.flyway_schema_history FROM up24_app',current_schema());
         FOR relation IN SELECT tablename FROM pg_tables
             WHERE schemaname = current_schema() AND tablename <> 'flyway_schema_history'
         LOOP

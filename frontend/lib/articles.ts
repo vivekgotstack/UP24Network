@@ -24,7 +24,9 @@ const apiUrl = process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080';
 
 async function request(path: string) {
   return fetch(`${apiUrl}${path}`, {
-    next: { revalidate: 30, tags: ['articles'] },
+    // Keep the single shared feed in Next's disk cache. Arbitrary searches and
+    // article URLs use the bounded backend cache, preventing cache-file growth.
+    ...(path === '/api/articles' ? { next: { revalidate: 30, tags: ['articles'] } } : { cache: 'no-store' as const }),
     signal: AbortSignal.timeout(5000),
   });
 }

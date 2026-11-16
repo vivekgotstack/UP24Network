@@ -13,6 +13,7 @@ import { ArticlePreview } from '@/components/newsroom/article-preview';
 import { ArticleRevisions } from '@/components/newsroom/article-revisions';
 import { AdminNavigation } from '@/components/newsroom/admin-workspace';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { BrandLogo } from '@/components/brand-logo';
 import { TeamPanel } from '@/components/newsroom/team-panel';
 import { AutomationPanel, type AutomationJob } from '@/components/newsroom/automation-panel';
 import type { ManagedArticle } from '@/lib/newsroom/types';
@@ -63,8 +64,19 @@ export function AdminConsole({
     jobs = jobData.data ?? [];
   const loadError = articleData.error ?? reportData.error ?? jobData.error;
   useEffect(() => {
-    if (!session.isLoading && session.data !== undefined && !session.data?.newsroomAccess)
+    if (session.isLoading || session.data === undefined) return;
+    const account = session.data;
+    if (!account) {
       router.replace(`${basePath}/sign-in`);
+      return;
+    }
+    if (!account.newsroomEligible) {
+      router.replace('/account');
+      return;
+    }
+    const destination = account.role === 'ADMIN' ? '/admin' : '/newsroom';
+    if (!account.newsroomAccess) router.replace(`${destination}/sign-in`);
+    else if (destination !== basePath) router.replace(destination);
   }, [session.isLoading, session.data, router, basePath]);
   useEffect(() => {
     if (loadError?.status === 401) void session.refetch();
@@ -158,9 +170,9 @@ export function AdminConsole({
     >
       <header className="cms-heading">
         <div>
-          <a href="/" className="cms-home">
-            UP24Network / Back to reader
-          </a>
+          <Link href="/" className="cms-home cms-brand-link">
+            <BrandLogo /> UP24Network / Back to reader
+          </Link>
           <h1>{titles[section]}</h1>
         </div>
         <div className="cms-identity">
@@ -482,7 +494,10 @@ export function AdminConsole({
               }
               onRole={(account, role: Role) =>
                 act(async () => {
-                  await cms(`admin/accounts/${account.id}`, 'PATCH', { role });
+                  await cms(`admin/accounts/${account.id}`, 'PATCH', {
+                    role,
+                    version: account.version,
+                  });
                   await client.invalidateQueries({
                     predicate: (query) =>
                       query.queryKey[0] === 'newsroom' &&

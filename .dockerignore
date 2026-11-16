@@ -5,6 +5,10 @@
 **/.env.*
 **/node_modules
 **/.next
+android
+deploy
+scripts
+docs
 **/target
 **/*.log
 **/*.p12

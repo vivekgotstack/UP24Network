@@ -31,28 +31,28 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/source-serif-regular.ttf') format('truetype');
+  src: url('/fonts/source-serif-regular.3140d338.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Source Serif';
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/source-serif-bold.ttf') format('truetype');
+  src: url('/fonts/source-serif-bold.8fe71ddf.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Source Sans';
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/source-sans-regular.ttf') format('truetype');
+  src: url('/fonts/source-sans-regular.30ef5887.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Source Sans';
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-  src: url('/fonts/source-sans-semibold.ttf') format('truetype');
+  src: url('/fonts/source-sans-semibold.8b67800f.woff2') format('woff2');
 }
 
 :root {

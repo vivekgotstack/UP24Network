@@ -18,8 +18,12 @@ export function AuthPage({
     router = useRouter();
   const destination = session.data?.newsroomEligible
     ? session.data.newsroomAccess
-      ? session.data.role === 'ADMIN' ? '/admin' : '/newsroom'
-      : session.data.role === 'ADMIN' ? '/admin/sign-in' : '/newsroom/sign-in'
+      ? session.data.role === 'ADMIN'
+        ? '/admin'
+        : '/newsroom'
+      : session.data.role === 'ADMIN'
+        ? '/admin/sign-in'
+        : '/newsroom/sign-in'
     : '/account';
   useEffect(() => {
     if (session.data && (!editorial || session.data.newsroomAccess)) router.replace(destination);
@@ -27,9 +31,14 @@ export function AuthPage({
   async function authenticated(account: Account) {
     await session.setAccount(account);
     window.location.replace(
-      account.newsroomEligible ? account.newsroomAccess
-        ? account.role === 'ADMIN' ? '/admin' : '/newsroom'
-        : account.role === 'ADMIN' ? '/admin/sign-in' : '/newsroom/sign-in'
+      account.newsroomEligible
+        ? account.newsroomAccess
+          ? account.role === 'ADMIN'
+            ? '/admin'
+            : '/newsroom'
+          : account.role === 'ADMIN'
+            ? '/admin/sign-in'
+            : '/newsroom/sign-in'
         : '/account',
     );
   }

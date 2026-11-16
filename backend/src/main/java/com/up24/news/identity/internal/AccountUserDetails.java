@@ -11,7 +11,7 @@ class AccountUserDetails implements UserDetailsService, UserDetailsPasswordServi
     @Override public UserDetails loadUserByUsername(String username) {
         var credential = credentials.findCredential(EmailAddresses.normalize(username))
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
-        return User.withUsername(credential.email()).password(credential.encodedPassword()).roles(credential.role()).build();
+        return User.withUsername(credential.email()).password(credential.encodedPassword()).roles(credential.role()).disabled(!credential.enabled()).build();
     }
     @Override public UserDetails updatePassword(UserDetails user, String encodedPassword) {
         credentials.upgradePassword(user.getUsername(), user.getPassword(), encodedPassword);

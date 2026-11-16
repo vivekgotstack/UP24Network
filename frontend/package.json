@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
+    "prebuild": "node scripts/optimize-fonts.mjs",
     "build": "next build",
+    "fonts:build": "node scripts/optimize-fonts.mjs",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
@@ -32,6 +34,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "prettier": "^3.10.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "wawoff2": "^2.0.1"
   }
 }

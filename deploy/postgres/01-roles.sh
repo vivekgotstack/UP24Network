@@ -16,6 +16,7 @@ REVOKE ALL ON DATABASE up24network FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT CONNECT ON DATABASE up24network TO up24_app;
 GRANT USAGE ON SCHEMA public TO up24_app;
-ALTER DEFAULT PRIVILEGES FOR ROLE up24_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO up24_app;
+-- Flyway's existing afterMigrate callback grants runtime DML on application
+-- tables explicitly. Default grants would also expose its history table.
 SQL
 } | psql -X -q -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"

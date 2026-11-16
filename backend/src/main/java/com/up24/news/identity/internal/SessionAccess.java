@@ -25,7 +25,8 @@ class SessionAccess implements Access {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         var account = authentication instanceof JwtAuthenticationToken jwt
                 ? accounts.find(UUID.fromString(jwt.getToken().getSubject())) : accounts.find(authentication.getName());
-        return account
+        return account.filter(Accounts.Account::enabled)
+                .filter(Accounts.Account::enabled)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 

@@ -4,6 +4,8 @@ export type Account = {
   email: string;
   displayName: string;
   role: Role;
+  enabled?: boolean;
+  version?: number;
   newsroomEligible?: boolean;
   newsroomAccess?: boolean;
 };

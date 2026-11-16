@@ -1,0 +1,26 @@
+{
+  "source-serif-regular": {
+    "sourceHash": "f01900495012279f1e95d721c59363395eeffb79ef806eaa4dfa8bd923ccec0b",
+    "file": "source-serif-regular.3140d338.woff2",
+    "sourceBytes": 194464,
+    "bytes": 54992
+  },
+  "source-serif-bold": {
+    "sourceHash": "0efc0b44578e439999fc8654670925d7abc22d17b557588487acd673ff07c068",
+    "file": "source-serif-bold.8fe71ddf.woff2",
+    "sourceBytes": 194760,
+    "bytes": 59164
+  },
+  "source-sans-regular": {
+    "sourceHash": "20ab9752bd19a373dba627393b6c142e6cf8fc2f219119a8e0cb1442ef679ec5",
+    "file": "source-sans-regular.30ef5887.woff2",
+    "sourceBytes": 234708,
+    "bytes": 75116
+  },
+  "source-sans-semibold": {
+    "sourceHash": "950e66c48e5e60c9407421d0fa601047176f17e0d22a598bbd084dde45a98be2",
+    "file": "source-sans-semibold.8b67800f.woff2",
+    "sourceBytes": 234680,
+    "bytes": 74760
+  }
+}

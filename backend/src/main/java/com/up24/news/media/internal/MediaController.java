@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.context.request.WebRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -28,17 +29,20 @@ class MediaController {
     @DeleteMapping("/api/admin/media/{id}") @PreAuthorize("@access.hasAny('ADMIN')") @ResponseStatus(HttpStatus.NO_CONTENT)
     void remove(@PathVariable String id) { media.remove(id); }
     @GetMapping("/media/{id:[a-f0-9]{64}}.webp")
-    ResponseEntity<FileSystemResource> image(@PathVariable String id) {
+    ResponseEntity<FileSystemResource> image(@PathVariable String id,WebRequest request) {
         var asset=media.find(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var path=storage.path(id);
         if (!Files.isRegularFile(path)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        var cache=CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
+        var etag="\""+id+"\"";
+        if(request.checkNotModified(etag)) return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(cache).build();
         return ResponseEntity.ok().contentType(MediaType.parseMediaType("image/webp"))
-                .contentLength(asset.bytes()).cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
+                .contentLength(asset.bytes()).eTag(etag).cacheControl(cache)
                 .body(new FileSystemResource(path));
     }
     @ExceptionHandler(MediaProblem.class) ProblemDetail problem(MediaProblem exception) {
         var status=switch(exception.reason) { case INVALID -> HttpStatus.BAD_REQUEST; case MISSING -> HttpStatus.NOT_FOUND;
-            case IN_USE -> HttpStatus.CONFLICT; case STORAGE -> HttpStatus.SERVICE_UNAVAILABLE; };
+            case IN_USE -> HttpStatus.CONFLICT; case STORAGE -> HttpStatus.SERVICE_UNAVAILABLE; case QUOTA -> HttpStatus.INSUFFICIENT_STORAGE; };
         return ProblemDetail.forStatusAndDetail(status,exception.getMessage());
     }
 }

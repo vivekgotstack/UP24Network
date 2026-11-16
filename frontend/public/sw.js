@@ -14,18 +14,23 @@ self.addEventListener('activate', event => {
 
 async function remember(request, response) {
   if (!response.ok || response.type !== 'basic' || !response.body) return;
+  // Retain the original Response metadata instead of rebuilding a decoded body
+  // with the network response's compressed Content-Length/Content-Encoding.
+  const candidate = response.clone();
   const reader = response.clone().body.getReader();
-  const parts = [];
   let bytes = 0;
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
     bytes += value.byteLength;
-    if (bytes > MAX_BYTES) { await reader.cancel(); return; }
-    parts.push(value);
+    if (bytes > MAX_BYTES) {
+      void reader.cancel();
+      void candidate.body.cancel();
+      return;
+    }
   }
   const cache = await caches.open(CACHE);
-  await cache.put(request, new Response(new Blob(parts), { status: response.status, headers: response.headers }));
+  await cache.put(request, candidate);
   const keys = await cache.keys();
   const removable = keys.filter(key => !key.url.endsWith('/offline.html') && !key.url.endsWith('/icons/icon-192.png'));
   while (removable.length > MAX_ENTRIES - 2) await cache.delete(removable.shift());

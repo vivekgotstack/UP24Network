@@ -66,10 +66,12 @@ class SecurityConfiguration {
                 .requestMatchers("/api/auth/me","/api/auth/workflow","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
                 .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login").usernameParameter("email")
                         .successHandler((request,response,authentication) -> {
-                            var account=accounts.find(authentication.getName()).orElseThrow();
+                            var account=accounts.find(authentication.getName());
+                            if(account.isEmpty()) { response.sendError(401,"Invalid email or password"); return; }
                             // A new password login supersedes this browser's previous refresh session.
                             sessions.logout(TokenCookies.read(request,TokenCookies.REFRESH));
-                            cookies.write(response,sessions.start(account));
+                            try { cookies.write(response,sessions.start(account.get())); }
+                            catch(LoginSessions.LoginUnavailable exception) { response.sendError(401,"Invalid email or password"); return; }
                             response.setContentType("application/json");
                             response.getWriter().write("{\"authenticated\":true}");
                         })

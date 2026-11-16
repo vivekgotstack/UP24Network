@@ -22,6 +22,7 @@ class LoginSessions {
     record Tokens(UUID sessionId, String access, String refresh, Instant sessionExpiresAt) {
         @Override public String toString() { return "Tokens[redacted]"; }
     }
+    static final class LoginUnavailable extends RuntimeException {}
     private final LoginSessionStore sessions;
     private final AccountRepository accounts;
     private final AccessTokenIssuer tokens;
@@ -40,8 +41,9 @@ class LoginSessions {
     }
     private boolean plausible(String refresh) { return refresh!=null && refresh.matches("[A-Za-z0-9_-]{43}"); }
     @Transactional public Tokens start(Account account) {
+        var current=accounts.lock(account.id()).filter(Account::enabled).orElseThrow(LoginUnavailable::new);
         var now=clock.instant();
-        return create(account,now,now.plus(SESSION_LIFETIME));
+        return create(current,now,now.plus(SESSION_LIFETIME));
     }
     private Tokens create(Account account, Instant now, Instant expires) {
         var id=UUID.randomUUID(); var refresh=newRefresh();
@@ -60,7 +62,7 @@ class LoginSessions {
             return Optional.empty();
         }
         var account=accounts.find(session.accountId());
-        if (account.isEmpty()) { sessions.revoke(session.id(),now); return Optional.empty(); }
+        if (account.isEmpty() || !account.get().enabled()) { sessions.revoke(session.id(),now); return Optional.empty(); }
         var next=newRefresh();
         sessions.rotate(session.id(),digest(refresh),digest(next),now);
         return Optional.of(new Tokens(session.id(),tokens.issue(account.get(),session.id(),now,now.plus(ACCESS_LIFETIME)),next,session.expiresAt()));

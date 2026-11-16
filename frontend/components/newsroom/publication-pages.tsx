@@ -422,7 +422,7 @@ export function PublicationPagesPanel() {
   const document = pages.data?.find((page) => page.path === selected) ?? pages.data?.[0];
   async function reload() {
     const result = await pages.refetch();
-    if (result.isError) throw result.error;
+    if (result?.isError) throw result.error;
     setDirty(false);
     setRevision((value) => value + 1);
   }

@@ -24,9 +24,19 @@ class JdbcMediaStore implements MediaStore {
         int current=Math.min(page,pages);
         return new MediaLibrary.Page(jdbc.query("SELECT * FROM media_asset ORDER BY created_at DESC,id LIMIT ? OFFSET ?",ASSET,size,(current-1)*size),total,current,size,pages,bytes);
     }
-    @Override public void insert(MediaLibrary.Asset asset,UUID actor) {
+    @Override public void lockQuota() {
+        jdbc.execute("SELECT pg_advisory_xact_lock(8524,1301)");
+    }
+    @Override public Reservation reserve(MediaLibrary.Asset asset,UUID actor,long quotaBytes) {
+        lockQuota();
+        var existing=find(asset.id());
+        if(existing.isPresent()) return new Reservation(existing.get(),false);
+        long storedBytes=jdbc.queryForObject("SELECT COALESCE(sum(bytes),0) FROM media_asset",Long.class);
+        if(asset.bytes()>quotaBytes || storedBytes>quotaBytes-asset.bytes())
+            throw new MediaProblem(MediaProblem.Reason.QUOTA,"The media storage allowance is full. Remove unused photographs or increase the server storage allowance before uploading new images.");
         jdbc.update("INSERT INTO media_asset(id,original_name,bytes,original_bytes,width,height,uploaded_by) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING",
                 asset.id(),asset.name(),asset.bytes(),asset.originalBytes(),asset.width(),asset.height(),actor);
+        return new Reservation(find(asset.id()).orElseThrow(),true);
     }
     @Override public void delete(String id) { jdbc.update("DELETE FROM media_asset WHERE id=?",id); }
 }

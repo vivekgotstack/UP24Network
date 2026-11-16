@@ -30,13 +30,17 @@ services:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/secrets/backend.properties
       SERVER_ADDRESS: 0.0.0.0
       SERVER_SHUTDOWN: graceful
-      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
+      SPRING_LIFECYCLE_TIMEOUTPERSHUTDOWNPHASE: 30s
+      SERVER_TOMCAT_THREADS_MAX: 50
+      SERVER_TOMCAT_THREADS_MINSPARE: 5
+      SERVER_TOMCAT_ACCEPTCOUNT: 100
+      SERVER_TOMCAT_MAXCONNECTIONS: 1000
       UP24_MEDIA_DIRECTORY: /app/uploads
       AUTH_COOKIE_SECURE: 'true'
-      SERVER_FORWARD_HEADERS_STRATEGY: native
-      SERVER_TOMCAT_REMOTEIP_REMOTE_IP_HEADER: x-forwarded-for
-      SERVER_TOMCAT_REMOTEIP_PROTOCOL_HEADER: x-forwarded-proto
-      SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES: '172\.30\.24\.10'
+      SERVER_FORWARDHEADERSSTRATEGY: native
+      SERVER_TOMCAT_REMOTEIP_REMOTEIPHEADER: x-forwarded-for
+      SERVER_TOMCAT_REMOTEIP_PROTOCOLHEADER: x-forwarded-proto
+      SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES: '172\.30\.24\.10'
     secrets: [backend.properties, jwt-signing.p12]
     volumes: [uploads:/app/uploads]
     tmpfs: [/tmp:size=64m,mode=1777]
@@ -83,7 +87,7 @@ services:
   proxy:
     image: caddy:2-alpine
     restart: unless-stopped
-    environment: { SITE_HOST: '${SITE_HOST:?Set SITE_HOST in deployment.env}' }
+    environment: { SITE_HOST: '${SITE_HOST:?Set SITE_HOST in deployment.env}', GOMEMLIMIT: 96MiB }
     ports: ['80:80', '443:443', '443:443/udp']
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro

@@ -2,10 +2,15 @@
 
 `node scripts/build-android.mjs --setup` installs the official command-line SDK and
 Gradle into ignored local tools, generates an ignored upload key once, and builds
-a signed Android App Bundle from this native Trusted Web Activity shell. Later runs
+a signed Android App Bundle and installable release APK from this native Trusted Web Activity shell. Later runs
 reuse the tools/key. It requests Android SDK 37 and targets API 37; no native analytics,
 advertising SDK or duplicate web framework is bundled. The website runs in the user's
 verified browser, with the same responsive reader and authentication controls.
+
+Outputs are `android/app/build/outputs/bundle/release/app-release.aab` for Play
+Console and `android/app/build/outputs/apk/release/app-release.apk` for direct
+installation. The shell launches the deployed HTTPS origin; installing it before
+deploying this portal will open whatever the public domain currently serves.
 
 Deploy the HTTPS website before distributing the app. `/.well-known/assetlinks.json`
 must list the SHA-256 certificate of the key that signs the installed app. The build

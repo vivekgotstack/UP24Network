@@ -5,6 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cms, CmsError, type Account } from '@/lib/cms';
 
 const sessionKey = ['identity', 'session'] as const;
+function notifyOtherTabs() {
+  if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+  const channel = new BroadcastChannel('up24-identity');
+  channel.postMessage({ type: 'identity-changed', version: 1 });
+  channel.close();
+}
 async function session(signal?: AbortSignal) {
   try {
     return await cms<Account>('auth/me', 'GET', undefined, { signal });
@@ -28,6 +34,7 @@ export function useSession() {
       ]);
       client.removeQueries({ queryKey: ['newsroom'] });
       client.setQueryData(sessionKey, account);
+      notifyOtherTabs();
     },
     [client],
   );

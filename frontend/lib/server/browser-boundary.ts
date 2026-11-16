@@ -32,7 +32,10 @@ export function backendRequestHeaders(request: Request, includeContentType = tru
   return headers;
 }
 
-export async function readLimitedBody(request: Request, limit: number): Promise<Uint8Array<ArrayBuffer> | null> {
+export async function readLimitedBody(
+  request: Request,
+  limit: number,
+): Promise<Uint8Array<ArrayBuffer> | null> {
   const declared = Number(request.headers.get('content-length') ?? 0);
   if (!Number.isFinite(declared) || declared < 0 || declared > limit) return null;
   if (!request.body) return new Uint8Array();
@@ -43,11 +46,17 @@ export async function readLimitedBody(request: Request, limit: number): Promise<
     const chunk = await reader.read();
     if (chunk.done) break;
     length += chunk.value.byteLength;
-    if (length > limit) { await reader.cancel(); return null; }
+    if (length > limit) {
+      await reader.cancel();
+      return null;
+    }
     parts.push(chunk.value);
   }
   const result = new Uint8Array(length);
   let offset = 0;
-  for (const part of parts) { result.set(part, offset); offset += part.byteLength; }
+  for (const part of parts) {
+    result.set(part, offset);
+    offset += part.byteLength;
+  }
   return result;
 }

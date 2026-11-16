@@ -19,12 +19,14 @@ class AdminBootstrap implements ApplicationRunner {
     private final CredentialRepository credentials;
     private final PasswordEncoder passwords;
     private final LoginSessions sessions;
+    private final AccountRepository repository;
 
     AdminBootstrap(Accounts accounts, @Value("${up24.bootstrap.admin-email:}") String email,
                    @Value("${up24.bootstrap.admin-password:}") String password,
-                   CredentialRepository credentials,PasswordEncoder passwords,LoginSessions sessions) {
+                   CredentialRepository credentials,PasswordEncoder passwords,LoginSessions sessions,AccountRepository repository) {
         this.accounts = accounts; this.email = email; this.password = password;
         this.credentials=credentials; this.passwords=passwords; this.sessions=sessions;
+        this.repository=repository;
     }
 
     @Transactional @Override public void run(ApplicationArguments arguments) {
@@ -32,13 +34,13 @@ class AdminBootstrap implements ApplicationRunner {
         if (password.isBlank() || password.length()<12 || password.length()>64 || password.getBytes(StandardCharsets.UTF_8).length>72)
             throw new IllegalStateException("Set a valid ADMIN_PASSWORD in the backend environment (12-64 characters, at most 72 UTF-8 bytes).");
         var owner=accounts.find(email).orElseGet(() -> accounts.create(email,"UP24Network Admin",password,Accounts.Role.ADMIN));
-        if (owner.role()!=Accounts.Role.ADMIN) throw new IllegalStateException("The configured administrator account must have the administrator role.");
+        if (owner.role()!=Accounts.Role.ADMIN || !owner.enabled()) throw new IllegalStateException("The configured administrator account must be active and have the administrator role.");
         var stored=credentials.findCredential(owner.email()).orElseThrow();
         if (!passwords.matches(password,stored.encodedPassword())) {
             credentials.upgradePassword(owner.email(),stored.encodedPassword(),passwords.encode(password));
             sessions.revokeAll(owner.id());
         }
-        accounts.list().stream().filter(account -> account.role()==Accounts.Role.ADMIN && !account.id().equals(owner.id()))
+        repository.administrators().stream().filter(account -> !account.id().equals(owner.id()))
                 .forEach(account -> accounts.changeRole(account.id(),Accounts.Role.SUBSCRIBER,owner.id()));
     }
 }

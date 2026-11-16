@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import { allowedBrowserOrigin, backendRequestHeaders, readLimitedBody } from '@/lib/server/browser-boundary';
+import {
+  allowedBrowserOrigin,
+  backendRequestHeaders,
+  readLimitedBody,
+} from '@/lib/server/browser-boundary';
 
 export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ path: string[] }> };
@@ -19,9 +23,13 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+/restore$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
   [/^admin\/accounts$/, ['GET', 'POST']],
-  [new RegExp(`^admin/accounts/${UUID}$`, 'i'), ['PATCH']],
-  [new RegExp(`^admin/accounts/${UUID}/workflow$`, 'i'), ['GET','PUT']],
-  [/^admin\/publication\/settings$/, ['GET','PUT']],
+  [/^admin\/accounts\/browse$/, ['GET']],
+  [new RegExp(`^admin/accounts/${UUID}$`, 'i'), ['PATCH', 'DELETE']],
+  [new RegExp(`^admin/accounts/${UUID}/profile$`, 'i'), ['PATCH']],
+  [new RegExp(`^admin/accounts/${UUID}/sessions/revoke$`, 'i'), ['POST']],
+  [new RegExp(`^admin/articles/${UUID}/activity$`, 'i'), ['GET']],
+  [new RegExp(`^admin/accounts/${UUID}/workflow$`, 'i'), ['GET', 'PUT']],
+  [/^admin\/publication\/settings$/, ['GET', 'PUT']],
   [/^admin\/publication\/pages$/, ['GET']],
   [/^admin\/publication\/pages\/[a-z-]+$/, ['PUT']],
   [/^admin\/media$/, ['GET']],
@@ -46,12 +54,28 @@ async function proxy(request: NextRequest, context: Context) {
   if (!endpoint[1].includes(request.method))
     return problem('Method not allowed', 405, { Allow: endpoint[1].join(', ') });
   if (request.nextUrl.search) {
-    const allowed = path === 'admin/articles/browse' ? ['status','q','page','size'] : path === 'admin/media' ? ['page','size'] : [];
-    for (const [key,value] of request.nextUrl.searchParams) {
-      if (!allowed.includes(key) || request.nextUrl.searchParams.getAll(key).length !== 1 || value.length > 200)
-        return problem('Unsupported query parameters',400);
-      if (['page','size'].includes(key) && (!/^[0-9]+$/.test(value) || Number(value)<1 || Number(value)>(key==='size'?50:1000000)))
-        return problem('Invalid pagination',400);
+    const allowed =
+      path === 'admin/articles/browse'
+        ? ['status', 'q', 'page', 'size']
+        : path === 'admin/accounts/browse'
+          ? ['scope', 'q', 'page', 'size']
+        : path === 'admin/media'
+          ? ['page', 'size']
+          : [];
+    for (const [key, value] of request.nextUrl.searchParams) {
+      if (
+        !allowed.includes(key) ||
+        request.nextUrl.searchParams.getAll(key).length !== 1 ||
+        value.length > 200
+      )
+        return problem('Unsupported query parameters', 400);
+      if (
+        ['page', 'size'].includes(key) &&
+        (!/^[0-9]+$/.test(value) ||
+          Number(value) < 1 ||
+          Number(value) > (key === 'size' ? 50 : 1000000))
+      )
+        return problem('Invalid pagination', 400);
     }
   }
   const mutation = request.method !== 'GET';

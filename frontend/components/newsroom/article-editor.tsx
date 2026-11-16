@@ -279,8 +279,8 @@ export function ArticleEditor({
                 placeholder="UP24Network Editorial Team"
               />
               <span className="field-help">
-                Set the name readers see on this report. Leave blank to keep the publication
-                default.
+                Set the name readers see on this report. Leave blank to keep the current byline, or
+                use the publication default for a new report.
               </span>
             </label>
           )}

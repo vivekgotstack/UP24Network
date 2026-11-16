@@ -22,6 +22,15 @@ Health checks: `docker compose --env-file .local/deployment/deployment.env ps`.
 Logs are rotated automatically. The default container memory budget is about 2 GB;
 use a VPS with at least 4 GB RAM for builds, PostgreSQL and operating-system headroom.
 
+The private application network uses `172.30.24.0/24`; choose a different unused
+subnet and update the two static service addresses and Tomcat's trusted-proxy
+expression together if that range conflicts with the VPS. Caddy overwrites client
+forwarding headers, Next forwards them only with `UP24_TRUST_PROXY_HEADERS=true`,
+and Tomcat trusts only the Next container's `172.30.24.10` address. Do not publish
+the frontend/backend container ports or enable that flag for an untrusted ingress.
+This preserves per-client password throttling instead of treating every reader as
+the same proxy address. Reconfigure trusted ingress explicitly before adding a CDN.
+
 The reader is installable through its browser manifest and offline static shell.
 Private data/news HTML are excluded from service-worker caches. The Android package
 is under `android/`; its release notes list the remaining Play Console requirements.

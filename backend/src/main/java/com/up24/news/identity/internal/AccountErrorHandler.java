@@ -13,6 +13,7 @@ class AccountErrorHandler {
         var status = switch (exception.reason()) {
             case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
             case EMAIL_UNAVAILABLE -> HttpStatus.CONFLICT;
+            case CONFLICT -> HttpStatus.CONFLICT;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
         };
         return ProblemDetail.forStatusAndDetail(status, exception.getMessage());

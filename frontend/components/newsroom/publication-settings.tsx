@@ -191,7 +191,7 @@ export function PublicationSettingsPanel() {
   const [revision, setRevision] = useState(0);
   async function reload() {
     const result = await settings.refetch();
-    if (result.isError) throw result.error;
+    if (result?.isError) throw result.error;
     setRevision((value) => value + 1);
   }
   return (

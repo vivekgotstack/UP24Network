@@ -11,7 +11,9 @@ const tools=join(root,'.local/android-tools');
 const upload=join(root,'.local/android-upload');
 mkdirSync(tools,{recursive:true,mode:0o700}); mkdirSync(upload,{recursive:true,mode:0o700});
 const windows=process.platform==='win32';
-const site=new URL(process.argv.find(arg=>arg.startsWith('--site='))?.slice(7) ?? 'https://www.up24network.com');
+const preparedDeployment=join(root,'.local/deployment/deployment.env');
+const preparedSite=existsSync(preparedDeployment)?readFileSync(preparedDeployment,'utf8').match(/^SITE_URL=(.+)$/m)?.[1].trim():undefined;
+const site=new URL(process.argv.find(arg=>arg.startsWith('--site='))?.slice(7) ?? preparedSite ?? 'https://www.up24network.com');
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port) throw new Error('Use a public HTTPS origin without a path.');
 const versionCode=process.argv.find(arg=>arg.startsWith('--version-code='))?.slice(15) ?? '1';
 const versionName=process.argv.find(arg=>arg.startsWith('--version-name='))?.slice(15) ?? '1.0.0';
@@ -83,15 +85,18 @@ if (!existsSync(androidCli) || !existsSync(gradle)) {
     const zip=join(tools,'gradle-9.6.0-bin.zip'); await download(url,zip,checksum.trim()); extract(zip,tools);
   }
 }
-if (!existsSync(join(sdk,'platforms/android-37/android.jar')) || !existsSync(join(sdk,'build-tools/37.0.0'))) {
+const platformInstalled=() => ['android-37','android-37.0'].some(name=>existsSync(join(sdk,'platforms',name,'android.jar')));
+if (!platformInstalled() || !existsSync(join(sdk,'build-tools/37.0.0'))) {
   if (!process.argv.includes('--setup')) throw new Error('Android SDK 37 is missing. Run with --setup.');
   const log=openSync(join(tools,'sdk-install.log'),'a',0o600);
   try {
     console.log('Installing official SDK 37/build tools; progress is in .local/android-tools/sdk-install.log.');
-    for (const name of ['platforms/android-37','build-tools/37.0.0'])
+    for (const name of ['platforms/android-37.0','build-tools/37.0.0'])
       run(androidCli,['--no-metrics',`--sdk=${sdk}`,'sdk','install',name],{input:'y\n'.repeat(100),stdio:['pipe',log,log]});
   } finally { closeSync(log); }
 }
+if (!platformInstalled() || !existsSync(join(sdk,'build-tools/37.0.0')))
+  throw new Error('The official SDK installation did not provide platform 37.0 and build-tools 37.0.0. Inspect .local/android-tools/sdk-install.log.');
 const signingFile=join(upload,'signing.properties');
 const keystore=join(upload,'upload.p12');
 if (!existsSync(keystore)) {
@@ -104,6 +109,11 @@ if (!existsSync(keystore)) {
   writeFileSync(signingFile,`storeFile=${keystore.replaceAll('\\','/')}\nstorePassword=${password}\nkeyAlias=upload\nkeyPassword=${password}\n`,{mode:0o600});
 } else if (!existsSync(signingFile)) throw new Error('The upload key exists without its signing configuration. Restore both files from your private backup.');
 const keyProperties=Object.fromEntries(readFileSync(signingFile,'utf8').split(/\r?\n/).filter(line=>line.includes('=')).map(line=>[line.slice(0,line.indexOf('=')),line.slice(line.indexOf('=')+1)]));
+const currentStore=keystore.replaceAll('\\','/');
+if(keyProperties.storeFile!==currentStore) {
+  keyProperties.storeFile=currentStore;
+  writeFileSync(signingFile,Object.entries(keyProperties).map(([key,value])=>`${key}=${value}`).join('\n')+'\n',{mode:0o600});
+}
 const keytool=process.env.JAVA_HOME?join(process.env.JAVA_HOME,'bin',windows?'keytool.exe':'keytool'):'keytool';
 const cert=spawnSync(keytool,['-exportcert','-alias','upload','-keystore',keystore,'-storepass:env','UP24_ANDROID_UPLOAD_PASSWORD'],
   {env:{...process.env,UP24_ANDROID_UPLOAD_PASSWORD:keyProperties.storePassword},stdio:['ignore','pipe','ignore']});
@@ -117,6 +127,7 @@ if (existsSync(deploymentEnv)) {
   if (!line || !line[1].trim()) writeFileSync(deploymentEnv,previous.replace(/^ANDROID_SHA256_CERT_FINGERPRINTS=.*$/m,'ANDROID_SHA256_CERT_FINGERPRINTS='+fingerprint),{mode:0o600});
 }
 console.log('Building signed Android App Bundle with the local upload key.');
-run(gradle,['--no-daemon','--console=plain',`-Pup24SiteOrigin=${site.origin}`,`-Pup24VersionCode=${versionCode}`,`-Pup24VersionName=${versionName}`,'bundleRelease']);
+run(gradle,['--no-daemon','--console=plain','--warning-mode=all',`-Pup24SiteOrigin=${site.origin}`,`-Pup24VersionCode=${versionCode}`,`-Pup24VersionName=${versionName}`,'bundleRelease','assembleRelease']);
 console.log('Bundle: android/app/build/outputs/bundle/release/app-release.aab');
+console.log('Signed APK: android/app/build/outputs/apk/release/app-release.apk');
 console.log('Upload certificate: .local/android-upload/certificate-sha256.txt. For Play App Signing, configure the distribution certificate from Play Console too.');
