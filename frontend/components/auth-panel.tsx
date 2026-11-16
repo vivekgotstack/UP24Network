@@ -124,6 +124,7 @@ export function AuthPanel({
             {busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}
           </Button>
         </form>
+        {!signup && <Link className="text-button" href="/account/recover">Forgot your password?</Link>}
         {!editorial && (
           <Link className="text-button" href={signup ? '/account/sign-in' : '/account/register'}>
             {signup ? 'Already registered? Sign in' : 'New here? Create an account'}

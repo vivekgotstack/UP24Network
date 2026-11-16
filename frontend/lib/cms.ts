@@ -99,7 +99,7 @@ export async function cms<T>(
     response = await sendRequest();
     if (
       response.status === 401 &&
-      !['auth/login', 'auth/register', 'auth/refresh', 'auth/logout'].includes(path) &&
+      !['auth/login', 'auth/register', 'auth/refresh', 'auth/logout', 'auth/password/request', 'auth/password/reset'].includes(path) &&
       (await renewLogin())
     )
       response = await sendRequest();

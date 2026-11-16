@@ -91,6 +91,8 @@ class PasswordRecoveryService {
     }
     @Transactional
     public boolean complete(String submittedEmail,String code,String password) {
+        if(password==null || password.length()<12 || password.length()>64 || password.getBytes(StandardCharsets.UTF_8).length>72
+                || code==null || !code.matches("[0-9]{6}")) return false;
         var candidate=accounts.find(EmailAddresses.normalize(submittedEmail));
         if(candidate.isEmpty()) return false;
         var account=accounts.lock(candidate.get().id()).orElse(null);

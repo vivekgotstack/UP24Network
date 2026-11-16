@@ -37,7 +37,8 @@ class AdminBootstrap implements ApplicationRunner {
         if (owner.role()!=Accounts.Role.ADMIN || !owner.enabled()) throw new IllegalStateException("The configured administrator account must be active and have the administrator role.");
         var stored=credentials.findCredential(owner.email()).orElseThrow();
         if (!passwords.matches(password,stored.encodedPassword())) {
-            credentials.upgradePassword(owner.email(),stored.encodedPassword(),passwords.encode(password));
+            repository.lock(owner.id()).orElseThrow();
+            credentials.replacePassword(owner.id(),passwords.encode(password));
             sessions.revokeAll(owner.id());
         }
         repository.administrators().stream().filter(account -> !account.id().equals(owner.id()))

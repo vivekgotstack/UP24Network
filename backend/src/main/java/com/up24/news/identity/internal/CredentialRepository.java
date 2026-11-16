@@ -5,7 +5,7 @@ import java.util.UUID;
 
 /** Credentials are private to the authentication adapter. */
 interface CredentialRepository {
-    record Credential(String email, String encodedPassword, String role,boolean enabled) {
+    record Credential(String email, String encodedPassword, String role,boolean enabled,long version) {
         @Override public String toString() { return "Credential[redacted]"; }
     }
     Optional<Credential> findCredential(String email);

@@ -14,6 +14,7 @@ const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me|workflow)$/, ['GET']],
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
   [/^auth\/newsroom\/(code|verify)$/, ['POST']],
+  [/^auth\/password\/(request|reset)$/, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
   [/^admin\/articles\/browse$/, ['GET']],
   [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT', 'DELETE']],
@@ -122,6 +123,8 @@ async function proxy(request: NextRequest, context: Context) {
     result.headers.set('cache-control', 'private, no-store');
     const type = response.headers.get('content-type');
     if (type) result.headers.set('content-type', type);
+    const retryAfter = response.headers.get('retry-after');
+    if (retryAfter) result.headers.set('retry-after', retryAfter);
     for (const cookie of response.headers.getSetCookie())
       result.headers.append('set-cookie', cookie);
     return result;

@@ -71,7 +71,10 @@ class SecurityConfiguration {
                             if(account.isEmpty()) { response.sendError(401,"Invalid email or password"); return; }
                             // A new password login supersedes this browser's previous refresh session.
                             sessions.logout(TokenCookies.read(request,TokenCookies.REFRESH));
-                            try { cookies.write(response,sessions.start(account.get())); }
+                            if(!(authentication.getPrincipal() instanceof AccountUserDetails.Principal user)) {
+                                response.sendError(401,"Invalid email or password"); return;
+                            }
+                            try { cookies.write(response,sessions.start(account.get(),user.version())); }
                             catch(LoginSessions.LoginUnavailable exception) { response.sendError(401,"Invalid email or password"); return; }
                             response.setContentType("application/json");
                             response.getWriter().write("{\"authenticated\":true}");

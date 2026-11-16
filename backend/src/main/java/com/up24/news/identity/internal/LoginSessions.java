@@ -41,7 +41,11 @@ class LoginSessions {
     }
     private boolean plausible(String refresh) { return refresh!=null && refresh.matches("[A-Za-z0-9_-]{43}"); }
     @Transactional public Tokens start(Account account) {
+        return start(account,null);
+    }
+    @Transactional public Tokens start(Account account,Long authenticatedVersion) {
         var current=accounts.lock(account.id()).filter(Account::enabled).orElseThrow(LoginUnavailable::new);
+        if(authenticatedVersion!=null && current.version()!=authenticatedVersion) throw new LoginUnavailable();
         var now=clock.instant();
         return create(current,now,now.plus(SESSION_LIFETIME));
     }

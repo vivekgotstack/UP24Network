@@ -79,8 +79,8 @@ class JdbcAccountRepository implements AccountRepository, CredentialRepository {
         return jdbc.update("DELETE FROM identity_account WHERE id=? AND version=?",id,version)==1;
     }
     @Override public Optional<Credential> findCredential(String email) {
-        return jdbc.query("SELECT email,password_hash,role,enabled FROM identity_account WHERE email=?",
-                (row, index) -> new Credential(row.getString("email"), row.getString("password_hash"), row.getString("role"),row.getBoolean("enabled")), email)
+        return jdbc.query("SELECT email,password_hash,role,enabled,version FROM identity_account WHERE email=?",
+                (row, index) -> new Credential(row.getString("email"), row.getString("password_hash"), row.getString("role"),row.getBoolean("enabled"),row.getLong("version")), email)
                 .stream().findFirst();
     }
     @Override public void upgradePassword(String email, String previousHash, String replacementHash) {
