@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Play } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { NewsImage } from '@/components/news-image';
+import { useConsent } from '@/lib/consent';
+import { CookiePreferences } from '@/components/cookie-consent';
 
 export function YouTubeStory({
   videoId,
@@ -15,9 +17,10 @@ export function YouTubeStory({
 }) {
   const [playing, setPlaying] = useState(false);
   const reduced = useReducedMotion();
+  const { choice } = useConsent();
   return (
     <div className="inline-video" id="report-video">
-      {playing ? (
+      {playing && choice?.externalVideo ? (
         <iframe
           className="youtube-player"
           src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
@@ -40,6 +43,7 @@ export function YouTubeStory({
           </span>
         </motion.button>
       )}
+      {playing && !choice?.externalVideo && <div className="video-consent" lang="hi"><p>यह वीडियो YouTube पर होस्ट किया गया है। प्लेयर लोड करने से पहले आपकी अनुमति चाहिए। खबर नीचे पढ़ सकते हैं।</p><CookiePreferences>YouTube की अनुमति चुनें</CookiePreferences></div>}
     </div>
   );
 }

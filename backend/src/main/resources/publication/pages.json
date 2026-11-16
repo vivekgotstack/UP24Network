@@ -571,5 +571,55 @@
         ]
       }
     ]
+  },
+  {
+    "path": "/cookies",
+    "label": "Cookies",
+    "title": "Cookie and external media policy",
+    "description": "How UP24Network uses essential storage and respects your external-media choices.",
+    "intro": "You can read UP24Network without accepting optional external services. This page explains the storage used by our own services, when another provider is contacted, and how to change your choice.",
+    "sections": [
+      {
+        "id": "essential",
+        "title": "Essential security and account storage",
+        "paragraphs": [
+          "Account sign-in uses secure authentication and anti-forgery cookies to protect sessions and requests. These are required when you use account features; they are not advertising identifiers. The UP24_ACCESS and UP24_REFRESH cookies support short-lived access credentials and a revocable login lasting up to seven days. Signing out clears the browser credentials and revokes the relevant login.",
+          "An anti-forgery cookie protects actions such as sign-in and editing. Reader-facing pages remain available without an account. Local browser caches store public static assets for performance and the offline shell; private account responses and news HTML are excluded from the service-worker cache."
+        ]
+      },
+      {
+        "id": "choice",
+        "title": "Your preference and its duration",
+        "paragraphs": [
+          "UP24_CONSENT records only the consent-policy version, whether external video is allowed, and when the choice was saved. It lasts up to 180 days on the current browser and device. Both accepting and rejecting optional services are available in the initial notice. No optional category is enabled by default.",
+          "You can reopen Cookie settings in the footer at any time. Withdrawing external-video permission removes embedded players from the page. It cannot undo information already received by a provider while permission was active. Clearing browser storage also clears the saved preference."
+        ]
+      },
+      {
+        "id": "external",
+        "title": "YouTube and external links",
+        "paragraphs": [
+          "YouTube players use its privacy-enhanced embed domain, but loading a player still connects your browser to YouTube and may share information such as your IP address, device details and playback activity. An embedded player loads only after you have allowed external video and selected a video to play.",
+          "Ordinary outbound links open the selected service when you follow them. That service then applies its own policies. Our server may obtain editorial data or media metadata from providers without placing their scripts on the reader’s device."
+        ]
+      },
+      {
+        "id": "tracking",
+        "title": "Advertising and analytics",
+        "paragraphs": [
+          "The current website does not run third-party advertising trackers or an external analytics script. We do not display consent controls for tracking tools that are not installed. If optional processing is introduced, this policy and the consent mechanism must be updated before those tools are activated."
+        ],
+        "links": [
+          {
+            "href": "/privacy",
+            "label": "Privacy policy"
+          },
+          {
+            "href": "/contact",
+            "label": "Contact UP24Network"
+          }
+        ]
+      }
+    ]
   }
 ]

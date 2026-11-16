@@ -1,4 +1,5 @@
 import { EditionArt } from '@/components/edition-art';
+import { CookiePreferences } from '@/components/cookie-consent';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
@@ -68,6 +69,7 @@ export async function SiteFooter() {
           ))}
         </nav>
         <a href="#top">Back to top</a>
+        <CookiePreferences />
       </div>
     </footer>
   );
