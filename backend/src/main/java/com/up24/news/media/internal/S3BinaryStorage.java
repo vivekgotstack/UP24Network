@@ -35,7 +35,10 @@ final class S3BinaryStorage implements BinaryStorage {
                 try {
                     var existing=client.headObject(HeadObjectRequest.builder().bucket(location.bucket()).key(location.key())
                             .checksumMode(ChecksumMode.ENABLED).build());
-                    if(existing.contentLength()==bytes.length && Base64.getEncoder().encodeToString(HexFormat.of().parseHex(id)).equals(existing.checksumSHA256())) return;
+                    if(existing.contentLength()==bytes.length && Base64.getEncoder().encodeToString(HexFormat.of().parseHex(id)).equals(existing.checksumSHA256())) {
+                        eligibility(location,true);
+                        return;
+                    }
                 } catch(RuntimeException ignored) { }
             }
             throw new IOException("S3 upload could not be completed.");

@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.*;
 
 @Configuration
-@EnableScheduling
 @ConditionalOnProperty(name="up24.automation.scheduling-enabled",havingValue="true",matchIfMissing=true)
 class AutomationScheduler {
     private final AutomationService service;

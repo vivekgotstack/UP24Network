@@ -102,7 +102,9 @@ const escape = value => String(value).replaceAll('\\','\\\\').replaceAll('\n','\
 writePrivate(join(directory,'backend.properties'),Object.entries(settings).map(([key,value])=>`${key}=${escape(value)}`).join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:previousPublic.SITE_INDEXABLE ?? 'false',
   MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
+  UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
   ANDROID_SHA256_CERT_FINGERPRINTS:previousPublic.ANDROID_SHA256_CERT_FINGERPRINTS ?? ''};
+if(!/^[1-9][0-9]{0,14}$/.test(publicConfig.UP24_MEDIA_QUOTA_BYTES)) throw new Error('Set a positive media allowance in UP24_MEDIA_QUOTA_BYTES.');
 writePrivate(join(directory,'deployment.env'),Object.entries(publicConfig).map(([key,value])=>`${key}=${value}`).join('\n')+'\n');
 console.log('Deployment configuration prepared in ignored .local/deployment; existing secrets were preserved.');
 console.log('Copy that private directory with the project to your VPS; protect it with owner-only directory access.');

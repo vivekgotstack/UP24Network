@@ -10,6 +10,7 @@ foreach ($line in $lines) {
 }
 $defaults = [ordered]@{
     UP24_MEDIA_STORAGE = 'local'
+    UP24_MEDIA_QUOTA_BYTES = '1073741824'
     UP24_S3_BUCKET = ''
     AWS_REGION = 'ap-south-1'
     UP24_S3_PREFIX = 'up24/published/images/'

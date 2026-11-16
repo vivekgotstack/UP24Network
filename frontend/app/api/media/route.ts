@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
   if (conversions >= 2)
     return problem('Two images are already being optimized. Please retry shortly.', 429);
   conversions++;
+  let imageProcessed = false;
   try {
     const bytes = await readLimitedBody(request, MAX_UPLOAD + 65536);
     if (!bytes) return problem('Choose an image smaller than 12 MB.', 413);
@@ -69,12 +70,13 @@ export async function POST(request: NextRequest) {
       file.name.replace(/\.[^.]+$/, '') + '.webp',
     );
     outgoing.set('originalBytes', String(file.size));
+    imageProcessed = true;
     const response = await fetch(`${backend}/api/admin/media`, {
       method: 'POST',
       headers,
       body: outgoing,
       cache: 'no-store',
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(30000),
     });
     return new NextResponse(response.body, {
       status: response.status,
@@ -84,6 +86,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch {
+    if (imageProcessed) return problem('Media storage is temporarily unavailable. Please retry shortly.', 503);
     return problem('This image could not be processed. Choose a valid photograph.', 400);
   } finally {
     conversions--;

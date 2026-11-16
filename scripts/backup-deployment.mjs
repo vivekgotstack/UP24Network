@@ -51,6 +51,6 @@ try {
   await closed;
 }
 cpSync(join(root,'.local/deployment'),join(destination,'deployment'),{recursive:true});
-writeFileSync(join(destination,'COMPLETE'),'Database, media and deployment secrets captured. Keep this directory private and copy it off the VPS.\n',{mode:0o600});
+writeFileSync(join(destination,'COMPLETE'),'Database, local media and deployment secrets captured. S3 object bytes are not included: keep S3 versioning and an independent cloud backup policy. Keep this directory private and copy it off the VPS.\n',{mode:0o600});
 unlinkSync(join(destination,'INCOMPLETE'));
 console.log('Private recovery point created: '+destination);

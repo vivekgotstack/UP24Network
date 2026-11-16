@@ -10,7 +10,7 @@ type Policy = { enabled: boolean; transitionDays: number; version: number; appli
 type StorageStatus = { uploadBackend: 'LOCAL' | 'S3'; s3Configured: boolean; bucket: string; region: string; prefix: string; deliveryOrigin: string; localAssets: number; s3Assets: number; pendingDeletions: number; policy: Policy };
 export function MediaStoragePanel() {
   const session = useSession();
-  const result = useNewsroomResource<StorageStatus>(session.data, 'admin/media/storage', session.data?.role === 'ADMIN');
+  const result = useNewsroomResource<StorageStatus>(session.data, 'admin/media/storage', session.data?.role === 'ADMIN', { refetchInterval: 30000 });
   const [draft, setDraft] = useState<Policy | null>(null);
   const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState('');
   const policy = draft ?? result.data?.policy;

@@ -18,7 +18,11 @@ final class S3RetentionRules {
     }
     static void apply(S3Client client,S3Settings settings,MediaRetention.Policy policy) {
         List<LifecycleRule> existing;
-        try { existing=client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(settings.bucket()).build()).rules(); }
+        TransitionDefaultMinimumObjectSize minimum=null;
+        try {
+            var configuration=client.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(settings.bucket()).build());
+            existing=configuration.rules();minimum=configuration.transitionDefaultMinimumObjectSize();
+        }
         catch(S3Exception exception) {
             if(exception.awsErrorDetails()==null || !"NoSuchLifecycleConfiguration".equals(exception.awsErrorDetails().errorCode())) throw exception;
             existing=List.of();
@@ -29,6 +33,7 @@ final class S3RetentionRules {
         if(next.size()>1000) throw new IllegalStateException("The S3 bucket lifecycle rule limit has been reached.");
         if(next.isEmpty()) client.deleteBucketLifecycle(DeleteBucketLifecycleRequest.builder().bucket(settings.bucket()).build());
         else client.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(settings.bucket())
+                .transitionDefaultMinimumObjectSize(minimum)
                 .lifecycleConfiguration(BucketLifecycleConfiguration.builder().rules(next).build()).build());
     }
 }

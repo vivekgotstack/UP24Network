@@ -48,6 +48,7 @@ export function useNewsroomResource<T>(
   account: Account | null | undefined,
   path: string,
   permitted = true,
+  options?: { refetchInterval?: number | false },
 ) {
   const client = useQueryClient();
   const key = ['newsroom', account?.id, path] as const;
@@ -55,6 +56,7 @@ export function useNewsroomResource<T>(
     queryKey: key,
     queryFn: ({ signal }) => cms<T>(path, 'GET', undefined, { signal }),
     enabled: Boolean(account && permitted),
+    refetchInterval: options?.refetchInterval,
   });
   const refresh = useCallback(
     () => (account && permitted ? result.refetch() : Promise.resolve(undefined)),

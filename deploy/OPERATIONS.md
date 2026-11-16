@@ -9,11 +9,25 @@ Docker Engine with Compose and a domain pointing at the VPS are required. Only
 Caddy publishes ports 80/443; PostgreSQL and Spring Boot stay inside Docker networks.
 The backend uses a restricted runtime database login and a distinct migration owner.
 
+Media defaults to local storage. `scripts/Initialize-MediaEnvironment.ps1` prepares
+empty AWS fields in ignored `backend/.env` without replacing existing values.
+After creating your private S3 bucket and CloudFront distribution, run
+`scripts/Configure-MediaStorage.ps1 -Bucket YOUR_BUCKET -CdnUrl YOUR_HTTPS_MEDIA_ORIGIN`.
+It saves public configuration and generates a prefix-scoped IAM policy under
+`.local/media-storage`; optional `-AccountId` and `-DistributionId` also generate
+the CloudFront OAC bucket policy. Keep S3 Block Public Access enabled. Supply your
+credentials privately, set `UP24_MEDIA_STORAGE=s3`, rerun the deployment generator,
+then recreate the containers. Admin → Media library enables and applies the GIR rule.
+The default quota remains 1 GiB; set `UP24_MEDIA_QUOTA_BYTES` for your intended library.
+S3 versions, logs and backups are billed separately from the tracked media allowance.
+
 Volumes retain PostgreSQL, uploaded media, image cache and TLS certificates.
 Before upgrades, run `node scripts/backup-deployment.mjs`; keep the resulting
 private backup off the VPS. Restore database/media/signing material together.
 The backup holds the media catalogue lock while copying the database and files;
 uploads and media removal wait during capture so referenced photographs remain consistent.
+This local backup does not download S3 objects. Protect them with S3 versioning
+and an independent backup policy; retain cloud-object recovery alongside the database.
 Never use `docker compose down -v` for an upgrade: that removes persistent volumes.
 
 Change `ADMIN_PASSWORD` in `backend/.env`, rerun the generator, then recreate the
