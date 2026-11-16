@@ -59,9 +59,9 @@ async function proxy(request: NextRequest, context: Context) {
         ? ['status', 'q', 'page', 'size']
         : path === 'admin/accounts/browse'
           ? ['scope', 'q', 'page', 'size']
-        : path === 'admin/media'
-          ? ['page', 'size']
-          : [];
+          : path === 'admin/media'
+            ? ['page', 'size']
+            : [];
     for (const [key, value] of request.nextUrl.searchParams) {
       if (
         !allowed.includes(key) ||

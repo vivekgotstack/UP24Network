@@ -38,9 +38,13 @@ events and never reach into another module's internal repositories.
 - Fonts: Source Serif/Sans sources stay in `frontend/assets/fonts`; the repeatable `npm run fonts:build` pipeline ships content-hashed WOFF2 files and saves 581 KB compared with the former TTF downloads. Unused Geist Mono assets are removed; Hindi Noto fonts remain self-hosted.
 - Backend data: explicit module APIs and storage ports; transaction-aware Caffeine caches have bounded memory/expiry. Public lists omit article bodies, private lists paginate in SQL, JSON responses compress, long PostgreSQL values use LZ4.
 - Media: `/api/media` bounds original uploads at 12 MB/24 megapixels, produces proportional WebP copies up to 1920 px/2 MB, strips metadata, hashes/deduplicates storage. Two concurrent conversions; images referenced by articles or revisions cannot be deleted.
+- Storage: uploads have an atomic 1 GiB default aggregate quota (`UP24_MEDIA_QUOTA_BYTES`); optimized image disk cache is capped at 256 MiB. Search/detail requests use bounded backend caches instead of creating unlimited Next disk-cache entries.
 - Per-employee workflow: `identity/WorkflowPolicies` → `/admin/workflows`; dateline/source/media requirements, section/city defaults and metadata helper access. These checks are enforced by the backend.
 - Publication: `publication` module and `/admin/pages`, `/admin/settings`; full structured policy documents, site tagline, announcement and home-section controls. Admin email remains private.
-- Deployment/installability stage: Docker/Caddy/PostgreSQL stack, PWA and Android packaging are being completed. Local hints and component maps are in ignored `.worknotes/*-controls.md` and `.worknotes/deployment-pwa.md`.
+- Installability: PWA manifest/install prompt and bounded public-static offline cache; signed Android API 37 AAB/APK built with shrinking and release signing. Native apps open the deployed HTTPS origin; see [Android release steps](android/RELEASE.md) for domain/signing and Play Console work.
+- VPS: Docker/Caddy/PostgreSQL stack, private backend/database networks, restricted DB roles, persistent volumes, TLS, compressed responses, backups and resource limits. See [operations](deploy/OPERATIONS.md). Docker is absent on this workstation, so container execution has not been verified here.
+- Repeatable local production preview: `./scripts/Start-OptimizedPreview.ps1`. It prepares PostgreSQL/backend, builds fonts/frontend and starts the site. `-ReuseBuild` explicitly reuses a successful build; `-ReuseBackend` keeps a verified running backend for frontend-only work.
+- Verification completed: real reader-login → admin OTP → dashboard; uploaded photograph → editor → public report; word edits, revision history and recovery; all six new admin areas at 320/768 px; PWA registration/privacy boundary. Frontend/backend builds and module-boundary verification passed. Local jump maps remain in ignored `.worknotes/*-controls.md` and `.worknotes/deployment-pwa.md`.
 
 
 - Expanded reader navigation: 32 sections, nested subject pages, 8 regional hubs and 22 city editions.
@@ -51,7 +55,7 @@ events and never reach into another module's internal repositories.
 - Rashifal now uses twelve original zodiac illustrations, picture selectors and a larger reading panel with lucky-number and colour cards.
 - Identity now separates account policy, credential storage, JWT signing and session persistence. Five-minute RSA access tokens use HttpOnly cookies, rotating refresh tokens, persisted revocation and OTP step-up; logout can end one login or every device.
 - Phone/tablet refinements include readable form controls, larger touch buttons and wrapping automation cards.
-- Next small step: add account recovery and login throttling before extending photo-story publishing.
+- Password login throttling is persisted; admin can edit profiles, suspend/restore accounts, revoke logins and delete suspended accounts. Next small product step: reader password recovery and a dedicated photo-story format.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage

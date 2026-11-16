@@ -1,10 +1,15 @@
 'use client';
-import { SiteHeader } from '@/components/site-header';
+import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@/components/ui/button';
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <>
-      <SiteHeader compact />
+      <header className="compact-header compact-header-minimal">
+        <Link className="brand-lockup" href="/" aria-label="UP24Network home">
+          <span className="compact-logo"><BrandLogo eager /></span>
+        </Link>
+      </header>
       <main id="main-content" className="empty-state" role="alert">
         <p className="eyebrow">TEMPORARILY UNAVAILABLE</p>
         <h1 lang="hi">खबरें अभी खुल नहीं पा रही हैं।</h1>

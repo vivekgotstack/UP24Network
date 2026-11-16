@@ -40,9 +40,4 @@ class MediaController {
                 .contentLength(asset.bytes()).eTag(etag).cacheControl(cache)
                 .body(new FileSystemResource(path));
     }
-    @ExceptionHandler(MediaProblem.class) ProblemDetail problem(MediaProblem exception) {
-        var status=switch(exception.reason) { case INVALID -> HttpStatus.BAD_REQUEST; case MISSING -> HttpStatus.NOT_FOUND;
-            case IN_USE -> HttpStatus.CONFLICT; case STORAGE -> HttpStatus.SERVICE_UNAVAILABLE; case QUOTA -> HttpStatus.INSUFFICIENT_STORAGE; };
-        return ProblemDetail.forStatusAndDetail(status,exception.getMessage());
-    }
 }

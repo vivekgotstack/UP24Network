@@ -226,7 +226,7 @@ export function AdminConsole({
               <div className="cms-section-heading">
                 <div>
                   <p className="eyebrow">EDITORIAL CONTROL</p>
-                  <h2>Your desk, at a glance.</h2>
+                  <h2>Publication overview.</h2>
                 </div>
                 <Button variant="outline" disabled={busy} onClick={() => act(refresh)}>
                   Refresh
@@ -288,7 +288,7 @@ export function AdminConsole({
                     [
                       '/admin/accounts',
                       'Team & readers',
-                      'Create employees and assign the four relevant account roles.',
+                      'Manage staff roles, reader accounts and access.',
                     ],
                     [
                       '/admin/workflows',
@@ -311,7 +311,7 @@ export function AdminConsole({
               <div className="dashboard-grid">
                 <section className="cms-card">
                   <p className="eyebrow">PUBLICATION WORKFLOW</p>
-                  <h3>A clear path to publication.</h3>
+                  <h3>From draft to publication.</h3>
                   <ol className="workflow-steps">
                     <li>
                       <span>01</span>

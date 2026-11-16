@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$ReuseBuild)
+param([switch]$ReuseBuild, [switch]$ReuseBackend)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
@@ -80,7 +80,12 @@ function Stop-VerifiedProcess {
 }
 
 try {
-    & (Join-Path $PSScriptRoot 'Backend.ps1') Restart -Profile local-preview
+    if ($ReuseBackend) {
+        # Explicit frontend-only refresh: preserve the verified backend and its current profile.
+        & (Join-Path $PSScriptRoot 'Backend.ps1') Start -Profile local-preview
+    } else {
+        & (Join-Path $PSScriptRoot 'Backend.ps1') Restart -Profile local-preview
+    }
 
     $environmentPath = Join-Path $frontendDirectory '.env.local'
     if (-not (Test-Path -LiteralPath $environmentPath)) {
@@ -115,9 +120,24 @@ try {
     if (Test-Up24LocalPort 3000) { throw 'Another process claimed port 3000 during the build. It was not stopped.' }
     $stdout = Join-Path $runtimeDirectory 'frontend.out.log'
     $stderr = Join-Path $runtimeDirectory 'frontend.err.log'
-    $frontend = Start-Process -FilePath $nodePath -ArgumentList @(('"' + $nextCli + '"'), 'start', '--hostname', '127.0.0.1', '--port', '3000') `
-        -WorkingDirectory $frontendDirectory -WindowStyle Hidden -PassThru `
-        -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+    $standaloneDirectory = Join-Path $frontendDirectory '.next/standalone'
+    $standaloneServer = Join-Path $standaloneDirectory 'server.js'
+    if (-not (Test-Path -LiteralPath $standaloneServer -PathType Leaf)) { throw 'The optimized standalone server is missing. Rebuild the frontend.' }
+    Copy-Item -LiteralPath (Join-Path $frontendDirectory 'public') -Destination $standaloneDirectory -Recurse -Force
+    Copy-Item -LiteralPath (Join-Path $frontendDirectory '.next/static') -Destination (Join-Path $standaloneDirectory '.next') -Recurse -Force
+    # Standard Next standalone runtime settings are scoped to the child process.
+    $previousPort = [Environment]::GetEnvironmentVariable('PORT', 'Process')
+    $previousHostname = [Environment]::GetEnvironmentVariable('HOSTNAME', 'Process')
+    try {
+        [Environment]::SetEnvironmentVariable('PORT', '3000', 'Process')
+        [Environment]::SetEnvironmentVariable('HOSTNAME', '127.0.0.1', 'Process')
+        $frontend = Start-Process -FilePath $nodePath -ArgumentList @(('"' + $standaloneServer + '"')) `
+            -WorkingDirectory $frontendDirectory -WindowStyle Hidden -PassThru `
+            -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+    } finally {
+        [Environment]::SetEnvironmentVariable('PORT', $previousPort, 'Process')
+        [Environment]::SetEnvironmentVariable('HOSTNAME', $previousHostname, 'Process')
+    }
     $deadline = [DateTime]::UtcNow.AddSeconds(60)
     $ready = $false
     do {

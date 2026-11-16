@@ -19,7 +19,7 @@ backend: `docker compose --env-file .local/deployment/deployment.env up -d --for
 Do not change generated database passwords without rotating the PostgreSQL roles
 and matching mounted secrets together. A generator rerun deliberately does not rotate them.
 Health checks: `docker compose --env-file .local/deployment/deployment.env ps`.
-Logs are rotated automatically. The default container memory budget is about 2 GB;
+Logs are rotated automatically. The default container memory budget is about 2.4 GB;
 use a VPS with at least 4 GB RAM for builds, PostgreSQL and operating-system headroom.
 
 The private application network uses `172.30.24.0/24`; choose a different unused

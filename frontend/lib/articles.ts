@@ -26,7 +26,9 @@ async function request(path: string) {
   return fetch(`${apiUrl}${path}`, {
     // Keep the single shared feed in Next's disk cache. Arbitrary searches and
     // article URLs use the bounded backend cache, preventing cache-file growth.
-    ...(path === '/api/articles' ? { next: { revalidate: 30, tags: ['articles'] } } : { cache: 'no-store' as const }),
+    ...(path === '/api/articles'
+      ? { next: { revalidate: 30, tags: ['articles'] } }
+      : { cache: 'no-store' as const }),
     signal: AbortSignal.timeout(5000),
   });
 }

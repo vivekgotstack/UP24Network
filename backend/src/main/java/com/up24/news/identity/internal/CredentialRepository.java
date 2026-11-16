@@ -1,6 +1,7 @@
 package com.up24.news.identity.internal;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /** Credentials are private to the authentication adapter. */
 interface CredentialRepository {
@@ -9,4 +10,5 @@ interface CredentialRepository {
     }
     Optional<Credential> findCredential(String email);
     void upgradePassword(String email, String previousHash, String replacementHash);
+    void replacePassword(UUID accountId,String encodedPassword);
 }

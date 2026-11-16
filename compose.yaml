@@ -36,6 +36,7 @@ services:
       SERVER_TOMCAT_ACCEPTCOUNT: 100
       SERVER_TOMCAT_MAXCONNECTIONS: 1000
       UP24_MEDIA_DIRECTORY: /app/uploads
+      UP24_MEDIA_QUOTA_BYTES: ${UP24_MEDIA_QUOTA_BYTES:-1073741824}
       AUTH_COOKIE_SECURE: 'true'
       SERVER_FORWARDHEADERSSTRATEGY: native
       SERVER_TOMCAT_REMOTEIP_REMOTEIPHEADER: x-forwarded-for
@@ -77,7 +78,7 @@ services:
     cap_drop: [ALL]
     depends_on: { backend: { condition: service_healthy } }
     stop_grace_period: 20s
-    mem_limit: 512m
+    mem_limit: 1g
     pids_limit: 100
     networks:
       application: { ipv4_address: 172.30.24.10 }

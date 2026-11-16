@@ -1,6 +1,7 @@
 package com.up24.news.notification.internal;
 
 import com.up24.news.notification.LoginCodeDelivery;
+import com.up24.news.notification.PasswordRecoveryDelivery;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-class BrevoLoginCodeDelivery implements LoginCodeDelivery {
+class BrevoLoginCodeDelivery implements LoginCodeDelivery, PasswordRecoveryDelivery {
     private final RestClient client;
     private final String apiKey;
     private final String senderEmail;
@@ -29,16 +30,24 @@ class BrevoLoginCodeDelivery implements LoginCodeDelivery {
     @Override public boolean configured() { return !apiKey.isBlank() && !senderEmail.isBlank(); }
 
     @Override public void send(String recipient, String code, Instant expiresAt) {
+        sendCode(recipient,code,"Your UP24Network newsroom sign-in code",
+                "Your newsroom sign-in code is: ","newsroom-login",5);
+    }
+    @Override public void sendRecovery(String recipient,String code,Instant expiresAt) {
+        sendCode(recipient,code,"Reset your UP24Network password",
+                "Your password reset code is: ","password-recovery",10);
+    }
+    private void sendCode(String recipient,String code,String subject,String introduction,String tag,int minutes) {
         if (!configured()) throw new IllegalStateException("Email delivery is not configured");
         // The code never enters URLs, logs, analytics, or browser API responses.
         try {
             client.post().uri("/smtp/email").header("api-key",apiKey).contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("sender",Map.of("email",senderEmail,"name","UP24Network"),
-                            "to",List.of(Map.of("email",recipient)),"subject","Your UP24Network newsroom sign-in code",
-                            "textContent","Your newsroom sign-in code is: " + code
-                                    + "\n\nIt expires in 5 minutes and can be used once. Do not share this code."
-                                    + "\n\nIf you did not request this sign-in, do not enter the code and review your account password.",
-                            "tags",List.of("newsroom-login")))
+                            "to",List.of(Map.of("email",recipient)),"subject",subject,
+                            "textContent",introduction + code
+                                    + "\n\nIt expires in " + minutes + " minutes and can be used once. Do not share this code."
+                                    + "\n\nIf you did not request this email, you can safely ignore it. Your password has not changed.",
+                            "tags",List.of(tag)))
                     .retrieve().toBodilessEntity();
         } catch (RuntimeException exception) {
             // Provider response bodies can contain private delivery details.

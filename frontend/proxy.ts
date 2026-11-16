@@ -10,6 +10,7 @@ export async function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
+    "worker-src 'self'",
     `connect-src 'self'${development ? ' ws: wss:' : ''}`,
     "media-src 'self' https://up24network.com https://www.up24network.com",
     'frame-src https://www.youtube-nocookie.com',

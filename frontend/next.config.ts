@@ -32,6 +32,8 @@ const config: NextConfig = {
     ];
   },
   images: {
+    maximumDiskCacheSize: 256 * 1024 * 1024,
+    maximumResponseBody: 5 * 1024 * 1024,
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: 'www.up24network.com', pathname: '/wp-content/uploads/**' },

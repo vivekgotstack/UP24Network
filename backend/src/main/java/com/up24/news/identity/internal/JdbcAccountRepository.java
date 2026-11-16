@@ -87,4 +87,7 @@ class JdbcAccountRepository implements AccountRepository, CredentialRepository {
         // Never overwrite a password changed concurrently with an authentication upgrade.
         jdbc.update("UPDATE identity_account SET password_hash=? WHERE email=? AND password_hash=?", replacementHash, email, previousHash);
     }
+    @Override public void replacePassword(UUID accountId,String encodedPassword) {
+        jdbc.update("UPDATE identity_account SET password_hash=?,version=version+1 WHERE id=?",encodedPassword,accountId);
+    }
 }
