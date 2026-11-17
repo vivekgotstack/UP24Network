@@ -1,6 +1,33 @@
 name: up24network
 
 services:
+  rabbitmq:
+    image: rabbitmq:4.4.0-alpine
+    hostname: up24-rabbitmq
+    user: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_CONFIG_FILE: /run/secrets/rabbitmq.conf
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '+S 2:2 +A 4'
+    secrets: [rabbitmq.conf]
+    volumes: [rabbitmq_data:/var/lib/rabbitmq]
+    tmpfs: [/tmp:size=32m,mode=1777]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, check_running]
+      interval: 15s
+      timeout: 10s
+      start_period: 45s
+      retries: 8
+    mem_limit: 512m
+    pids_limit: 100
+    ulimits: { nofile: { soft: 65536, hard: 65536 } }
+    stop_grace_period: 40s
+    networks: [internal]
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
   db:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -48,9 +75,9 @@ services:
     read_only: true
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
-    depends_on: { db: { condition: service_healthy } }
+    depends_on: { db: { condition: service_healthy }, rabbitmq: { condition: service_healthy } }
     stop_grace_period: 40s
-    mem_limit: 768m
+    mem_limit: 1536m
     pids_limit: 150
     networks:
       internal:
@@ -118,9 +145,11 @@ volumes:
   frontend_cache:
   caddy_data:
   caddy_config:
+  rabbitmq_data:
 secrets:
   postgres-password: { file: './.local/deployment/postgres-password' }
   application-db-password: { file: './.local/deployment/application-db-password' }
   migration-db-password: { file: './.local/deployment/migration-db-password' }
   backend.properties: { file: './.local/deployment/backend.properties' }
   jwt-signing.p12: { file: './.local/deployment/jwt-signing.p12' }
+  rabbitmq.conf: { file: './.local/deployment/rabbitmq.conf' }

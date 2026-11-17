@@ -279,7 +279,7 @@ export const publicationDocuments = {
         id: 'storage',
         title: 'Cookies and saved stories',
         paragraphs: [
-          'Sign-in uses a session cookie to associate the browser with an authenticated session. Request-verification protections help prevent another website from submitting account changes on your behalf. These mechanisms support account security and service operation.',
+          'Sign-in uses HttpOnly access and rotating refresh cookies tied to a revocable login. Request-verification protections help prevent another website from submitting account changes on your behalf. These mechanisms support account security and service operation. A separate consent-preference cookie remembers your optional external-video choice for up to 180 days.',
           'Saved article titles, addresses and related display details are held in this browser’s local storage. They are not synchronised between devices or uploaded as an account reading history by the saved-stories feature. You can remove individual saved stories or clear this site’s browser data. Blocking storage or cookies may limit the features that depend on them.',
         ],
       },
@@ -287,8 +287,8 @@ export const publicationDocuments = {
         id: 'providers',
         title: 'Service providers and external media',
         paragraphs: [
-          'Brevo delivers requested staff sign-in emails. The service receives the recipient address and the message needed for that delivery. Email codes are not included in public links or website analytics.',
-          'YouTube videos use a privacy-enhanced embedded player that loads when you choose to play the video. Playback connects the browser to YouTube, which may process network and device information. Following an external social or other website link takes you to a service whose information practices are separate from ours.',
+          'Brevo delivers requested newsroom sign-in and account-recovery emails. The service receives the recipient address and the message needed for that delivery. Email codes are not included in public links or website analytics. Pending background delivery payloads are protected in storage and removed after completion or expiry.',
+          'YouTube videos use a privacy-enhanced embedded player that loads only after external-video permission is given and you choose to play a video. Playback connects the browser to YouTube, which may process network and device information. Cookie settings in the footer allow you to withdraw permission. Following an external social or other website link takes you to a service whose information practices are separate from ours.',
           'Information may be handled by infrastructure and communication providers to operate the service, or disclosed where a valid legal obligation requires it. Such handling is distinct from selling a reader’s account details.',
         ],
       },

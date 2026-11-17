@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Dialog } from 'radix-ui';
 import { Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useConsent } from '@/lib/consent';
 import styles from './pwa-install.module.css';
 
 type InstallPrompt = Event & {
@@ -14,6 +15,7 @@ type InstallPrompt = Event & {
 
 export function PwaInstall() {
   const pathname = usePathname();
+  const consent = useConsent();
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
   const [ios, setIos] = useState(false);
   const [dismissed, setDismissed] = useState(true);
@@ -53,7 +55,12 @@ export function PwaInstall() {
       window.removeEventListener('appinstalled', installed);
     };
   }, []);
-  if (dismissed || (!prompt && !ios) || /^\/(admin|newsroom|account)(\/|$)/.test(pathname))
+  if (
+    !consent.choice ||
+    dismissed ||
+    (!prompt && !ios) ||
+    /^\/(admin|newsroom|account)(\/|$)/.test(pathname)
+  )
     return null;
   const dismiss = () => {
     setDismissed(true);

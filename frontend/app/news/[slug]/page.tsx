@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { SiteHeader } from '@/components/site-header';
 import { articleDate, getArticle, getArticles } from '@/lib/articles';
 import { StoryCard } from '@/components/story-card';
@@ -40,6 +40,7 @@ export default async function ArticlePage({ params }: Props) {
   const slug = (await params).slug;
   const [article, all] = await Promise.all([getArticle(slug), getArticles()]);
   if (!article) notFound();
+  if (article.slug !== slug) permanentRedirect(`/news/${encodeURIComponent(article.slug)}`);
   const related = newest(all)
     .filter((a) => a.slug !== slug)
     .sort(

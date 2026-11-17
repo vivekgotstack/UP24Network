@@ -62,6 +62,7 @@ export async function SiteFooter() {
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} UP24Network</p>
         <nav aria-label="Publication information">
+          <Link href="/archive">खबरों का संग्रह</Link>
           {publicationNavigation.map(({ path, label }) => (
             <Link key={path} href={path}>
               {label}

@@ -1,59 +1,24 @@
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, chmodSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync, chmodSync } from 'node:fs';
+import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { root,deploymentDirectory as directory,properties,propertyText,privateDirectory,writePrivate,deploymentLock } from './lib/deployment.mjs';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const directory = join(root, '.local/deployment');
-mkdirSync(directory, { recursive: true, mode: 0o700 });
-if (process.platform !== 'win32') chmodSync(directory, 0o700);
-// Backend files use Spring/Java properties syntax, including escaped secret values.
-// Decode values before re-encoding them, so a password does not change on deployment.
-function propertyValue(raw) {
-  const text=raw.replace(/^[ \t\f]+/,'');
-  let result='';
-  for(let index=0;index<text.length;index++) {
-    if(text[index]!=='\\') { result+=text[index]; continue; }
-    const escaped=text[++index];
-    if(escaped===undefined) throw new Error('An incomplete property escape was found in local configuration.');
-    if(escaped==='u') {
-      const code=text.slice(index+1,index+5);
-      if(!/^[a-f0-9]{4}$/i.test(code)) throw new Error('An invalid Unicode property escape was found in local configuration.');
-      result+=String.fromCharCode(parseInt(code,16)); index+=4;
-    } else result+=({n:'\n',r:'\r',t:'\t',f:'\f'})[escaped] ?? escaped;
-  }
-  return result;
-}
-function properties(file) {
-  if(!existsSync(file)) return {};
-  const lines=[]; let continuation='';
-  for(const raw of readFileSync(file,'utf8').split(/\r?\n/)) {
-    const line=continuation+(continuation?raw.replace(/^[ \t\f]+/,''):raw);
-    const slashes=line.match(/\\+$/)?.[0].length ?? 0;
-    if(slashes%2) { continuation=line.slice(0,-1); continue; }
-    continuation='';
-    if(line.trim() && !/^\s*[#!]/.test(line) && line.includes('=')) lines.push(line);
-  }
-  if(continuation) throw new Error('An unfinished property continuation was found in local configuration.');
-  return Object.fromEntries(lines.map(line=>[line.slice(0,line.indexOf('=')).trim(),propertyValue(line.slice(line.indexOf('=')+1))]));
-}
+const release=deploymentLock();
+try {
+privateDirectory(directory);
 const environment = properties(join(root,'backend/.env'));
 const existing = properties(join(directory,'backend.properties'));
 const local = Object.assign({}, ...['application','providers','mail'].map(name => properties(join(root,`backend/.local/${name}.properties`))));
 const secret = (name, bytes=24) => {
   const file=join(directory,name);
-  if (existsSync(file)) return readFileSync(file,'utf8').trim();
+  if (existsSync(file)) {
+    const value=readFileSync(file,'utf8').trim();
+    if(!/^[a-f0-9]{48,128}$/i.test(value))throw new Error(`Restore the invalid ${name} from your private backup.`);
+    return value;
+  }
   const value=randomBytes(bytes).toString('hex'); writePrivate(file,value+'\n'); return value;
 };
-function writePrivate(file, value) {
-  const temporary=file+'.new';
-  writeFileSync(temporary,value,{mode:0o600});
-  // A private 0700 parent prevents host access; mounted files must be readable by
-  // each container's non-root user. Compose file-backed secrets do not remap UID.
-  if (process.platform !== 'win32') chmodSync(temporary,0o444);
-  renameSync(temporary,file);
-}
 const previousPublic=properties(join(directory,'deployment.env'));
 const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? previousPublic.SITE_URL ?? 'https://www.up24network.com';
 const site=new URL(requestedSite);
@@ -67,6 +32,12 @@ if(adminPassword.length<12 || adminPassword.length>64 || Buffer.byteLength(admin
 secret('postgres-password');
 const applicationPassword=secret('application-db-password');
 const migrationPassword=secret('migration-db-password');
+const rabbitPassword=secret('rabbitmq-password',32);
+const requestedJobSecret=process.env.JOB_ENCRYPTION_SECRET||environment.JOB_ENCRYPTION_SECRET;
+if(requestedJobSecret&&!/^[a-f0-9]{64}$/i.test(requestedJobSecret))throw new Error('JOB_ENCRYPTION_SECRET must be 32 bytes encoded as 64 hexadecimal characters.');
+if(requestedJobSecret&&!existsSync(join(directory,'job-encryption-secret')))writePrivate(join(directory,'job-encryption-secret'),requestedJobSecret+'\n');
+const jobSecret=secret('job-encryption-secret',32);
+if(requestedJobSecret&&jobSecret!==requestedJobSecret)throw new Error('The job encryption key differs from the existing deployment key. Drain pending jobs before explicitly rotating the matching private key files.');
 const signingPath=join(directory,'jwt-signing.p12');
 let signingPassword=existing['up24.auth.key-store-password'];
 if (!existsSync(signingPath)) {
@@ -83,23 +54,33 @@ const settings={
   'spring.flyway.url':'jdbc:postgresql://db:5432/up24network', 'spring.flyway.user':'up24_migrator','spring.flyway.password':migrationPassword,
   'up24.bootstrap.admin-email':adminEmail,'up24.bootstrap.admin-password':adminPassword,'up24.newsroom.admin-email':adminEmail,
   'up24.newsroom.otp-secret':existing['up24.newsroom.otp-secret'] ?? randomBytes(32).toString('hex'),
+  'up24.jobs.encryption-secret':jobSecret,'up24.jobs.transport':'rabbitmq',
+  'spring.rabbitmq.host':'rabbitmq','spring.rabbitmq.port':'5672','spring.rabbitmq.username':'up24','spring.rabbitmq.password':rabbitPassword,'spring.rabbitmq.virtual-host':'up24',
   'up24.auth.key-store':'file:/run/secrets/jwt-signing.p12','up24.auth.key-store-password':signingPassword,
   'up24.auth.cookie-secure':'true','up24.auth.issuer':site.origin+'/identity',
 };
-for (const key of ['up24.providers.brevo.api-key','up24.providers.brevo.sender-email','up24.providers.astrologics.api-key']) {
-  const value=local[key] || existing[key]; if (value) settings[key]=value;
+for (const [variable,key] of Object.entries({BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key'})) {
+  const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;
 }
 const mediaKeys={
   UP24_MEDIA_STORAGE:'up24.media.storage',UP24_S3_BUCKET:'up24.media.s3.bucket',AWS_REGION:'up24.media.s3.region',
   UP24_S3_PREFIX:'up24.media.s3.prefix',UP24_MEDIA_CDN_URL:'up24.media.s3.cdn-url',
+  UP24_S3_VIDEO_PREFIX:'up24.media.s3.video-prefix',UP24_S3_STAGING_PREFIX:'up24.media.s3.staging-prefix',
+  UP24_VIDEO_QUOTA_BYTES:'up24.video.quota-bytes',UP24_VIDEO_MAX_UPLOAD_BYTES:'up24.video.max-upload-bytes',
   AWS_ACCESS_KEY_ID:'up24.media.s3.access-key-id',AWS_SECRET_ACCESS_KEY:'up24.media.s3.secret-access-key',AWS_SESSION_TOKEN:'up24.media.s3.session-token',
 };
 for(const [variable,key] of Object.entries(mediaKeys)) {
   const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key];
   if(value!==undefined) settings[key]=value;
 }
-const escape = value => String(value).replaceAll('\\','\\\\').replaceAll('\n','\\n').replaceAll('\r','\\r').replaceAll('\t','\\t').replaceAll('\f','\\f').replaceAll(' ','\\ ');
-writePrivate(join(directory,'backend.properties'),Object.entries(settings).map(([key,value])=>`${key}=${escape(value)}`).join('\n')+'\n');
+writePrivate(join(directory,'backend.properties'),propertyText(settings));
+writePrivate(join(directory,'rabbitmq.conf'),[
+  'default_user = up24',`default_pass = ${rabbitPassword}`,'default_vhost = up24','default_user_tags.administrator = false',
+  'default_permissions.configure = ^up24[.].*','default_permissions.read = ^up24[.].*','default_permissions.write = ^up24[.].*',
+  'listeners.tcp.default = 5672','vm_memory_high_watermark.absolute = 256MiB','disk_free_limit.absolute = 1GB',
+  'max_connections = 40','max_channels_per_connection = 64','max_message_size = 65536','consumer_timeout = 900000',
+  'quorum_queue.initial_cluster_size = 1','log.console = true','log.file = false','log.console.level = warning',
+].join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:previousPublic.SITE_INDEXABLE ?? 'false',
   MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
   UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
@@ -108,5 +89,6 @@ if(!/^[1-9][0-9]{0,14}$/.test(publicConfig.UP24_MEDIA_QUOTA_BYTES)) throw new Er
 writePrivate(join(directory,'deployment.env'),Object.entries(publicConfig).map(([key,value])=>`${key}=${value}`).join('\n')+'\n');
 console.log('Deployment configuration prepared in ignored .local/deployment; existing secrets were preserved.');
 console.log('Copy that private directory with the project to your VPS; protect it with owner-only directory access.');
-console.log('Start: docker compose --env-file .local/deployment/deployment.env up --build -d');
+console.log('Next: node scripts/deployment-doctor.mjs, then node scripts/deploy.mjs');
 console.log('Enable indexing by setting SITE_INDEXABLE=true after verifying the deployed domain.');
+} finally {release();}

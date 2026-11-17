@@ -75,7 +75,7 @@ class ArticleStore implements ArticleDesk {
     }
     @Cacheable(cacheNames="article-detail",condition="@articleCacheInvalidation.readable()")
     @Override public Optional<ArticleView> findPublished(String slug) {
-        return jdbc.query("SELECT * FROM article_record WHERE slug=? AND status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP",this::map,slug)
+        return jdbc.query("SELECT a.* FROM article_record a JOIN article_address address ON address.article_id=a.id WHERE address.slug=? AND a.status='PUBLISHED' AND a.published_at<=CURRENT_TIMESTAMP",this::map,slug)
                 .stream().map(Managed::article).findFirst();
     }
     private void concurrentChange(UUID id) {
@@ -87,7 +87,8 @@ class ArticleStore implements ArticleDesk {
         String text=value(input);
         if(text.isBlank()) return kind.equals("image")?"/brand/up24-logo.png":null;
         boolean local=(text.matches("^/(images|brand|videos)/[A-Za-z0-9._/-]+$")&&!text.contains(".."))
-                || (kind.equals("image") && text.matches("^/media/[a-f0-9]{64}\\.webp$"));
+                || (kind.equals("image") && text.matches("^/media/[a-f0-9]{64}\\.webp$"))
+                || (kind.equals("video") && text.matches("^/media/videos/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.mp4$"));
         try {
             URI uri=URI.create(text);
             if(local || ("https".equals(uri.getScheme()) && uri.getRawUserInfo()==null && (Set.of("up24network.com","www.up24network.com").contains(uri.getHost()) || (kind.equals("image")&&Set.of("i.ytimg.com","i1.ytimg.com","i2.ytimg.com","i3.ytimg.com","i4.ytimg.com").contains(uri.getHost()))))) return text;
@@ -148,5 +149,5 @@ class ArticleStore implements ArticleDesk {
         if(changed) events.publishEvent(new ArticleChanged(id));
         return changed;
     }
-    private static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,breaking,source_url,region";
+    static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,breaking,source_url,region";
 }

@@ -39,6 +39,11 @@ const endpoints: [RegExp, string[]][] = [
   [/^admin\/media\/[a-f0-9]{64}\/retention$/, ['PATCH']],
   [/^admin\/media\/[a-f0-9]{64}$/, ['DELETE']],
   [/^admin\/assist\/video$/, ['POST']],
+  [/^admin\/operations\/jobs$/, ['GET']],
+  [/^admin\/videos$/, ['GET']],
+  [/^admin\/videos\/tickets$/, ['POST']],
+  [new RegExp(`^admin/videos/${UUID}$`, 'i'), ['GET', 'DELETE']],
+  [new RegExp(`^admin/videos/${UUID}/(complete|retry)$`, 'i'), ['POST']],
   [/^admin\/automations$/, ['GET']],
   [/^admin\/automations\/(youtube|rashifal|health|books|awards)$/, ['PATCH']],
   [/^admin\/automations\/(youtube|rashifal|health|books|awards)\/run$/, ['POST']],
@@ -63,7 +68,7 @@ async function proxy(request: NextRequest, context: Context) {
         ? ['status', 'q', 'page', 'size']
         : path === 'admin/accounts/browse'
           ? ['scope', 'q', 'page', 'size']
-          : path === 'admin/media'
+          : path === 'admin/media' || path === 'admin/videos'
             ? ['page', 'size']
             : [];
     for (const [key, value] of request.nextUrl.searchParams) {

@@ -1,0 +1,36 @@
+.consent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: safe center;
+  gap: 12px;
+  padding: clamp(14px, 3vw, 30px);
+  overflow-y: auto;
+  color: #fff;
+  background: var(--brand-navy);
+  font: 400 16px/1.8 var(--sans);
+}
+.consent p {
+  margin: 0;
+  max-width: 650px;
+}
+.consent button {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.cancel {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 14px;
+}
+@media (max-width: 450px) {
+  .consent {
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+}

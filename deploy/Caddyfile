@@ -1,6 +1,9 @@
 {$SITE_HOST} {
     encode zstd gzip
-    request_body { max_size 13MB }
+    @videoUpload path /api/video-upload/*
+    request_body @videoUpload { max_size 262144000 }
+    @otherRequests not path /api/video-upload/*
+    request_body @otherRequests { max_size 13MB }
     header {
         -Server
         Strict-Transport-Security "max-age=31536000"

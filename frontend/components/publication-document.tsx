@@ -3,6 +3,7 @@ import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
 import type { PublicationDocument as Document } from '@/lib/publication';
 import { getPublicationPage, getPublicationNavigation } from '@/lib/publication-api';
+import { CookiePreferences } from '@/components/cookie-consent';
 
 export async function PublicationDocument({ document: initial }: { document: Document }) {
   const [persisted, publicationNavigation] = await Promise.all([
@@ -80,6 +81,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                       </Link>
                     ))}
                   </div>
+                )}
+                {document.path === '/cookies' && section.id === 'choice' && (
+                  <div className="publication-related"><CookiePreferences>अपनी कुकी पसंद बदलें</CookiePreferences></div>
                 )}
                 {document.path === '/contact' && section.id === 'channels' && (
                   <div className="publication-channels">

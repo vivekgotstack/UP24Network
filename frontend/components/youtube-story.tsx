@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { NewsImage } from '@/components/news-image';
 import { useConsent } from '@/lib/consent';
 import { CookiePreferences } from '@/components/cookie-consent';
+import styles from './youtube-story.module.css';
 
 export function YouTubeStory({
   videoId,
@@ -20,7 +21,18 @@ export function YouTubeStory({
   const { choice } = useConsent();
   return (
     <div className="inline-video" id="report-video">
-      {playing && choice?.externalVideo ? (
+      {playing && !choice?.externalVideo ? (
+        <div className={styles.consent} lang="hi" role="group" aria-label="YouTube वीडियो अनुमति">
+          <p>
+            यह वीडियो YouTube पर होस्ट किया गया है। प्लेयर लोड करने से पहले आपकी अनुमति चाहिए। खबर नीचे पढ़
+            सकते हैं।
+          </p>
+          <CookiePreferences>YouTube की अनुमति चुनें</CookiePreferences>
+          <button type="button" className={styles.cancel} onClick={() => setPlaying(false)}>
+            वीडियो बंद रखें
+          </button>
+        </div>
+      ) : playing && choice?.externalVideo ? (
         <iframe
           className="youtube-player"
           src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
@@ -43,7 +55,6 @@ export function YouTubeStory({
           </span>
         </motion.button>
       )}
-      {playing && !choice?.externalVideo && <div className="video-consent" lang="hi"><p>यह वीडियो YouTube पर होस्ट किया गया है। प्लेयर लोड करने से पहले आपकी अनुमति चाहिए। खबर नीचे पढ़ सकते हैं।</p><CookiePreferences>YouTube की अनुमति चुनें</CookiePreferences></div>}
     </div>
   );
 }
