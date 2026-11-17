@@ -19,16 +19,21 @@ class YouTubeSource implements AutomationSource {
     static final String CHANNEL_ID = "UC5Gu1A0d70QSUThd_7VrPew";
     private final RestClient http;
     private final ArticleDesk articles;
+    private final YouTubeDataClient data;
 
-    YouTubeSource(RestClient.Builder builder, ArticleDesk articles) {
+    YouTubeSource(RestClient.Builder builder, ArticleDesk articles,YouTubeDataClient data) {
         this.http = SourceClients.create(builder, "https://www.youtube.com");
         this.articles = articles;
+        this.data=data;
     }
 
     @Override public String key() { return "youtube"; }
-    @Override public Status status() { return new Status(true, "Official UP24Network channel feed. Thumbnails update with the feed."); }
+    @Override public Status status() { return new Status(true,data.configured()?"Official channel updates through the YouTube Data API.":"Official channel RSS feed. Configure YOUTUBE_API_KEY for the keyed Data API adapter."); }
 
     @Override public Prepared prepare() {
+        if(data.configured()) {
+            var reports=data.prepare();return () -> (int)reports.stream().filter(articles::importPublished).count();
+        }
         byte[] feed = http.get().uri("/feeds/videos.xml?channel_id=" + CHANNEL_ID).retrieve().body(byte[].class);
         List<ArticleDesk.Imported> reports = decode(feed);
         return () -> (int) reports.stream().filter(articles::importPublished).count();

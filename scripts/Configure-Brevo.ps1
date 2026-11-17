@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'Local-Configuration.ps1')
 $localRoot = Join-Path $projectRoot 'backend\.local'
 New-Item -ItemType Directory -Force -Path $localRoot | Out-Null
 $sender = (Read-Host 'Sender email address already verified in Brevo').Trim()
@@ -9,9 +10,10 @@ $secureKey = Read-Host 'Brevo API key (hidden)' -AsSecureString
 $credential = [System.Net.NetworkCredential]::new('', $secureKey)
 $apiKey = $credential.Password.Trim()
 if ($apiKey.Length -lt 20 -or $apiKey -match '[\r\n]') { throw 'The API key is incomplete.' }
-@(('up24.providers.brevo.sender-email=' + $sender),
-  ('up24.providers.brevo.api-key=' + $apiKey.Replace('\','\\'))) |
-    Set-Content -LiteralPath (Join-Path $localRoot 'mail.properties') -Encoding utf8
+Write-Up24Utf8File -Path (Join-Path $localRoot 'mail.properties') -Lines @(
+    ('up24.providers.brevo.sender-email=' + $sender),
+    ('up24.providers.brevo.api-key=' + $apiKey.Replace('\','\\'))
+)
 $apiKey = $null
 $credential = $null
 Write-Output 'Brevo configuration saved in backend/.local/mail.properties (excluded from Git).'

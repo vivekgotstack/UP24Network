@@ -130,7 +130,7 @@ export function AdminConsole({
   const titles = {
     overview: workspace === 'admin' ? 'Administration' : 'Reporting desk',
     articles: 'Article desk',
-    trash: 'Trash & archive',
+    trash: 'Withdrawn & trash',
     editor: articleId ? 'Edit report' : 'Create a draft',
     preview: 'Private preview',
     accounts: 'Team and readers',
@@ -243,7 +243,7 @@ export function AdminConsole({
                 </div>
                 <div>
                   <strong>{(counts?.ARCHIVED ?? 0) + (counts?.TRASH ?? 0)}</strong>
-                  <span>Archived / trashed reports</span>
+                  <span>Withdrawn / trashed reports</span>
                 </div>
                 {user.role === 'ADMIN' && (
                   <div>
@@ -268,7 +268,7 @@ export function AdminConsole({
                     [
                       '/admin/trash',
                       'Recover or remove',
-                      'Archive, restore and permanently delete old reports.',
+                      'Withdraw, restore and permanently delete reports.',
                     ],
                     [
                       '/admin/media',
@@ -387,7 +387,7 @@ export function AdminConsole({
                 (user.role === 'REPORTER' && row.status !== 'DRAFT')) ? (
               <p className="inline-error">
                 {row && ['ARCHIVED', 'TRASH'].includes(row.status)
-                  ? 'Restore this report to a draft from Trash & archive before editing.'
+                  ? 'Restore this report to a draft from Withdrawn & trash before editing.'
                   : 'A reporter can edit their own drafts. Contact an editor for changes to a published report.'}
               </p>
             ) : (

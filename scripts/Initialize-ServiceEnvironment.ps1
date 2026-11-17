@@ -26,7 +26,11 @@ if ($missing.Count -gt 0) {
         '# Keep JOB_ENCRYPTION_SECRET stable while queued jobs exist; it is separate from login codes.')
     foreach ($key in $missing) {
         $value = $defaults[$key]
-        if ($key -eq 'JOB_ENCRYPTION_SECRET') { $value = New-Up24LocalSecret -ByteCount 32 }
+        if ($key -eq 'JOB_ENCRYPTION_SECRET') {
+            $deployedKey = Join-Path $projectRoot '.local/deployment/job-encryption-secret'
+            if (Test-Path -LiteralPath $deployedKey) { $value = (Get-Content -LiteralPath $deployedKey -Raw).Trim() }
+            else { $value = New-Up24LocalSecret -ByteCount 32 }
+        }
         $lines += ($key + '=' + $value)
     }
     Write-Up24Utf8File -Path $environmentPath -Lines $lines

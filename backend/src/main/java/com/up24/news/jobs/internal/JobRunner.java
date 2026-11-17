@@ -22,7 +22,10 @@ class JobRunner {
         try {
             var handler=handlers.get(job.type());if(handler==null) throw new PermanentJobFailure();
             handler.execute(id,codec.decode(id,job.payload()));store.finish(job);
-        } catch(Exception exception) { store.fail(job,exception instanceof PermanentJobFailure); }
+        } catch(Exception exception) {
+            if(exception instanceof InterruptedException) Thread.currentThread().interrupt();
+            store.fail(job,exception instanceof PermanentJobFailure || exception instanceof java.security.GeneralSecurityException);
+        }
         finally { active.remove(id); }
     }
     @Scheduled(fixedDelay=30000,initialDelay=30000)

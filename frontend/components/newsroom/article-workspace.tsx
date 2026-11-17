@@ -21,7 +21,7 @@ import styles from './article-admin.module.css';
 type Command = LifecycleAction | 'PURGE' | 'PUBLISH' | 'UNPUBLISH';
 type Confirmation = { command: Command; articles: ManagedArticle[] };
 const labels: Record<Command, string> = {
-  ARCHIVE: 'Archive',
+  ARCHIVE: 'Withdraw',
   TRASH: 'Move to trash',
   RESTORE: 'Restore as draft',
   PURGE: 'Delete permanently',
@@ -104,7 +104,7 @@ export function ArticleWorkspace({
       <div className="cms-section-heading">
         <div>
           <p className="eyebrow">{trashMode ? 'CONTENT RECOVERY' : 'EDITORIAL WORKSPACE'}</p>
-          <h2>{trashMode ? 'Trash & archive' : 'All reports'}</h2>
+          <h2>{trashMode ? 'Withdrawn & trash' : 'All reports'}</h2>
         </div>
         <div className="cms-row-actions">
           <Button
@@ -126,7 +126,7 @@ export function ArticleWorkspace({
       </div>
       {trashMode && (
         <p className="cms-muted">
-          Archived reports stay off the public site. Trashed reports can be restored or permanently
+          Withdrawn reports stay off the public site. Trashed reports can be restored or permanently
           removed. Restoration always creates a draft.
         </p>
       )}
@@ -155,7 +155,7 @@ export function ArticleWorkspace({
             {trashMode ? (
               <>
                 <option value="TRASH">Trash</option>
-                <option value="ARCHIVED">Archive</option>
+                <option value="ARCHIVED">Withdrawn</option>
               </>
             ) : (
               <>
@@ -213,7 +213,7 @@ export function ArticleWorkspace({
                   disabled={busy}
                   onClick={() => request('ARCHIVE', chosen)}
                 >
-                  Archive selected
+                  Withdraw selected
                 </Button>
               )}
               {trashMode && (
@@ -347,7 +347,7 @@ export function ArticleWorkspace({
                           disabled={busy}
                           onClick={() => request('ARCHIVE', [row])}
                         >
-                          Archive
+                          Withdraw
                         </Button>
                       )}
                       {trashMode && (
@@ -438,7 +438,7 @@ export function ArticleWorkspace({
               ? 'The selected reports will return as drafts. They will remain private until you publish them.'
               : confirmation?.command === 'PUBLISH'
                 ? 'The selected report will be visible to readers immediately. Review the headline, body and media before publishing.'
-                : 'The selected reports will be removed from the public site. You can recover archived and trashed reports later.'
+                : 'The selected reports will be removed from the public site. You can recover withdrawn and trashed reports later.'
         }
         confirmLabel={confirmation ? labels[confirmation.command] : 'Confirm'}
         destructive={Boolean(

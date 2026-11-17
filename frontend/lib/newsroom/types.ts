@@ -93,6 +93,7 @@ export function videoId(input: string) {
 export function allowedMedia(input: string, image = true) {
   if (!input) return true;
   if (image && /^\/media\/[a-f0-9]{64}\.webp$/.test(input)) return true;
+  if (!image && /^\/media\/videos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.mp4$/.test(input)) return true;
   if (/^\/(images|brand|videos)\/[A-Za-z0-9._/-]+$/.test(input) && !input.includes('..'))
     return true;
   try {

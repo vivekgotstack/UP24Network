@@ -26,6 +26,7 @@ class MediaController {
     @PostMapping(value="/api/admin/media",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("@access.hasAny('ADMIN','EDITOR','REPORTER')")
     MediaLibrary.Asset upload(@RequestPart MultipartFile file,@RequestParam int originalBytes) throws IOException {
+        if(file.getSize()>2*1024*1024) throw new MediaProblem(MediaProblem.Reason.INVALID,"The optimized photograph must fit within 2 MiB.");
         return media.upload(file.getOriginalFilename(),file.getBytes(),originalBytes,access.current().id());
     }
     @DeleteMapping("/api/admin/media/{id}") @PreAuthorize("@access.hasAny('ADMIN')") @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -26,7 +26,9 @@ class MediaRetentionTest {
         var reporter=accounts.create("media-reporter@identity.test","Reporter","Media-reporter-password-2026!",Accounts.Role.REPORTER);
         var admin=VerifiedLogin.verified(owner,jdbc,Instant.now());
         mvc.perform(get("/api/admin/media/storage")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/media/storage/migration")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/media/storage").with(VerifiedLogin.verified(reporter,jdbc,Instant.now()))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/media/storage/migration").with(VerifiedLogin.verified(reporter,jdbc,Instant.now()))).andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/media/storage").with(admin)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.uploadBackend").value("LOCAL")).andExpect(jsonPath("$.s3Configured").value(false))
                 .andExpect(jsonPath("$.policy.transitionDays").value(365)).andExpect(jsonPath("$.secretAccessKey").doesNotExist());
@@ -36,6 +38,7 @@ class MediaRetentionTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.policy.enabled").value(true)).andExpect(jsonPath("$.policy.version").value(1));
         mvc.perform(put("/api/admin/media/storage").with(admin).with(csrf()).contentType("application/json").content(input)).andExpect(status().isConflict());
         mvc.perform(post("/api/admin/media/storage/sync").with(admin).with(csrf())).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/admin/media/storage/migration").with(admin).with(csrf())).andExpect(status().isBadRequest());
         String id="c".repeat(64);
         jdbc.update("INSERT INTO media_asset(id,original_name,bytes,original_bytes,width,height,object_key) VALUES (?,'Fixture',100,100,1,1,?)",id,id+".webp");
         mvc.perform(patch("/api/admin/media/"+id+"/retention").with(admin).with(csrf()).contentType("application/json").content("{\"eligible\":false,\"version\":0}"))

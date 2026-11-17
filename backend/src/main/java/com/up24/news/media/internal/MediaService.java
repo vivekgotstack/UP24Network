@@ -71,7 +71,7 @@ class MediaService implements MediaLibrary {
         var asset=find(id).orElseThrow(() -> new MediaProblem(MediaProblem.Reason.MISSING,"Image not found."));
         if (usage.inUse(asset.url())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This image is used by an article or a retained revision. Remove those references first.");
         try { media.delete(id); }
-        catch(DataIntegrityViolationException exception) { throw new MediaProblem(MediaProblem.Reason.IN_USE,"An article is using this image."); }
+        catch(DataIntegrityViolationException exception) { throw new MediaProblem(MediaProblem.Reason.IN_USE,"This image is in use or being migrated. Try again after active work completes."); }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCommit() {
                 cleanup.removeIfUnreferenced(id);

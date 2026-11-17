@@ -20,9 +20,7 @@ class VideoSettings {
         this.directory=Path.of(directory).toAbsolutePath().normalize();this.quotaBytes=quotaBytes;this.maxUploadBytes=maxUploadBytes;
         this.ffmpeg=ffmpeg;this.ffprobe=ffprobe;
     }
-    Path work(UUIDPath id) { return directory.resolve(".video-work").resolve(id.value()); }
     Path work(java.util.UUID id) { return directory.resolve(".video-work").resolve(id.toString()); }
     Path source(java.util.UUID id) { return work(id).resolve("original.mp4"); }
     Path encoded(java.util.UUID id,java.util.UUID token) { return work(id).resolve("encoded-"+token+".mp4"); }
-    private record UUIDPath(String value) {}
 }

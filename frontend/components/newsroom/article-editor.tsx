@@ -6,6 +6,7 @@ import { ArticleConflict } from '@/components/newsroom/article-conflict';
 import { cms, CmsError } from '@/lib/cms';
 import { useSession, useNewsroomResource } from '@/lib/session';
 import { MediaUpload } from '@/components/newsroom/media-upload';
+import { VideoUpload } from '@/components/newsroom/video-upload';
 import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
 import styles from './article-admin.module.css';
 
@@ -468,6 +469,8 @@ export function ArticleEditor({
                 placeholder="/videos/report.mp4 or an approved HTTPS URL"
               />
             </label>
+            <VideoUpload disabled={busy} onReady={(video) => { set('videoUrl', video.url); set('youtubeId', ''); }} />
+            <p className="field-help">A completed upload selects its playback copy for this report and replaces the YouTube source. Save the report to keep that selection.</p>
             <p className="field-help">
               A YouTube video takes priority, then a direct video, then the photograph. Channel
               imports are managed in Automations.

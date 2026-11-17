@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 const adminPages = [
   { key: 'overview', href: '/admin', label: 'Overview', icon: LayoutDashboard },
   { key: 'articles', href: '/admin/articles', label: 'Articles', icon: FileText },
-  { key: 'trash', href: '/admin/trash', label: 'Trash & archive', icon: Trash2 },
+  { key: 'trash', href: '/admin/trash', label: 'Withdrawn & trash', icon: Trash2 },
   { key: 'media', href: '/admin/media', label: 'Media library', icon: Images },
   { key: 'pages', href: '/admin/pages', label: 'Publication pages', icon: Newspaper },
   { key: 'accounts', href: '/admin/accounts', label: 'Team & readers', icon: Users },

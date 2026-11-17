@@ -17,6 +17,7 @@ class UnusedMediaCleanup {
         var active=media.location(id);
         for(var deletion:media.deletions(id)) {
             if(active.filter(deletion.location()::equals).isPresent()) { media.completedDeletion(deletion);continue; }
+            if(media.copyInProgress(deletion.location())) continue;
             try { storage.delete(deletion.location()); media.completedDeletion(deletion); }
             catch(IOException|RuntimeException exception) {
                 media.failedDeletion(deletion);

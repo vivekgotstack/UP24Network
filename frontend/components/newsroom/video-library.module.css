@@ -1,0 +1,12 @@
+.panel { display: grid; gap: 24px; min-width: 0; margin-bottom: 28px; }
+.upload { border: 1px dashed var(--line); padding: 18px; display: grid; gap: 10px; min-width: 0; }
+.upload label { display: grid; gap: 10px; min-width: 0; }
+.upload input { width: 100%; min-width: 0; font-size: 16px; }
+.upload progress { width: 100%; accent-color: var(--brand-navy); }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.card { border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.card strong,.card p { overflow-wrap: anywhere; }
+.card video { width: 100%; max-height: 340px; background: var(--brand-navy); object-fit: contain; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.actions > button { max-width: 100%; white-space: normal; min-height: 44px; height: auto; }
+@media(max-width:700px) { .grid { grid-template-columns: minmax(0,1fr); } .upload,.card { padding: 14px; } }

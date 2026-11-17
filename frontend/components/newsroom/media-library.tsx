@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AdminWorkspace } from '@/components/newsroom/admin-workspace';
 import { MediaUpload } from '@/components/newsroom/media-upload';
 import { MediaStoragePanel } from '@/components/newsroom/media-storage-panel';
+import { VideoLibraryPanel } from '@/components/newsroom/video-library-panel';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { useSession, useNewsroomResource } from '@/lib/session';
@@ -32,6 +33,7 @@ export function MediaLibrary() {
   return (
     <AdminWorkspace title="Media library" active="media">
       <MediaStoragePanel />
+      <VideoLibraryPanel />
       <section className="admin-card">
         <h2>Publication photographs</h2>
         <p>

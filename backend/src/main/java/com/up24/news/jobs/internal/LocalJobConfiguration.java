@@ -4,6 +4,7 @@ import com.up24.news.jobs.BackgroundJobs;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
@@ -15,7 +16,7 @@ class LocalJobConfiguration {
         var result=new ThreadPoolTaskExecutor();result.setCorePoolSize(size);result.setMaxPoolSize(size);result.setQueueCapacity(size);
         result.setThreadNamePrefix(name);result.setAwaitTerminationSeconds(20);return result;
     }
-    @Bean JobPublisher localJobPublisher(JobRunner runner,ThreadPoolTaskExecutor mailJobExecutor,ThreadPoolTaskExecutor mediaJobExecutor) {
+    @Bean JobPublisher localJobPublisher(JobRunner runner,@Qualifier("mailJobExecutor") ThreadPoolTaskExecutor mailJobExecutor,@Qualifier("mediaJobExecutor") ThreadPoolTaskExecutor mediaJobExecutor) {
         return job -> (job.lane()==BackgroundJobs.Lane.MAIL?mailJobExecutor:mediaJobExecutor).execute(()->runner.run(job.id()));
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 @Repository
 class JdbcMediaStore implements MediaStore {
@@ -32,8 +34,8 @@ class JdbcMediaStore implements MediaStore {
     @Override public void lockQuota() {
         jdbc.execute("SELECT pg_advisory_xact_lock(8524,1301)");
     }
-    private long usedBytes() {
-        return jdbc.queryForObject("SELECT (SELECT COALESCE(sum(bytes),0) FROM media_asset)+(SELECT COALESCE(sum(bytes),0) FROM media_pending_deletion)",Long.class);
+    @Override public long usedBytes() {
+        return jdbc.queryForObject("SELECT (SELECT COALESCE(sum(bytes),0) FROM media_asset)+(SELECT COALESCE(sum(bytes),0) FROM media_pending_deletion)+(SELECT COALESCE(sum(bytes),0) FROM media_copy_reservation)",Long.class);
     }
     @Override public Optional<StorageLocation> location(String id) {
         return jdbc.query("SELECT storage_backend,storage_bucket,object_key FROM media_asset WHERE id=?",
@@ -82,5 +84,33 @@ class JdbcMediaStore implements MediaStore {
     }
     @Override public void failedTag(TagChange change) {
         jdbc.update("UPDATE media_asset SET retention_retry_at=CURRENT_TIMESTAMP+INTERVAL '5 minutes' WHERE id=? AND version=?",change.id(),change.version());
+    }
+    @Override public List<LocalImage> localImages(int size) {
+        return jdbc.query("""
+                SELECT a.id,a.storage_backend,a.storage_bucket,a.object_key,a.bytes,a.archive_eligible,a.version
+                FROM media_asset a WHERE a.storage_backend='LOCAL'
+                  AND NOT EXISTS(SELECT 1 FROM media_copy_reservation c WHERE c.asset_id=a.id)
+                ORDER BY a.created_at,a.id LIMIT ?
+                """,(row,index)->new LocalImage(row.getString("id"),new StorageLocation(row.getString("storage_backend"),row.getString("storage_bucket"),row.getString("object_key")),
+                row.getInt("bytes"),row.getBoolean("archive_eligible"),row.getLong("version")),Math.clamp(size,1,20));
+    }
+    @Override public boolean relocate(LocalImage image,StorageLocation destination) {
+        return jdbc.update("""
+                UPDATE media_asset SET storage_backend=?,storage_bucket=?,object_key=?,
+                  version=version+1,retention_applied_version=version+1,retention_retry_at=CURRENT_TIMESTAMP
+                WHERE id=? AND version=? AND storage_backend=? AND storage_bucket=? AND object_key=?
+                """,destination.backend(),destination.bucket(),destination.key(),image.id(),image.version(),image.location().backend(),image.location().bucket(),image.location().key())==1;
+    }
+    @Override public void queueDeletion(Deletion deletion,int bytes,Instant notBefore) {
+        var location=deletion.location();
+        jdbc.update("""
+                INSERT INTO media_pending_deletion(asset_id,storage_backend,storage_bucket,object_key,bytes,next_attempt_at)
+                VALUES (?,?,?,?,?,?) ON CONFLICT(storage_backend,storage_bucket,object_key)
+                DO UPDATE SET next_attempt_at=GREATEST(media_pending_deletion.next_attempt_at,EXCLUDED.next_attempt_at)
+                """,deletion.id(),location.backend(),location.bucket(),location.key(),bytes,Timestamp.from(notBefore));
+    }
+    @Override public boolean copyInProgress(StorageLocation location) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM media_copy_reservation WHERE storage_backend=? AND storage_bucket=? AND object_key=? AND expires_at>CURRENT_TIMESTAMP)",
+                Boolean.class,location.backend(),location.bucket(),location.key()));
     }
 }

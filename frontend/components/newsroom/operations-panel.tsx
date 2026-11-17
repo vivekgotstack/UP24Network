@@ -7,6 +7,7 @@ import styles from './operations-panel.module.css';
 
 type JobState = 'PENDING' | 'DISPATCHED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
 type JobStatus = { transport: string; counts: Partial<Record<JobState, number>> };
+type ServiceConfiguration = { id: string; name: string; configured: boolean; required: boolean; detail: string };
 const states: { key: JobState; label: string; detail: string }[] = [
   { key: 'PENDING', label: 'Waiting', detail: 'Saved and waiting for dispatch or retry.' },
   {
@@ -35,8 +36,17 @@ export function OperationsPanel() {
     session.data?.role === 'ADMIN' && session.data.newsroomAccess,
     { refetchInterval: 15000 },
   );
+  const services = useNewsroomResource<ServiceConfiguration[]>(session.data, 'admin/operations/services', session.data?.role === 'ADMIN' && session.data.newsroomAccess);
   return (
     <AdminWorkspace title="Operations" active="operations">
+      <section className={`admin-card ${styles.panel}`} aria-labelledby="services-heading">
+        <div><p className="eyebrow">SERVICE CONFIGURATION</p><h2 id="services-heading">Connections and credentials</h2></div>
+        <p>Configuration values stay in the server environment. These indicators show presence of settings; they do not claim a live provider check.</p>
+        {services.error && <p className="inline-error" role="alert">{services.error.message}</p>}
+        <dl className={styles.stats}>{services.data?.map((service) => <div key={service.id}>
+          <dt>{service.name}</dt><dd>{service.configured ? 'Configured' : service.required ? 'Setup required' : 'Optional'}</dd><p>{service.detail}</p>
+        </div>)}</dl>
+      </section>
       <section className={`admin-card ${styles.panel}`} aria-labelledby="operations-heading">
         <div className={styles.heading}>
           <div>

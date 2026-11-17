@@ -83,6 +83,7 @@ writePrivate(join(directory,'rabbitmq.conf'),[
 ].join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:previousPublic.SITE_INDEXABLE ?? 'false',
   MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
+  MEDIA_UPLOAD_ORIGIN:settings['up24.media.s3.bucket']?(settings['up24.media.s3.bucket'].includes('.')?`https://s3.${settings['up24.media.s3.region']||'ap-south-1'}.amazonaws.com`:`https://${settings['up24.media.s3.bucket']}.s3.${settings['up24.media.s3.region']||'ap-south-1'}.amazonaws.com`):'',
   UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
   ANDROID_SHA256_CERT_FINGERPRINTS:previousPublic.ANDROID_SHA256_CERT_FINGERPRINTS ?? ''};
 if(!/^[1-9][0-9]{0,14}$/.test(publicConfig.UP24_MEDIA_QUOTA_BYTES)) throw new Error('Set a positive media allowance in UP24_MEDIA_QUOTA_BYTES.');

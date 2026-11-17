@@ -17,8 +17,9 @@ class JdbcVideoStore implements VideoStore {
         var view=new MediaVideos.Video(id,row.getString("original_name"),row.getString("state"),row.getLong("original_bytes"),row.getLong("stored_bytes"),
                 row.getInt("width"),row.getInt("height"),row.getDouble("duration_seconds"),"/media/videos/"+id+".mp4",row.getString("last_error"),row.getLong("version"),row.getTimestamp("created_at").toInstant());
         String backend=row.getString("storage_backend"),bucket=row.getString("storage_bucket"),output=row.getString("output_key");
+        var uploadLease=row.getTimestamp("upload_lease_until");
         return new Stored(view,row.getObject("uploaded_by",UUID.class),new StorageLocation(backend,bucket,row.getString("source_key")),
-                output==null?null:new StorageLocation(backend,bucket,output),row.getObject("job_id",UUID.class),row.getObject("processing_token",UUID.class),row.getTimestamp("upload_expires_at").toInstant());
+                output==null?null:new StorageLocation(backend,bucket,output),row.getObject("job_id",UUID.class),row.getObject("processing_token",UUID.class),row.getTimestamp("upload_expires_at").toInstant(),uploadLease==null?null:uploadLease.toInstant());
     };
     private final JdbcTemplate jdbc;
     JdbcVideoStore(JdbcTemplate jdbc) { this.jdbc=jdbc; }
@@ -26,6 +27,7 @@ class JdbcVideoStore implements VideoStore {
     @Override public Optional<Stored> lock(UUID id) { return jdbc.query("SELECT * FROM video_asset WHERE id=? FOR UPDATE",ROW,id).stream().findFirst(); }
     @Override public void quotaLock() { jdbc.execute("SELECT pg_advisory_xact_lock(8524,2101)"); }
     @Override public long reservedBytes() { return jdbc.queryForObject("SELECT COALESCE(sum(reserved_bytes),0) FROM video_asset",Long.class); }
+    @Override public long pendingFor(UUID owner) { return jdbc.queryForObject("SELECT count(*) FROM video_asset WHERE uploaded_by=? AND state IN ('UPLOADING','QUEUED','PROCESSING')",Long.class,owner); }
     @Override public void insert(UUID id,String name,long bytes,long reserved,UUID owner,StorageLocation source,Instant expiresAt) {
         jdbc.update("INSERT INTO video_asset(id,uploaded_by,original_name,original_bytes,reserved_bytes,storage_backend,storage_bucket,source_key,upload_expires_at) VALUES (?,?,?,?,?,?,?,?,?)",
                 id,owner,name,bytes,reserved,source.backend(),source.bucket(),source.key(),Timestamp.from(expiresAt));
@@ -61,7 +63,12 @@ class JdbcVideoStore implements VideoStore {
         jdbc.update("UPDATE video_asset SET state='DELETING',job_id=?,processing_token=NULL,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=?",jobId,id);
     }
     @Override public void delete(UUID id) { jdbc.update("DELETE FROM video_asset WHERE id=? AND state='DELETING'",id); }
+    @Override public void deletionFailed(UUID id) { jdbc.update("UPDATE video_asset SET last_error='Physical removal is pending. Check storage access and retry removal if necessary.' WHERE id=? AND state='DELETING'",id); }
     @Override public List<UUID> abandoned() {
         return jdbc.query("SELECT id FROM video_asset WHERE state='UPLOADING' AND upload_expires_at<CURRENT_TIMESTAMP AND (upload_lease_until IS NULL OR upload_lease_until<CURRENT_TIMESTAMP) ORDER BY upload_expires_at LIMIT 10",(row,index)->row.getObject(1,UUID.class));
+    }
+    @Override public List<Stored> unfinished() { return jdbc.query("SELECT * FROM video_asset WHERE state IN ('QUEUED','PROCESSING') ORDER BY updated_at LIMIT 25",ROW); }
+    @Override public void terminal(UUID id,UUID jobId) {
+        jdbc.update("UPDATE video_asset SET state='FAILED',processing_token=NULL,last_error='The background job expired or exhausted its retry allowance. Review the source and retry processing.',version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND job_id=? AND state IN ('QUEUED','PROCESSING')",id,jobId);
     }
 }

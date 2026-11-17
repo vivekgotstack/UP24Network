@@ -56,7 +56,7 @@ export async function checksum(file) {
 }
 export function docker(args,{inputFile,input,outputFile,capture=false,onStdout,allowFailure=false}={}) {
   return new Promise((resolveDone,reject)=>{
-    const child=spawn('docker',args,{cwd:root,stdio:[inputFile||input!==undefined?'pipe':'ignore',outputFile??(capture||onStdout?'pipe':'inherit'),capture?'pipe':'inherit']});
+    const child=spawn('docker',args,{cwd:root,windowsHide:true,stdio:[inputFile||input!==undefined?'pipe':'ignore',outputFile??(capture||onStdout?'pipe':'inherit'),capture?'pipe':'inherit']});
     let stdout='',stderr='',settled=false;
     const fail=error=>{if(!settled){settled=true;reject(error);}};
     child.once('error',()=>fail(new Error('Docker could not be started. Install Docker Engine with the Compose plugin.')));
