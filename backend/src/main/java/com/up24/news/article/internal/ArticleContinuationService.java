@@ -53,9 +53,9 @@ class ArticleContinuationService {
         try {
             jdbc.update("""
                     INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,
-                        video_url,youtube_id,reel_url,paragraphs,region,manual_override,edited_by,
+                        video_url,youtube_id,reel_url,paragraphs,english_content,region,manual_override,edited_by,
                         edition_number,continuation_root_id,continuation_of_id)
-                    SELECT ?,?,title,summary,category,city,?,?,image,image_alt,video_url,youtube_id,reel_url,paragraphs,
+                    SELECT ?,?,title,summary,category,city,?,?,image,image_alt,video_url,youtube_id,reel_url,paragraphs,english_content,
                         region,TRUE,?,?,?,id FROM article_record WHERE id=?
                     """, id, slug(edition, id), byline, actor.id(), actor.id(), edition.number(), rootId, sourceId);
         } catch (DuplicateKeyException exception) {

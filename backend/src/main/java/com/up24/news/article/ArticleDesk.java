@@ -1,11 +1,15 @@
 package com.up24.news.article;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.util.*;
 
 public interface ArticleDesk {
     String TRENDING_REELS = "Trending Reels";
+
+    record EnglishInput(@Size(max=500) String title, @Size(max=2000) String summary,
+                        @Size(max=100000) String body, @Size(max=500) String imageAlt) {}
 
     record Input(@NotBlank @Size(max=500) String title,@NotBlank @Size(max=500) String slug,
                  @NotBlank @Size(max=2000) String summary,@NotBlank @Size(max=100) String category,
@@ -15,7 +19,13 @@ public interface ArticleDesk {
                  @Size(max=10000) String sourceNotes,
                  @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region,
                  @Size(max=100) String byline,
-                 @Size(max=2048) String reelUrl) {
+                 @Size(max=2048) String reelUrl,
+                 @Valid EnglishInput english) {
+        public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
+                     String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region,
+                     String byline,String reelUrl) {
+            this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,byline,reelUrl,null);
+        }
         public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
                      String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region,String byline) {
             this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,byline,null);

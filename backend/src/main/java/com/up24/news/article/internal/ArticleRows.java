@@ -18,6 +18,7 @@ final class ArticleRows {
     private static ArticleDesk.Managed managed(ResultSet row, ObjectMapper json, boolean body) throws SQLException {
         try {
             List<String> paragraphs=body ? json.readValue(row.getString("paragraphs"),new TypeReference<>() {}) : List.of();
+            ArticleView.English english = english(row, json, body);
             Timestamp published=row.getTimestamp("published_at");
             var view=new ArticleView(row.getString("slug"),row.getString("title"),row.getString("summary"),
                     row.getString("category"),row.getString("city"),row.getString("author"),
@@ -25,10 +26,20 @@ final class ArticleRows {
                     row.getString("image_alt"),row.getString("video_url"),paragraphs,false,row.getString("youtube_id"),
                     row.getBoolean("breaking"),row.getString("source_url"),row.getString("reel_url"),
                     Math.max(1,row.getInt("edition_number")),row.getObject("continuation_root_id",UUID.class),
-                    row.getString("continuation_of_slug"));
+                    row.getString("continuation_of_slug"), english);
             return new ArticleDesk.Managed(row.getObject("id",UUID.class),row.getObject("author_id",UUID.class),
                     row.getString("status"),row.getBoolean("manual_override"),row.getLong("version"),view,
                     body?row.getString("source_notes"):"",row.getString("region"));
         } catch(java.io.IOException exception) { throw new SQLException("Invalid stored article",exception); }
+    }
+
+    private static ArticleView.English english(ResultSet row, ObjectMapper json, boolean body) throws SQLException, java.io.IOException {
+        if (body) {
+            String content = row.getString("english_content");
+            return content == null ? null : json.readValue(content, ArticleView.English.class);
+        }
+        String title = row.getString("english_title");
+        return title == null ? null : new ArticleView.English(title, row.getString("english_summary"),
+                List.of(), row.getString("english_image_alt"));
     }
 }

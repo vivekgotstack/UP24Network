@@ -1,6 +1,5 @@
 package com.up24.news.article.internal;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.article.*;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,7 +59,7 @@ class ArticleStore implements ArticleDesk {
             String[] words = query.search().toLowerCase(Locale.ROOT).split("\\s+");
             for (int index = 0; index < words.length; index++) {
                 String key = "word" + index;
-                sql.append(" AND lower(title || ' ' || summary || ' ' || city || ' ' || category) LIKE :").append(key).append(" ESCAPE '!'");
+                sql.append(" AND ").append(SEARCH_TEXT).append(" LIKE :").append(key).append(" ESCAPE '!'");
                 parameters.put(key, "%" + words[index].replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
             }
         }
@@ -83,8 +82,8 @@ class ArticleStore implements ArticleDesk {
         throw new ArticleConflictException();
     }
     private String value(String text) { return text==null?"":text.trim(); }
-    private String bodyJson(List<String> paragraphs) {
-        try { return json.writeValueAsString(paragraphs); }
+    private String contentJson(Object content) {
+        try { return json.writeValueAsString(content); }
         catch(java.io.IOException exception) { throw new IllegalArgumentException("Invalid article body"); }
     }
     @Transactional @Override public Managed save(UUID id,Input input,UUID actor,String author) {
@@ -92,14 +91,16 @@ class ArticleStore implements ArticleDesk {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The saved article version is required");
         UUID articleId=id==null?UUID.randomUUID():id;
         String slug=ArticleFieldPolicy.slug(input.slug());
-        String paragraphs=bodyJson(Arrays.stream(input.body().split("\\n\\s*\\n")).map(String::trim).filter(p->!p.isBlank()).toList());
+        String paragraphs=contentJson(ArticleFieldPolicy.paragraphs(input.body()));
+        ArticleView.English translation = ArticleFieldPolicy.english(input.english());
+        String english = translation == null ? null : contentJson(translation);
         String image=media(input.image(),"image"),video=media(input.videoUrl(),"video");
         String reel=ArticleFieldPolicy.reel(input);
         try {
-            if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,reel_url,paragraphs,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,TRUE,?,?,?)",
-                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,value(input.sourceNotes()),value(input.region()),actor);
-            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
-                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
+            if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,reel_url,paragraphs,english_content,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,TRUE,?,?,?)",
+                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,english,value(input.sourceNotes()),value(input.region()),actor);
+            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,english_content=CASE WHEN ? THEN ?::jsonb ELSE english_content END,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
+                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,input.english()!=null,english,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
                 concurrentChange(id);
         } catch(DuplicateKeyException exception) { throw new ResponseStatusException(HttpStatus.CONFLICT,"That article slug is already in use"); }
         events.publishEvent(new ArticleChanged(articleId));
@@ -133,7 +134,7 @@ class ArticleStore implements ArticleDesk {
                         EXCLUDED.image,EXCLUDED.image_alt,EXCLUDED.video_url,EXCLUDED.youtube_id,
                         EXCLUDED.paragraphs,EXCLUDED.breaking,EXCLUDED.source_url,EXCLUDED.region)
                 """,id,input.slug(),input.title(),input.summary(),input.category(),input.city(),Timestamp.from(input.publishedAt()),
-                media(input.image(),"image"),input.imageAlt(),media(input.videoUrl(),"video"),input.youtubeId(),bodyJson(input.paragraphs()),input.breaking(),input.upstreamKey(),input.sourceUrl(),value(input.region()))>0;
+                media(input.image(),"image"),input.imageAlt(),media(input.videoUrl(),"video"),input.youtubeId(),contentJson(input.paragraphs()),input.breaking(),input.upstreamKey(),input.sourceUrl(),value(input.region()))>0;
         if(changed) events.publishEvent(new ArticleChanged(id));
         return changed;
     }
@@ -142,7 +143,10 @@ class ArticleStore implements ArticleDesk {
              AND earlier.status='PUBLISHED' AND earlier.published_at<=CURRENT_TIMESTAMP) AS continuation_of_slug
         """;
     static final String FULL_COLUMNS = "article_record.*, " + CONTINUATION_SLUG;
+    static final String SEARCH_TEXT = "lower(concat_ws(' ',title,summary,city,category,english_content->>'title',english_content->>'summary'))";
     static final String SUMMARY_COLUMNS = "id,author_id,status,manual_override,version,slug,title,summary,category,city,author,"
             + "published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region,"
-            + "edition_number,continuation_root_id, " + CONTINUATION_SLUG;
+            + "edition_number,continuation_root_id,english_content->>'title' AS english_title,"
+            + "english_content->>'summary' AS english_summary,english_content->>'imageAlt' AS english_image_alt, "
+            + CONTINUATION_SLUG;
 }

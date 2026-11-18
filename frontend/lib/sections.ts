@@ -1,4 +1,5 @@
 import { trendingReelsCategory } from '@/lib/instagram';
+import type { SiteLocale } from '@/lib/locale';
 
 export type NewsSection = {
   slug: string;
@@ -213,10 +214,12 @@ export const newsSections: readonly NewsSection[] = [
 export const sectionGroups = [
   {
     title: 'देश और समाज',
+    englishTitle: 'News and society',
     slugs: ['uttar-pradesh', 'india', 'politics', 'world', 'crime', 'explainers', 'opinion'],
   },
   {
     title: 'काम और प्रगति',
+    englishTitle: 'Work and progress',
     slugs: [
       'business',
       'personal-finance',
@@ -230,6 +233,7 @@ export const sectionGroups = [
   },
   {
     title: 'खेल और मनोरंजन',
+    englishTitle: 'Sports and entertainment',
     slugs: [
       'sports',
       'cricket',
@@ -243,6 +247,7 @@ export const sectionGroups = [
   },
   {
     title: 'जीवन और संस्कृति',
+    englishTitle: 'Life and culture',
     slugs: [
       'health',
       'lifestyle',
@@ -271,6 +276,6 @@ export function sectionHref(name: string) {
   if (section?.slug === 'uttar-pradesh') return '/region/uttar-pradesh';
   return section?.slug === 'videos' ? '/watch' : section ? `/section/${section.slug}` : '/latest';
 }
-export function sectionTitle(name: string) {
-  return newsSections.find((section) => section.name === name)?.title ?? name;
+export function sectionTitle(name: string, locale: SiteLocale = 'hi') {
+  return locale === 'en' ? name : (newsSections.find((section) => section.name === name)?.title ?? name);
 }

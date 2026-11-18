@@ -6,6 +6,7 @@
 @import './publication.css';
 @import './coverage.css';
 @import './admin-controls.css';
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 @font-face {
   font-family: 'Noto Serif Devanagari';
   font-weight: 400 700;
@@ -56,29 +57,68 @@
 }
 
 :root {
-  --ink: #102137;
+  color-scheme: light dark;
+  --ink: light-dark(#102137, #e9eff7);
   --brand-navy: #071c36;
   --brand-gold: #f4d03f;
+  --brand-ink: light-dark(#071c36, #d7e6fa);
+  --on-brand: #f6f5f0;
   --red: var(--brand-navy);
-  --muted: #616c77;
-  --line: #d6d9d9;
-  --paper: #f6f5f0;
-  --surface: #eeece3;
+  --muted: light-dark(#616c77, #aab9ca);
+  --line: light-dark(#d6d9d9, #3b4c5e);
+  --paper: light-dark(#f6f5f0, #111b28);
+  --surface: light-dark(#eeece3, #192635);
+  --surface-raised: light-dark(#fff, #223245);
+  --surface-wash: light-dark(#fff7, #1c2939);
+  --surface-control: light-dark(#fffc, #172434);
+  --shadow-colour: light-dark(#071c3626, #030915a6);
+  --focus-outline: light-dark(#95730d, #f4d03f);
+  --disabled-ink: light-dark(#6f776f, #91a0b0);
+  --positive-surface: light-dark(#e1efe5, #193b32);
+  --positive-ink: light-dark(#245437, #b2e9cd);
+  --positive-line: light-dark(#a9c2ae, #458068);
+  --warning-surface: light-dark(#fff0c1, #3b3017);
+  --warning-ink: light-dark(#614200, #f4d387);
+  --warning-line: light-dark(#d8c277, #876a30);
+  --danger-surface: light-dark(#f4e5e1, #43242c);
+  --danger-ink: light-dark(#7a2329, #ffbec3);
+  --danger-line: light-dark(#962f35, #ad6471);
+  --skeleton-shade: light-dark(#e8e8df, #1a293a);
+  --skeleton-highlight: light-dark(#f2f2eb, #283a4d);
   --serif: 'Source Serif', 'Noto Serif Devanagari', Georgia, serif;
   --sans: 'Source Sans', 'Noto Sans Devanagari', Arial, sans-serif;
   --background: var(--paper);
   --foreground: var(--ink);
-  --primary: var(--brand-navy);
-  --primary-foreground: #fff;
-  --secondary: #e7e9e8;
+  --primary: light-dark(#071c36, #f4d03f);
+  --primary-foreground: light-dark(#fff, #071c36);
+  --secondary: light-dark(#e7e9e8, #253447);
   --secondary-foreground: var(--ink);
-  --accent: #e8ebed;
+  --accent: light-dark(#e8ebed, #293d52);
   --accent-foreground: var(--ink);
   --destructive: #ac263a;
   --border: var(--line);
   --input: var(--line);
-  --ring: #526780;
+  --ring: light-dark(#526780, #f4d03f);
   --muted-foreground: var(--muted);
+}
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme-reveal]::view-transition-old(root),
+  :root[data-theme-reveal]::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  :root[data-theme-reveal]::view-transition-old(root) { z-index: 0; }
+  :root[data-theme-reveal]::view-transition-new(root) {
+    z-index: 1;
+    animation: reveal-site-theme 440ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes reveal-site-theme {
+    from { clip-path: circle(0 at var(--theme-reveal-x) var(--theme-reveal-y)); }
+    to { clip-path: circle(var(--theme-reveal-radius) at var(--theme-reveal-x) var(--theme-reveal-y)); }
+  }
 }
 @theme inline {
   --color-background: var(--background);

@@ -77,7 +77,7 @@ class ArticleReviewService {
         String reel = ArticleFieldPolicy.verifyProposal(proposed);
         var snapshot = new ArticleDesk.Input(proposed.title(), proposed.slug(), proposed.summary(), proposed.category(),
                 proposed.city(), trimMedia(proposed.image()), proposed.imageAlt(), trimMedia(proposed.videoUrl()), proposed.youtubeId(),
-                proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel);
+                proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel, proposed.english());
         var kind = article.status().equals("DRAFT") ? Kind.PUBLISH : Kind.UPDATE;
         var review = requests.add(id, snapshot, kind, actor, summary, notes, daily.openDay(actor.id()));
         lifecycle.record(id, "SUBMIT_REVIEW", actor.id(), article.version());

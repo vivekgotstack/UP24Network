@@ -1,10 +1,13 @@
 package com.up24.news.article.internal;
 
 import com.up24.news.article.ArticleDesk;
+import com.up24.news.article.ArticleView;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -30,7 +33,27 @@ final class ArticleFieldPolicy {
                 input.body(), input.sourceNotes()).anyMatch(text -> text != null && text.indexOf('\0') >= 0)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Remove invalid control characters from the article.");
         }
+        english(input.english());
         return reel(input);
+    }
+
+    static ArticleView.English english(ArticleDesk.EnglishInput input) {
+        if (input == null || Stream.of(input.title(), input.summary(), input.body(), input.imageAlt()).noneMatch(ArticleFieldPolicy::present)) {
+            return null;
+        }
+        if (!present(input.title()) || !present(input.summary()) || !present(input.body())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Complete the English headline, summary, and report together.");
+        }
+        if (Stream.of(input.title(), input.summary(), input.body(), input.imageAlt())
+                .anyMatch(text -> text != null && text.indexOf('\0') >= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Remove invalid control characters from the English translation.");
+        }
+        return new ArticleView.English(input.title().strip(), input.summary().strip(), paragraphs(input.body()),
+                present(input.imageAlt()) ? input.imageAlt().strip() : null);
+    }
+
+    static List<String> paragraphs(String body) {
+        return Arrays.stream(body.split("\\n\\s*\\n")).map(String::strip).filter(text -> !text.isBlank()).toList();
     }
 
     static String reel(ArticleDesk.Input input) {

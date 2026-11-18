@@ -19,7 +19,7 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
         Map<String,Object> parameters=new HashMap<>();
         if (authorId!=null) { scope.append(" AND author_id=:author"); parameters.put("author",authorId); }
         if (!search.isEmpty()) {
-            scope.append(" AND lower(title || ' ' || summary || ' ' || city || ' ' || category) LIKE :search ESCAPE '!'");
+            scope.append(" AND ").append(ArticleStore.SEARCH_TEXT).append(" LIKE :search ESCAPE '!'");
             parameters.put("search","%"+search.toLowerCase(Locale.ROOT).replace("!","!!").replace("%","!%").replace("_","!_")+"%");
         }
         var named=new NamedParameterJdbcTemplate(jdbc);
@@ -69,6 +69,7 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
                         summary=r.snapshot->>'summary',category=r.snapshot->>'category',city=COALESCE(r.snapshot->>'city',''),
                         author=r.snapshot->>'author',image=r.snapshot->>'image',image_alt=COALESCE(r.snapshot->>'image_alt',''),
                         video_url=r.snapshot->>'video_url',youtube_id=r.snapshot->>'youtube_id',reel_url=r.snapshot->>'reel_url',paragraphs=r.snapshot->'paragraphs',
+                        english_content=NULLIF(r.snapshot->'english_content','null'::jsonb),
                         source_notes=COALESCE(r.snapshot->>'source_notes',''),region=COALESCE(r.snapshot->>'region',''),
                         status='DRAFT',breaking=FALSE,manual_override=TRUE,edited_by=?,version=a.version+1,updated_at=CURRENT_TIMESTAMP
                     FROM article_revision r WHERE a.id=? AND r.article_id=a.id AND r.version=?

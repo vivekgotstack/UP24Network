@@ -1,0 +1,72 @@
+.preferences {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.languages {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.languages button {
+  min-width: 44px;
+  min-height: 36px;
+  border-radius: 4px;
+  padding: 0 7px;
+  font: 600 12px/1.2 var(--sans);
+  cursor: pointer;
+}
+
+.languages button[aria-pressed='true'] {
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.languages button:not([aria-pressed='true']):hover {
+  background: var(--surface);
+}
+
+.languages button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.languages button:disabled {
+  cursor: wait;
+}
+
+@media (max-width: 690px), (pointer: coarse) {
+  .languages button {
+    min-height: 44px;
+  }
+
+  .utility .links > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 690px) {
+  .utility > .location {
+    display: none;
+  }
+
+  .utility .links {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 3px 9px;
+  }
+
+  .preferences {
+    margin-inline-start: auto;
+  }
+}

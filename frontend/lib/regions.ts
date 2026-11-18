@@ -1,3 +1,5 @@
+import type { SiteLocale } from '@/lib/locale';
+
 export type NewsCity = { slug: string; title: string; aliases: string[]; region: string };
 export const regions = [
   { slug: 'uttar-pradesh', title: 'उत्तर प्रदेश' },
@@ -62,4 +64,16 @@ export const cities: readonly NewsCity[] = [
 
 export function regionCities(slug: string) {
   return cities.filter((city) => city.region === slug);
+}
+
+function englishPlaceName(slug: string) {
+  return slug.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+export function regionTitle(region: { slug: string; title: string }, locale: SiteLocale) {
+  return locale === 'hi' ? region.title : englishPlaceName(region.slug);
+}
+
+export function cityTitle(city: NewsCity, locale: SiteLocale) {
+  return locale === 'hi' ? city.title : (city.aliases.find((alias) => /^[A-Za-z]/.test(alias)) ?? englishPlaceName(city.slug));
 }
