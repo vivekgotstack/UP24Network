@@ -7,6 +7,8 @@ interface AutomationSource {
     String key();
     Status status();
     Prepared prepare();
+    default int minIntervalMinutes() { return 5; }
+    default int maxIntervalMinutes() { return 10080; }
     default Instant nextRun(Instant now, int intervalMinutes) { return now.plusSeconds(intervalMinutes * 60L); }
 
     record Status(boolean configured, String detail) {}

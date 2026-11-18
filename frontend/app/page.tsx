@@ -13,6 +13,7 @@ import { WatchSection } from '@/components/watch-section';
 import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
 import { RashifalSection } from '@/components/rashifal-section';
+import { AirQualityStrip } from '@/components/air-quality-strip';
 import { getPublicationSettings } from '@/lib/publication-api';
 
 export const dynamic = 'force-dynamic';
@@ -88,6 +89,7 @@ export default async function Home({
         ) : (
           <EmptyState />
         )}
+        <Suspense fallback={null}><AirQualityStrip /></Suspense>
         <Reveal>{settings.showVideo && <WatchSection articles={articles} />}</Reveal>
         <Suspense fallback={null}>{settings.showRashifal && <RashifalSection />}</Suspense>
         {remaining.length > 0 && (

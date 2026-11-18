@@ -23,7 +23,8 @@ import java.util.stream.Collectors;
 @Service
 class AutomationService {
     record Job(String key, String name, boolean enabled, int intervalMinutes, Instant nextRunAt,
-               Instant lastRunAt, String lastResult, boolean running, boolean configured, String configurationDetail, int failureCount) {}
+               Instant lastRunAt, String lastResult, boolean running, boolean configured, String configurationDetail,
+               int failureCount, int minIntervalMinutes, int maxIntervalMinutes) {}
     private static final Logger log = LoggerFactory.getLogger(AutomationService.class);
     private final JdbcTemplate jdbc;
     private final Horoscopes horoscopes;
@@ -47,7 +48,8 @@ class AutomationService {
             Timestamp lastRun = row.getTimestamp("last_run_at");
             return new Job(row.getString("job_key"), row.getString("name"), row.getBoolean("enabled"), row.getInt("interval_minutes"),
                     row.getTimestamp("next_run_at").toInstant(), lastRun == null ? null : lastRun.toInstant(),
-                    row.getString("last_result"), row.getBoolean("running"), status.configured(), status.detail(), row.getInt("failure_count"));
+                    row.getString("last_result"), row.getBoolean("running"), status.configured(), status.detail(), row.getInt("failure_count"),
+                    source == null ? 5 : source.minIntervalMinutes(), source == null ? 10080 : source.maxIntervalMinutes());
         });
     }
 
@@ -58,7 +60,10 @@ class AutomationService {
 
     Job update(String key, boolean enabled, int minutes) {
         Job existing = job(key);
-        if (minutes < 5 || minutes > 10080) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an interval between 5 minutes and 7 days");
+        if (minutes < existing.minIntervalMinutes() || minutes > existing.maxIntervalMinutes()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an interval between "
+                    + existing.minIntervalMinutes() + " and " + existing.maxIntervalMinutes() + " minutes.");
+        }
         if (enabled && !existing.configured()) throw new ResponseStatusException(HttpStatus.CONFLICT, existing.configurationDetail());
         transaction.executeWithoutResult(status -> {
             jdbc.update("UPDATE automation_job SET enabled=?, interval_minutes=?, next_run_at=CURRENT_TIMESTAMP WHERE job_key=?", enabled, minutes, key);
@@ -91,7 +96,8 @@ class AutomationService {
                         Timestamp.from(source.nextRun(clock.instant(), interval)), key);
             });
         } catch (Exception exception) {
-            String result = exception instanceof RestClientResponseException response && response.getStatusCode().value() == 401
+            String result = exception instanceof RestClientResponseException response
+                    && (response.getStatusCode().value() == 401 || response.getStatusCode().value() == 403)
                     ? "Provider rejected the key. Check local configuration. Existing content kept."
                     : exception instanceof RestClientResponseException response && response.getStatusCode().value() == 429
                     ? "Provider quota or rate limit reached. Existing content kept; a retry is scheduled."
