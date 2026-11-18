@@ -1,7 +1,7 @@
 .section {
   margin-block: clamp(24px, 4vw, 42px);
   padding: 10px 0 0;
-  border-block-start: 1px solid var(--brand-navy);
+  border-block-start: 1px solid var(--brand-ink);
 }
 .heading {
   display: flex;
@@ -38,7 +38,7 @@
   background: var(--surface);
 }
 .card:hover {
-  border-color: var(--brand-navy);
+  border-color: var(--brand-ink);
 }
 .cover {
   display: grid;
@@ -89,7 +89,7 @@
   aspect-ratio: 9 / 16;
   margin-inline: auto;
   border: 0;
-  background: white;
+  background: var(--surface-raised);
 }
 .permission {
   text-align: center;

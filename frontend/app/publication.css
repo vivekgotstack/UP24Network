@@ -65,7 +65,7 @@
   text-decoration: none;
 }
 .publication-sidebar a[aria-current='page'] {
-  color: var(--brand-navy);
+  color: var(--brand-ink);
   border-color: var(--brand-gold);
   font-weight: 600;
   background: var(--surface);
@@ -266,7 +266,7 @@
 .site-announcement {
   border-block: 1px solid var(--line);
   background: var(--brand-navy);
-  color: var(--paper);
+  color: var(--on-brand);
   padding: 12px 18px;
   font: 600 16px/1.7 var(--sans);
   overflow-wrap: anywhere;

@@ -12,6 +12,8 @@ const MAX_BODY_BYTES = 512 * 1024;
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 const REVIEW_BATCH = `admin/article-reviews/batches/${UUID}/[0-9]{4}-[0-9]{2}-[0-9]{2}`;
 const ARTICLE_VIEW = /^articles\/([\p{L}\p{N}\p{M}_-]{1,500})\/view$/u;
+const ARTICLE_RESOURCE = new RegExp(`^admin/articles/${UUID}$`, 'i');
+const ARTICLE_REVIEW = new RegExp(`^admin/articles/${UUID}/review$`, 'i');
 const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me|workflow)$/, ['GET']],
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
@@ -22,14 +24,14 @@ const endpoints: [RegExp, string[]][] = [
   [ARTICLE_VIEW, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
   [/^admin\/articles\/browse$/, ['GET']],
-  [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT', 'DELETE']],
+  [ARTICLE_RESOURCE, ['GET', 'PUT', 'DELETE']],
   [new RegExp(`^admin/articles/${UUID}/lifecycle$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/revisions$`, 'i'), ['GET']],
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+$`, 'i'), ['GET']],
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+/restore$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/continuations$`, 'i'), ['POST']],
-  [new RegExp(`^admin/articles/${UUID}/review$`, 'i'), ['GET', 'POST']],
+  [ARTICLE_REVIEW, ['GET', 'POST']],
   [/^admin\/article-reviews$/, ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}/return$`, 'i'), ['POST']],
@@ -118,13 +120,18 @@ async function proxy(request: NextRequest, context: Context) {
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
   try {
+    const articleEdit =
+      (request.method === 'POST' && (path === 'admin/articles' || ARTICLE_REVIEW.test(path))) ||
+      (request.method === 'PUT' && ARTICLE_RESOURCE.test(path));
     const maxBodyBytes = articleView
       ? 0
       : path === 'publication/newsletter'
         ? 4096
         : path === 'publication/contact'
           ? 32 * 1024
-          : MAX_BODY_BYTES;
+          : articleEdit
+            ? 1536 * 1024
+            : MAX_BODY_BYTES;
     const body = mutation ? await readLimitedBody(request, maxBodyBytes) : undefined;
     if (body === null) return problem('Request body is too large', 413);
     const contentType = request.headers.get('content-type')?.split(';')[0].trim();

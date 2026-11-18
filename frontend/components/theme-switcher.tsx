@@ -48,9 +48,12 @@ function applyTheme(preference: ThemePreference, resolved: 'dark' | 'light') {
 
 function changeTheme(preference: ThemePreference, trigger: HTMLElement | null) {
   const root = document.documentElement;
-  const resolved = preference === 'system'
-    ? (matchMedia(systemColourScheme).matches ? 'dark' : 'light')
-    : preference;
+  const resolved =
+    preference === 'system'
+      ? matchMedia(systemColourScheme).matches
+        ? 'dark'
+        : 'light'
+      : preference;
   const update = () => applyTheme(preference, resolved);
   if (
     root.dataset.theme === resolved ||
@@ -97,9 +100,17 @@ export function ThemeSwitcher({ locale = 'hi' }: { locale?: 'hi' | 'en' }) {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content className={styles.menu} align="end" sideOffset={6} collisionPadding={12}>
+        <DropdownMenu.Content
+          className={styles.menu}
+          align="end"
+          sideOffset={6}
+          collisionPadding={12}
+        >
           <DropdownMenu.Label className={styles.label}>{label}</DropdownMenu.Label>
-          <DropdownMenu.RadioGroup value={preference} onValueChange={(value) => changeTheme(parseThemePreference(value), trigger.current)}>
+          <DropdownMenu.RadioGroup
+            value={preference}
+            onValueChange={(value) => changeTheme(parseThemePreference(value), trigger.current)}
+          >
             {options.map(({ value, Icon, ...copy }) => (
               <DropdownMenu.RadioItem key={value} value={value} className={styles.item}>
                 <Icon size={17} aria-hidden="true" />

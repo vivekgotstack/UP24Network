@@ -5,75 +5,87 @@ import { SocialIcon } from '@/components/social-icon';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
-import { regions } from '@/lib/regions';
+import { regions, regionTitle } from '@/lib/regions';
 import { getPublicationSettings, getPublicationNavigation } from '@/lib/publication-api';
+import { copy, publicationLabel, publicationTagline } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
+import { textLanguage } from '@/lib/language';
+
+const defaultFooterDescription = 'उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।';
+const yearInIndia = new Intl.DateTimeFormat('en-IN', { year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 export async function SiteFooter() {
-  const [settings, publicationNavigation] = await Promise.all([
+  const [settings, publicationNavigation, locale] = await Promise.all([
     getPublicationSettings(),
     getPublicationNavigation(),
+    getReaderLocale(),
   ]);
+  const officialChannelsLabel = copy(locale, 'आधिकारिक चैनल', 'Official channels');
+  const footerDescription = settings.footerDescription === defaultFooterDescription
+    ? copy(locale, defaultFooterDescription, 'News from Uttar Pradesh, India, and the world. Local stories, clear context, and responsible journalism.')
+    : settings.footerDescription;
   return (
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
         <EditionArt
           sizes="(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px"
-          tagline={settings.tagline}
+          tagline={publicationTagline(locale, settings.tagline)}
+          locale={locale}
         />
-        <nav className="social-links" aria-label="Official UP24Network channels">
-          <h2 className="footer-social-heading" lang="hi">
-            आधिकारिक चैनल
+        <nav className="social-links" aria-label={officialChannelsLabel}>
+          <h2 className="footer-social-heading">
+            {officialChannelsLabel}
           </h2>
           {brand.socials.map((social) => (
             <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
               <SocialIcon name={social.name} />
               {social.name}
-              <span className="sr-only"> (opens in a new tab)</span>
+              <span className="sr-only"> {copy(locale, '(नए टैब में खुलेगा)', '(opens in a new tab)')}</span>
             </a>
           ))}
         </nav>
       </div>
-      {settings.footerDescription && (
-        <p className="footer-description" lang="hi">
-          {settings.footerDescription}
+      {footerDescription && (
+        <p className="footer-description" lang={textLanguage(footerDescription)}>
+          {footerDescription}
         </p>
       )}
-      <NewsletterSection />
+      <NewsletterSection locale={locale} />
       <div className="footer-directory">
         {sectionGroups.map((group) => (
-          <nav key={group.title} aria-label={group.title}>
-            <h2>{group.title}</h2>
+          <nav key={group.title} aria-label={copy(locale, group.title, group.englishTitle)}>
+            <h2>{copy(locale, group.title, group.englishTitle)}</h2>
             {newsSections
               .filter((section) => group.slugs.includes(section.slug))
               .map((section) => (
                 <Link key={section.slug} href={sectionHref(section.name)}>
-                  {section.title}
+                  {copy(locale, section.title, section.name)}
                 </Link>
               ))}
           </nav>
         ))}
-        <nav aria-label="States">
+        <nav aria-label={copy(locale, 'राज्य', 'States')}>
           <h2>
-            <Link href="/regions">राज्य और शहर</Link>
+            <Link href="/regions">{copy(locale, 'राज्य और शहर', 'States and cities')}</Link>
           </h2>
           {regions.map((region) => (
             <Link key={region.slug} href={`/region/${region.slug}`}>
-              {region.title}
+              {regionTitle(region, locale)}
             </Link>
           ))}
         </nav>
       </div>
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} UP24Network</p>
-        <nav aria-label="Publication information">
-          <Link href="/archive">खबरों का संग्रह</Link>
+        <p>© {yearInIndia.format(new Date())} UP24Network</p>
+        <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
+          <Link href="/archive">{copy(locale, 'खबरों का संग्रह', 'News archive')}</Link>
           {publicationNavigation.map(({ path, label }) => (
             <Link key={path} href={path}>
-              {label}
+              {publicationLabel(locale, path, label)}
             </Link>
           ))}
         </nav>
-        <a href="#top">Back to top</a>
+        <a href="#top">{copy(locale, 'ऊपर जाएँ', 'Back to top')}</a>
         <CookiePreferences />
       </div>
     </footer>

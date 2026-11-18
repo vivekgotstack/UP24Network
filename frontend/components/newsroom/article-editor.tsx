@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ArticleConflict } from '@/components/newsroom/article-conflict';
-import { EditorialCityPicker, EditorialSectionPicker } from '@/components/newsroom/editorial-picker';
+import {
+  EditorialCityPicker,
+  EditorialSectionPicker,
+} from '@/components/newsroom/editorial-picker';
 import { ContinueStoryButton } from '@/components/newsroom/continue-story-button';
 import { EditorialVideoPreview } from '@/components/newsroom/editorial-video-preview';
 import {
@@ -25,6 +28,7 @@ import {
   slugify,
   videoId,
   allowedMedia,
+  emptyEnglishDraft,
   type Draft,
   type ManagedArticle,
   type SaveArticle,
@@ -119,9 +123,13 @@ export function ArticleEditor({
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [unsaved]);
-  const set = (key: keyof Draft, value: string) => {
+  const set = (key: Exclude<keyof Draft, 'english'>, value: string) => {
     touched.current = true;
     setDraft((current) => ({ ...current, [key]: value }));
+  };
+  const setEnglish = (key: keyof Draft['english'], value: string) => {
+    touched.current = true;
+    setDraft((current) => ({ ...current, english: { ...current.english, [key]: value } }));
   };
   function headline(value: string) {
     touched.current = true;
@@ -158,6 +166,13 @@ export function ArticleEditor({
       throw new Error('Use letters, numbers and hyphens for the article slug.');
     if (!allowedMedia(draft.image) || (!reelArticle && !allowedMedia(draft.videoUrl, false)))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
+    const { title, summary, body } = draft.english;
+    if (
+      Object.values(draft.english).some((field) => field.trim()) &&
+      (!title.trim() || !summary.trim() || !body.trim())
+    ) {
+      throw new Error('Complete the English headline, summary, and report together.');
+    }
     return {
       ...draft,
       version,
@@ -210,6 +225,14 @@ export function ArticleEditor({
     setDraft((current) => ({
       ...returnedDraft,
       reelUrl: returnedDraft.reelUrl ?? '',
+      english: returnedDraft.english
+        ? {
+            title: returnedDraft.english.title ?? '',
+            summary: returnedDraft.english.summary ?? '',
+            body: returnedDraft.english.body ?? '',
+            imageAlt: returnedDraft.english.imageAlt ?? '',
+          }
+        : current.english,
       byline: current.byline,
     }));
   }
@@ -403,7 +426,10 @@ export function ArticleEditor({
             </label>
           )}
           <div className="cms-form-row">
-            <EditorialSectionPicker value={draft.category} choose={(value) => set('category', value)} />
+            <EditorialSectionPicker
+              value={draft.category}
+              choose={(value) => set('category', value)}
+            />
             <EditorialCityPicker
               value={draft.city}
               required={requireDateline}
@@ -503,6 +529,64 @@ export function ArticleEditor({
               {wordCount} words · Separate paragraphs with a blank line.
             </span>
           </label>
+          <details className="reporting-notes" lang="en">
+            <summary>English translation</summary>
+            <p className="field-help">
+              Add a reviewed translation for the English edition. Include a headline, summary, and
+              full report.
+            </p>
+            <label>
+              English headline
+              <input
+                name="englishTitle"
+                maxLength={500}
+                value={draft.english.title}
+                onChange={(event) => setEnglish('title', event.target.value)}
+              />
+            </label>
+            <label>
+              English summary
+              <textarea
+                name="englishSummary"
+                rows={3}
+                maxLength={2000}
+                value={draft.english.summary}
+                onChange={(event) => setEnglish('summary', event.target.value)}
+              />
+            </label>
+            <label>
+              English report
+              <textarea
+                name="englishBody"
+                rows={10}
+                maxLength={100000}
+                value={draft.english.body}
+                onChange={(event) => setEnglish('body', event.target.value)}
+              />
+            </label>
+            <label>
+              English photograph description
+              <input
+                name="englishImageAlt"
+                maxLength={500}
+                value={draft.english.imageAlt}
+                onChange={(event) => setEnglish('imageAlt', event.target.value)}
+              />
+            </label>
+            {Object.values(draft.english).some(Boolean) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  touched.current = true;
+                  setDraft((current) => ({ ...current, english: emptyEnglishDraft }));
+                }}
+              >
+                Clear English translation
+              </Button>
+            )}
+          </details>
           <fieldset className="media-fields">
             <legend>{reelArticle ? 'Instagram Reel & cover' : 'Photograph & video'}</legend>
             {reelArticle && (
@@ -643,7 +727,11 @@ export function ArticleEditor({
               </Button>
             )}
             {article?.status === 'PUBLISHED' && session.data && (
-              <ContinueStoryButton article={article} user={session.data} disabled={busy || unsaved} />
+              <ContinueStoryButton
+                article={article}
+                user={session.data}
+                disabled={busy || unsaved}
+              />
             )}
             <Button
               type="button"
@@ -656,7 +744,8 @@ export function ArticleEditor({
           </div>
           {adminMode && article?.status === 'PUBLISHED' && (
             <p className="field-help">
-              Saving updates the live report. Use Continue story to draft the next version separately.
+              Saving updates the live report. Use Continue story to draft the next version
+              separately.
             </p>
           )}
           {proposedUpdate && (

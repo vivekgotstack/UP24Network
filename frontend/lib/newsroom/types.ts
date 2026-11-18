@@ -11,6 +11,20 @@ export type ManagedArticle = {
   sourceNotes: string;
   region: string;
 };
+export type EnglishArticleDraft = {
+  title: string;
+  summary: string;
+  body: string;
+  imageAlt: string;
+};
+
+export const emptyEnglishDraft: EnglishArticleDraft = {
+  title: '',
+  summary: '',
+  body: '',
+  imageAlt: '',
+};
+
 export type Draft = {
   title: string;
   slug: string;
@@ -24,12 +38,14 @@ export type Draft = {
   youtubeId: string;
   reelUrl: string;
   body: string;
+  english: EnglishArticleDraft;
   sourceNotes: string;
   byline: string;
 };
-export type SaveArticle = Omit<Draft, 'reelUrl'> & {
+export type SaveArticle = Omit<Draft, 'reelUrl' | 'english'> & {
   version: number | null;
   reelUrl?: string | null;
+  english?: EnglishArticleDraft | null;
 };
 export const emptyDraft: Draft = {
   title: '',
@@ -44,6 +60,7 @@ export const emptyDraft: Draft = {
   youtubeId: '',
   reelUrl: '',
   body: '',
+  english: emptyEnglishDraft,
   sourceNotes: '',
   byline: '',
 };
@@ -62,6 +79,14 @@ export function toDraft(row?: ManagedArticle | null): Draft {
         youtubeId: row.article.youtubeId ?? '',
         reelUrl: row.article.reelUrl ?? '',
         body: row.article.paragraphs.join('\n\n'),
+        english: row.article.english
+          ? {
+              title: row.article.english.title,
+              summary: row.article.english.summary,
+              body: row.article.english.paragraphs.join('\n\n'),
+              imageAlt: row.article.english.imageAlt ?? '',
+            }
+          : emptyEnglishDraft,
         sourceNotes: row.sourceNotes ?? '',
         byline: row.article.author,
       }

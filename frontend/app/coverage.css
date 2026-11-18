@@ -35,7 +35,7 @@
     display: flex;
     width: min(330px, 40%);
     border: 1px solid var(--line);
-    background: white;
+    background: var(--surface-control);
   }
   .header-search input {
     min-width: 0;
@@ -46,8 +46,8 @@
   .header-search button {
     flex-shrink: 0;
     padding: 9px 16px;
-    background: var(--brand-navy);
-    color: white;
+    background: var(--primary);
+    color: var(--primary-foreground);
   }
   .section-nav {
     gap: 23px;
@@ -293,7 +293,7 @@
     color: var(--ink);
     padding: 30px;
     border-top: 5px solid var(--brand-gold);
-    box-shadow: 0 20px 70px #071c3640;
+    box-shadow: 0 20px 70px var(--shadow-colour);
   }
   .section-dialog-heading {
     display: flex;
@@ -313,7 +313,7 @@
     gap: 10px;
     margin: 22px 0;
     border: 1px solid var(--line);
-    background: white;
+    background: var(--surface-control);
     padding: 10px 14px;
   }
   .menu-search input {
@@ -481,5 +481,5 @@
 .archive-filter { display: flex; flex-wrap: wrap; gap: 18px; align-items: end; padding-block: 20px 34px; }
 .archive-filter label { display: grid; gap: 7px; min-width: 130px; font: 600 16px/1.6 var(--sans); }
 .archive-filter select,.archive-filter button { min-height: 46px; padding: 10px 16px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--sans); }
-.archive-filter button { cursor: pointer; border-color: var(--brand-navy); }
+.archive-filter button { cursor: pointer; border-color: var(--brand-ink); }
 @media(max-width:450px) { .archive-filter { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .archive-filter label { min-width: 0; } .archive-filter select { min-width: 0; max-width: 100%; } .archive-filter button { grid-column: 1/-1; } }

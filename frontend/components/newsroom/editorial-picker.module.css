@@ -75,11 +75,11 @@
   padding-inline: 12px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: white;
+  background: var(--surface-control);
 }
 
 .search:focus-within {
-  outline: 2px solid var(--brand-navy);
+  outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
 }
 
@@ -132,7 +132,7 @@
   background: var(--surface);
 }
 .option:focus-visible {
-  outline: 2px solid var(--brand-navy);
+  outline: 2px solid var(--focus-outline);
   outline-offset: -2px;
 }
 .option svg {
@@ -163,8 +163,8 @@
     font: 400 13px/1.4 var(--sans);
   }
   .drop[data-dragging='true'] {
-    border-color: var(--brand-navy);
-    color: var(--brand-navy);
+    border-color: var(--brand-ink);
+    color: var(--brand-ink);
   }
 }
 

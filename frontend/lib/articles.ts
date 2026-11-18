@@ -19,6 +19,12 @@ export type Article = {
   reelUrl?: string | null;
   editionNumber?: number;
   continuationOfSlug?: string | null;
+  english?: {
+    title: string;
+    summary: string;
+    paragraphs: string[];
+    imageAlt?: string | null;
+  } | null;
   breaking: boolean;
   sourceUrl: string | null;
 };

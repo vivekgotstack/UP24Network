@@ -28,7 +28,7 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   color: var(--ink);
-  background: #fff;
+  background: var(--surface-control);
   padding: 11px 13px;
   font: 400 16px/1.7 var(--sans);
 }
@@ -54,7 +54,7 @@
   gap: 22px;
   padding: 25px;
   border: 1px solid var(--line);
-  background: #fff7;
+  background: var(--surface-wash);
   border-radius: 5px;
 }
 .card h2 {
@@ -87,7 +87,7 @@
 .toggle input {
   width: 20px;
   height: 20px;
-  accent-color: var(--brand-navy);
+  accent-color: var(--primary);
   flex: 0 0 auto;
   margin-top: 4px;
 }
@@ -124,7 +124,7 @@
   min-width: 0;
   border: 1px solid var(--line);
   padding: 25px;
-  background: #fff7;
+  background: var(--surface-wash);
   border-radius: 5px;
 }
 .section h3 {
@@ -148,14 +148,14 @@
 .feedback {
   padding: 14px 18px;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface-control);
   font-size: 15px;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 .error {
-  border-color: #ac263a;
-  color: #892235;
+  border-color: var(--danger-line);
+  color: var(--danger-ink);
 }
 .helper {
   color: var(--muted);

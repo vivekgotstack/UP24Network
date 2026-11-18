@@ -56,6 +56,18 @@ export function ArticlePreview({
             </p>
           ))}
         </div>
+        {row.article.english && (
+          <details className="reporting-notes" lang="en">
+            <summary>English translation</summary>
+            <div className="article-body">
+              <h3>{row.article.english.title}</h3>
+              <p className="article-deck">{row.article.english.summary}</p>
+              {row.article.english.paragraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+          </details>
+        )}
       </article>
     </section>
   );

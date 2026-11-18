@@ -6,12 +6,13 @@ import { Dialog } from 'radix-ui';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { saveConsent, useConsent } from '@/lib/consent';
+import { copy, type SiteLocale } from '@/lib/locale';
 import styles from './cookie-consent.module.css';
 
-const OpenCookiePreferences = createContext<(trigger: HTMLButtonElement) => void>(() => {});
+const CookieDialog = createContext<{ locale: SiteLocale; open: (trigger: HTMLButtonElement) => void }>({ locale: 'hi', open: () => {} });
 
-export function CookiePreferences({ children = 'कुकी सेटिंग्स' }: { children?: ReactNode }) {
-  const open = useContext(OpenCookiePreferences);
+export function CookiePreferences({ children }: { children?: ReactNode }) {
+  const { open, locale } = useContext(CookieDialog);
   return (
     <button
       type="button"
@@ -19,12 +20,12 @@ export function CookiePreferences({ children = 'कुकी सेटिंग�
       aria-haspopup="dialog"
       onClick={(event) => open(event.currentTarget)}
     >
-      {children}
+      {children ?? copy(locale, 'कुकी सेटिंग्स', 'Cookie settings')}
     </button>
   );
 }
 
-export function CookiePreferencesProvider({ children }: { children: ReactNode }) {
+export function CookiePreferencesProvider({ children, locale }: { children: ReactNode; locale: SiteLocale }) {
   const { choice } = useConsent();
   const [open, setOpen] = useState(false),
     [video, setVideo] = useState(false);
@@ -39,14 +40,14 @@ export function CookiePreferencesProvider({ children }: { children: ReactNode })
     saveConsent(externalVideo);
   }
   return (
-    <OpenCookiePreferences.Provider value={show}>
+    <CookieDialog.Provider value={{ open: show, locale }}>
       {children}
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className={styles.overlay} />
           <Dialog.Content
             className={styles.dialog}
-            lang="hi"
+            lang={locale}
             onCloseAutoFocus={(event) => {
               if (returnFocus.current?.isConnected) {
                 event.preventDefault();
@@ -54,81 +55,80 @@ export function CookiePreferencesProvider({ children }: { children: ReactNode })
               }
             }}
           >
-            <Dialog.Title>आपकी गोपनीयता, आपकी पसंद</Dialog.Title>
+            <Dialog.Title>{copy(locale, 'गोपनीयता सेटिंग्स', 'Privacy settings')}</Dialog.Title>
             <Dialog.Description>
-              पढ़ने के लिए वैकल्पिक सेवाओं की अनुमति देना ज़रूरी नहीं है। अपनी पसंद कभी भी बदल सकते हैं।
+              {copy(locale, 'आप वैकल्पिक सेवाएँ बंद रखकर भी पढ़ सकते हैं। अपनी पसंद कभी भी बदलें।', 'You can read with optional services turned off. Change your choices anytime.')}
             </Dialog.Description>
             <div className={styles.option}>
               <div>
-                <strong>ज़रूरी सुविधाएँ</strong>
-                <p>सुरक्षित लॉगिन, सुरक्षा जाँच और आपकी कुकी पसंद को याद रखने के लिए।</p>
+                <strong>{copy(locale, 'ज़रूरी सुविधाएँ', 'Essential services')}</strong>
+                <p>{copy(locale, 'सुरक्षित लॉगिन, सुरक्षा जाँच और आपकी कुकी पसंद याद रखने के लिए।', 'These support sign-in, security checks, and your cookie preferences.')}</p>
               </div>
-              <span>हमेशा चालू</span>
+              <span>{copy(locale, 'हमेशा चालू', 'Always on')}</span>
             </div>
             <label className={styles.option}>
               <span>
-                <strong>बाहरी वीडियो</strong>
+                <strong>{copy(locale, 'बाहरी वीडियो', 'External videos')}</strong>
                 <span className={styles.explanation}>
-                  अनुमति देकर वीडियो चलाने पर YouTube या Instagram का प्लेयर लोड होगा। उस सेवा को आपका IP
-                  पता और डिवाइस की जानकारी मिल सकती है।
+                  {copy(locale, 'अनुमति देकर वीडियो चलाने पर YouTube या Instagram का प्लेयर लोड होगा। उस सेवा को आपका IP पता और डिवाइस की जानकारी मिल सकती है।', 'When you allow and play a video, YouTube or Instagram loads its player and may receive your IP address and device information.')}
                 </span>
               </span>
               <input
-                aria-label="YouTube और Instagram के वीडियो की अनुमति"
+                aria-label={copy(locale, 'YouTube और Instagram के वीडियो की अनुमति', 'Allow YouTube and Instagram videos')}
                 type="checkbox"
                 checked={video}
                 onChange={(event) => setVideo(event.target.checked)}
               />
             </label>
             <p>
-              यह साइट अभी विज्ञापन ट्रैकिंग या बाहरी एनालिटिक्स नहीं चलाती।{' '}
+              {copy(locale, 'यह साइट अभी विज्ञापन ट्रैकिंग या बाहरी एनालिटिक्स नहीं चलाती।', 'The site currently uses no advertising trackers or external analytics.')}{' '}
               <Link href="/cookies" onClick={() => setOpen(false)}>
-                कुकी नीति
+                {copy(locale, 'कुकी नीति', 'Cookie policy')}
               </Link>{' '}
               ·{' '}
               <Link href="/privacy" onClick={() => setOpen(false)}>
-                गोपनीयता नीति
+                {copy(locale, 'गोपनीयता नीति', 'Privacy policy')}
               </Link>
             </p>
             <div className={styles.actions}>
               <Button variant="outline" onClick={() => save(false)}>
-                वैकल्पिक सेवाएँ अस्वीकार करें
+                {copy(locale, 'वैकल्पिक सेवाएँ अस्वीकार करें', 'Reject optional services')}
               </Button>
               <Button variant="outline" onClick={() => save(video)}>
-                मेरी पसंद सहेजें
+                {copy(locale, 'पसंद सहेजें', 'Save choices')}
               </Button>
             </div>
             <Dialog.Close asChild>
-              <button className={styles.close} aria-label="सेटिंग्स बंद करें">
+              <button className={styles.close} aria-label={copy(locale, 'सेटिंग्स बंद करें', 'Close settings')}>
                 <X size={22} />
               </button>
             </Dialog.Close>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </OpenCookiePreferences.Provider>
+    </CookieDialog.Provider>
   );
 }
-export function CookieConsent() {
+export function CookieConsent({ locale }: { locale: SiteLocale }) {
   const { choice, ready } = useConsent();
   if (!ready || choice) return null;
   return (
-    <section className={styles.banner} aria-label="कुकी और गोपनीयता विकल्प" lang="hi">
+    <section className={styles.banner} aria-label={copy(locale, 'कुकी और गोपनीयता विकल्प', 'Cookie and privacy choices')} lang={locale}>
       <div>
-        <h2>आपकी गोपनीयता का सम्मान</h2>
+        <h2>{copy(locale, 'कुकी और गोपनीयता', 'Cookies and privacy')}</h2>
         <p>
-          ज़रूरी कुकी सुरक्षित सुविधाएँ चलाती हैं। YouTube और Instagram के वीडियो आपकी अनुमति के बाद ही लोड होते
-          हैं। आप वैकल्पिक सेवाएँ अस्वीकार करके भी खबरें पढ़ सकते हैं। <Link href="/cookies">जानें कैसे</Link>
+          {copy(locale, 'ज़रूरी कुकी साइट को सुरक्षित ढंग से चलाती हैं। YouTube और Instagram के वीडियो आपकी अनुमति पर लोड होते हैं।', 'Essential cookies help keep the site secure. YouTube and Instagram videos load with your permission.')}{' '}
+          <Link href="/cookies">{copy(locale, 'कुकी नीति', 'Cookie policy')}</Link>
         </p>
       </div>
       <div className={styles.actions}>
         <Button variant="outline" onClick={() => saveConsent(false)}>
-          वैकल्पिक सेवाएँ अस्वीकार करें
+          {copy(locale, 'वैकल्पिक सेवाएँ अस्वीकार करें', 'Reject optional services')}
         </Button>
         <Button variant="outline" onClick={() => saveConsent(true)}>
-          वैकल्पिक सेवाएँ स्वीकार करें
+          {copy(locale, 'वैकल्पिक सेवाएँ स्वीकार करें', 'Allow optional services')}
         </Button>
-        <CookiePreferences>पसंद चुनें</CookiePreferences>
+        <CookiePreferences>{copy(locale, 'पसंद चुनें', 'Customize')}</CookiePreferences>
       </div>
     </section>
   );

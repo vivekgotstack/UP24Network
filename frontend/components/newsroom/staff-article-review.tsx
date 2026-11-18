@@ -127,6 +127,14 @@ export function StaffReviewStatus({
               <p className={styles.prose} lang={textLanguage(latestInput.body)}>
                 {latestInput.body}
               </p>
+              {latestInput.english?.title && (
+                <section lang="en">
+                  <h4>English translation</h4>
+                  <h5>{latestInput.english.title}</h5>
+                  <p className={styles.prose}>{latestInput.english.summary}</p>
+                  <p className={styles.prose}>{latestInput.english.body}</p>
+                </section>
+              )}
             </div>
           </details>
         ))}

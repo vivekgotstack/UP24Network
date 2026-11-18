@@ -3,20 +3,24 @@ import { SocialIcon } from '@/components/social-icon';
 import type { Article } from '@/lib/articles';
 import { brand } from '@/lib/brand';
 import { textLanguage } from '@/lib/language';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
+import { localizeArticle } from '@/lib/article-locale';
 
-export function HeadlineTicker({ articles }: { articles: Article[] }) {
+export async function HeadlineTicker({ articles }: { articles: Article[] }) {
+  const locale = await getReaderLocale();
   const recentBreaking = articles.filter(
     (article) =>
       article.breaking && Date.now() - new Date(article.publishedAt).getTime() < 86400000,
   );
-  const headlines = (recentBreaking.length ? recentBreaking : articles).slice(0, 6);
+  const headlines = (recentBreaking.length ? recentBreaking : articles).slice(0, 6).map((article) => localizeArticle(article, locale));
   if (!headlines.length) return null;
   return (
     <section
       className="headline-ticker"
-      aria-label={recentBreaking.length ? 'Breaking news headlines' : 'Latest headlines'}
+      aria-label={copy(locale, 'मुख्य खबरें', 'Headlines')}
     >
-      <strong>{recentBreaking.length ? 'Breaking news' : 'Latest'}</strong>
+      <strong>{recentBreaking.length ? copy(locale, 'ब्रेकिंग', 'Breaking') : copy(locale, 'ताज़ा', 'Latest')}</strong>
       <div className="ticker-window">
         <div className="ticker-track">
           {[0, 1].map((copy) => (
@@ -35,15 +39,15 @@ export function HeadlineTicker({ articles }: { articles: Article[] }) {
           ))}
         </div>
       </div>
-      <nav className="ticker-follow" aria-label="Follow UP24Network">
-        <span>Follow us</span>
+      <nav className="ticker-follow" aria-label={copy(locale, 'UP24Network को फ़ॉलो करें', 'Follow UP24Network')}>
+        <span>{copy(locale, 'फ़ॉलो करें', 'Follow us')}</span>
         {brand.socials.map((social) => (
           <a
             key={social.name}
             href={social.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Follow UP24Network on ${social.name} (opens in a new tab)`}
+            aria-label={copy(locale, `${social.name} पर UP24Network को फ़ॉलो करें`, `Follow UP24Network on ${social.name}`)}
             title={social.name}
           >
             <SocialIcon name={social.name} />

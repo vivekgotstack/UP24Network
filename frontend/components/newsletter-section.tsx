@@ -3,33 +3,34 @@ import { Suspense } from 'react';
 import { NewsletterForm } from '@/components/newsletter-form';
 import { Button } from '@/components/ui/button';
 import { getNewsletterAvailability } from '@/lib/publication-api';
+import { copy, type SiteLocale } from '@/lib/locale';
 import styles from './newsletter.module.css';
 
-async function Signup() {
+async function Signup({ locale }: { locale: SiteLocale }) {
   if (!(await getNewsletterAvailability())) {
-    return <p className={styles.notice}>नई न्यूज़लेटर सदस्यता अभी उपलब्ध नहीं है।</p>;
+    return <p className={styles.notice}>{copy(locale, 'नई न्यूज़लेटर सदस्यता अभी उपलब्ध नहीं है।', 'New newsletter subscriptions are currently unavailable.')}</p>;
   }
-  return <NewsletterForm />;
+  return <NewsletterForm locale={locale} />;
 }
 
-export function NewsletterSection({ variant = 'compact' }: { variant?: 'compact' | 'page' }) {
+export function NewsletterSection({ variant = 'compact', locale = 'hi' }: { variant?: 'compact' | 'page'; locale?: SiteLocale }) {
   if (variant === 'page') {
     return (
-      <section id="newsletter-signup" className={styles.signup} aria-label="न्यूज़लेटर सदस्यता">
-        <Suspense fallback={<p role="status">सदस्यता फ़ॉर्म लोड हो रहा है…</p>}>
-          <Signup />
+      <section id="newsletter-signup" className={styles.signup} aria-label={copy(locale, 'न्यूज़लेटर सदस्यता', 'Newsletter subscription')} lang={locale}>
+        <Suspense fallback={<p role="status">{copy(locale, 'सदस्यता फ़ॉर्म लोड हो रहा है…', 'Loading the signup form…')}</p>}>
+          <Signup locale={locale} />
         </Suspense>
       </section>
     );
   }
   return (
-    <section className={styles.footer} aria-label="UP24Network न्यूज़लेटर" lang="hi">
+    <section className={styles.footer} aria-label={copy(locale, 'UP24Network न्यूज़लेटर', 'UP24Network newsletter')} lang={locale}>
       <div>
-        <h2>न्यूज़लेटर</h2>
-        <p>उत्तर प्रदेश और देश की चुनिंदा खबरें अपने ईमेल पर पाएं।</p>
+        <h2>{copy(locale, 'न्यूज़लेटर', 'Newsletter')}</h2>
+        <p>{copy(locale, 'उत्तर प्रदेश और देश की चुनिंदा खबरें अपने ईमेल पर पाएँ।', 'Get selected stories from Uttar Pradesh and across India in your inbox.')}</p>
       </div>
       <Button asChild size="lg">
-        <Link href="/newsletter">न्यूज़लेटर देखें</Link>
+        <Link href="/newsletter">{copy(locale, 'न्यूज़लेटर देखें', 'See newsletter')}</Link>
       </Button>
     </section>
   );

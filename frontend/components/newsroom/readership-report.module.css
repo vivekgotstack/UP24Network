@@ -57,7 +57,7 @@
 .totals > div {
   padding: clamp(12px, 3vw, 24px);
   border: 1px solid var(--line);
-  border-block-start: 3px solid var(--brand-navy);
+  border-block-start: 3px solid var(--brand-ink);
   background: var(--surface);
 }
 

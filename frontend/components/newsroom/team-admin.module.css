@@ -21,7 +21,7 @@
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: #fff9;
+  background: var(--surface-wash);
   padding: 10px;
   min-width: 0;
   max-width: 100%;

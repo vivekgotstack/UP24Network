@@ -37,7 +37,7 @@
     cursor: not-allowed;
   }
   :focus-visible {
-    outline: 3px solid #9c7a0f;
+    outline: 3px solid var(--focus-outline);
     outline-offset: 4px;
   }
   ::selection {
@@ -59,6 +59,7 @@
     left: 16px;
     padding: 14px 20px;
     background: var(--brand-gold);
+    color: var(--brand-navy);
   }
   .skip-link:focus {
     top: 12px;
@@ -289,7 +290,7 @@
     padding-inline: 8px;
     border-inline-start: 1px solid var(--line);
     background: var(--surface);
-    color: var(--brand-navy);
+    color: var(--brand-ink);
     font: 600 13px/1.25 var(--sans);
     white-space: nowrap;
   }
@@ -525,7 +526,7 @@
     margin-top: 10px;
   }
   .news-list-number {
-    color: #a4aba7;
+    color: var(--muted);
     font: 400 34px/1.3 var(--serif);
     min-width: 35px;
   }
@@ -553,7 +554,7 @@
   }
   .watch-section {
     background: var(--brand-navy);
-    color: var(--paper);
+    color: var(--on-brand);
     padding: 34px;
     margin-top: 60px;
     border-top: 4px solid var(--brand-gold);
@@ -751,7 +752,7 @@
     min-width: 0;
     border: 1px solid var(--line);
     padding: 11px 14px;
-    background: #fff8;
+    background: var(--surface-control);
     font-size: 16px;
     border-radius: 3px;
   }
@@ -1145,7 +1146,7 @@
     padding: 30px 0;
   }
   .skeleton {
-    background: linear-gradient(90deg, #e8e8df, #f2f2eb, #e8e8df);
+    background: linear-gradient(90deg, var(--skeleton-shade), var(--skeleton-highlight), var(--skeleton-shade));
     background-size: 200% 100%;
     animation: shimmer 1.6s linear infinite;
   }

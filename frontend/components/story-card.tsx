@@ -6,8 +6,13 @@ import { CoverImage } from '@/components/cover-image';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { shortDate } from '@/lib/news';
+import { getReaderLocale } from '@/lib/reader-locale';
+import { copy } from '@/lib/locale';
+import { localizeArticle } from '@/lib/article-locale';
 
-export function StoryCard({ article, lead = false }: { article: Article; lead?: boolean }) {
+export async function StoryCard({ article: input, lead = false }: { article: Article; lead?: boolean }) {
+  const locale = await getReaderLocale();
+  const article = localizeArticle(input, locale);
   return (
     <article className={`story-card ${lead ? 'lead-story' : ''}`}>
       <div className="story-image">
@@ -26,10 +31,10 @@ export function StoryCard({ article, lead = false }: { article: Article; lead?: 
       </div>
       <div className="story-copy">
         <p className="story-category">
-          <Link href={sectionHref(article.category)} lang="hi">
-            {sectionTitle(article.category)}
+          <Link href={sectionHref(article.category)}>
+            {sectionTitle(article.category, locale)}
           </Link>
-          {article.breaking && <span className="breaking-label">Breaking</span>}
+          {article.breaking && <span className="breaking-label">{copy(locale, 'ब्रेकिंग', 'Breaking')}</span>}
         </p>
         <h2 lang={textLanguage(article.title)}>
           <Link href={`/news/${article.slug}`}>{article.title}</Link>
@@ -40,11 +45,11 @@ export function StoryCard({ article, lead = false }: { article: Article; lead?: 
           </p>
         )}
         <div className="story-meta">
-          <time dateTime={article.publishedAt}>{shortDate(article.publishedAt)}</time>
+          <time dateTime={article.publishedAt}>{shortDate(article.publishedAt, locale)}</time>
           <span>
             {article.youtubeId || article.videoUrl
-              ? 'Video report'
-              : `${article.readingMinutes} min read`}
+              ? copy(locale, 'वीडियो रिपोर्ट', 'Video report')
+              : copy(locale, `${article.readingMinutes} मिनट`, `${article.readingMinutes} min read`)}
           </span>
         </div>
       </div>

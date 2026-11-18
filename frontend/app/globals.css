@@ -58,6 +58,7 @@
 
 :root {
   color-scheme: light dark;
+  background: var(--paper);
   --ink: light-dark(#102137, #e9eff7);
   --brand-navy: #071c36;
   --brand-gold: #f4d03f;
@@ -101,8 +102,18 @@
   --ring: light-dark(#526780, #f4d03f);
   --muted-foreground: var(--muted);
 }
-:root[data-theme='light'] { color-scheme: light; }
-:root[data-theme='dark'] { color-scheme: dark; }
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media print {
+  :root[data-theme] {
+    color-scheme: light;
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   :root[data-theme-reveal]::view-transition-old(root),
@@ -110,14 +121,20 @@
     animation: none;
     mix-blend-mode: normal;
   }
-  :root[data-theme-reveal]::view-transition-old(root) { z-index: 0; }
+  :root[data-theme-reveal]::view-transition-old(root) {
+    z-index: 0;
+  }
   :root[data-theme-reveal]::view-transition-new(root) {
     z-index: 1;
     animation: reveal-site-theme 440ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
   @keyframes reveal-site-theme {
-    from { clip-path: circle(0 at var(--theme-reveal-x) var(--theme-reveal-y)); }
-    to { clip-path: circle(var(--theme-reveal-radius) at var(--theme-reveal-x) var(--theme-reveal-y)); }
+    from {
+      clip-path: circle(0 at var(--theme-reveal-x) var(--theme-reveal-y));
+    }
+    to {
+      clip-path: circle(var(--theme-reveal-radius) at var(--theme-reveal-x) var(--theme-reveal-y));
+    }
   }
 }
 @theme inline {

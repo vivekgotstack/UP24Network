@@ -9,7 +9,7 @@
   padding: 22px 26px;
   border: 1px solid var(--line);
   background: var(--paper, #faf8f1);
-  box-shadow: 0 6px 30px #071c3620;
+  box-shadow: 0 6px 30px var(--shadow-colour);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.85fr);
   gap: 24px;
@@ -87,7 +87,7 @@
   width: 23px;
   height: 23px;
   flex-shrink: 0;
-  accent-color: var(--brand-navy);
+  accent-color: var(--primary);
 }
 .option > span:first-child {
   min-width: 0;

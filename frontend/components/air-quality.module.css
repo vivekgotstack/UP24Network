@@ -75,28 +75,28 @@
   background: var(--band-bg);
 }
 .good {
-  --band-ink: #105037;
-  --band-bg: #d8eee1;
+  --band-ink: var(--positive-ink);
+  --band-bg: var(--positive-surface);
 }
 .moderate {
-  --band-ink: #614800;
-  --band-bg: #f7e8ab;
+  --band-ink: var(--warning-ink);
+  --band-bg: var(--warning-surface);
 }
 .sensitive {
-  --band-ink: #783500;
-  --band-bg: #faddc2;
+  --band-ink: light-dark(#783500, #ffc599);
+  --band-bg: light-dark(#faddc2, #452d20);
 }
 .unhealthy {
-  --band-ink: #842324;
-  --band-bg: #f8dbd9;
+  --band-ink: var(--danger-ink);
+  --band-bg: var(--danger-surface);
 }
 .veryUnhealthy {
-  --band-ink: #67277a;
-  --band-bg: #eddef4;
+  --band-ink: light-dark(#67277a, #eac1fb);
+  --band-bg: light-dark(#eddef4, #35263f);
 }
 .hazardous {
-  --band-ink: #632538;
-  --band-bg: #efdae1;
+  --band-ink: light-dark(#632538, #f5b8cd);
+  --band-bg: light-dark(#efdae1, #432638);
 }
 .page {
   max-width: 720px;

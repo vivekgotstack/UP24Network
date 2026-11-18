@@ -86,7 +86,7 @@
     padding: 23px;
     border: 1px solid var(--line);
     border-top: 3px solid var(--ink);
-    background: #fff5;
+    background: var(--surface-wash);
   }
   .cms-stats strong {
     display: block;
@@ -107,7 +107,7 @@
   .cms-card {
     padding: 28px;
     border: 1px solid var(--line);
-    background: #fff6;
+    background: var(--surface-wash);
   }
   .cms-card > h3 {
     font: 700 27px/1.5 var(--serif);
@@ -126,7 +126,7 @@
   }
   .workflow-steps li > span {
     font: 400 29px var(--serif);
-    color: #99a29e;
+    color: var(--muted);
   }
   .workflow-steps strong {
     font-size: 15px;
@@ -148,7 +148,8 @@
   .dashboard-alert {
     display: block;
     text-align: left;
-    background: #eee1ae;
+    background: var(--warning-surface);
+    color: var(--warning-ink);
     padding: 15px;
     margin-top: 20px;
     font-size: 13px;
@@ -160,15 +161,17 @@
     justify-content: space-between;
     align-items: center;
     border-left: 3px solid var(--ink);
-    background: #e7ece5;
+    background: var(--positive-surface);
+    color: var(--positive-ink);
     padding: 15px 20px;
     margin-bottom: 25px;
     font-size: 14px;
     line-height: 1.7;
   }
   .cms-feedback.is-error {
-    background: #f4e5e1;
-    border-color: #962f35;
+    background: var(--danger-surface);
+    color: var(--danger-ink);
+    border-color: var(--danger-line);
   }
   .cms-feedback > button {
     font-size: 12px;
@@ -211,7 +214,7 @@
     padding: 11px 13px;
     border: 1px solid var(--line);
     border-radius: 3px;
-    background: #fffc;
+    background: var(--surface-control);
     color: var(--ink);
     font-size: 16px;
     font-weight: 400;
@@ -237,9 +240,9 @@
   }
   .inline-error {
     padding: 12px 15px;
-    background: #f4e5e1;
-    border-left: 3px solid #962f35;
-    color: #7a2329;
+    background: var(--danger-surface);
+    border-left: 3px solid var(--danger-line);
+    color: var(--danger-ink);
     font-size: 14px;
     line-height: 1.7;
   }
@@ -286,7 +289,7 @@
   .cms-article-list article {
     border: 1px solid var(--line);
     padding: 22px;
-    background: #fff6;
+    background: var(--surface-wash);
   }
   .cms-article-list article.selected-article {
     border-color: var(--ink);
@@ -320,8 +323,8 @@
     text-transform: uppercase;
   }
   .cms-badges [data-status='PUBLISHED'] {
-    background: #dfe9df;
-    color: #27492e;
+    background: var(--positive-surface);
+    color: var(--positive-ink);
   }
   .cms-toggle {
     display: flex;
@@ -353,7 +356,7 @@
   .article-editor {
     border: 1px solid var(--line);
     padding: 27px;
-    background: #fff7;
+    background: var(--surface-wash);
   }
   .article-editor .cms-section-heading {
     align-items: start;
@@ -368,7 +371,7 @@
     margin-top: 7px;
   }
   .save-state.is-dirty {
-    color: #84651a;
+    color: var(--warning-ink);
   }
   .body-editor {
     font-family: var(--serif) !important;
@@ -513,7 +516,7 @@
     overflow-wrap: anywhere;
     border: 1px solid var(--line);
     padding: 25px;
-    background: #fff6;
+    background: var(--surface-wash);
   }
   .cms-job-heading {
     display: flex;
@@ -560,7 +563,7 @@
     position: relative;
     width: 40px;
     height: 23px;
-    background: #bfc7cb;
+    background: var(--disabled-ink);
     border-radius: 15px;
     cursor: pointer;
   }
@@ -576,9 +579,10 @@
     transition: transform 160ms;
   }
   .cms-switch input:checked {
-    background: var(--ink);
+    background: var(--primary);
   }
   .cms-switch input:checked::before {
+    background: var(--primary-foreground);
     transform: translateX(17px);
   }
   .cms-switch input:disabled {
@@ -603,7 +607,7 @@
     align-items: start;
     flex-direction: column;
     background: var(--brand-navy);
-    color: var(--paper);
+    color: var(--on-brand);
     padding: 50px;
   }
   .auth-brand-panel .brand-badge {
@@ -941,9 +945,10 @@
 .article-conflict {
   margin-top: 1.5rem;
   padding: 1.5rem;
-  border: 1px solid #b88c27;
+  border: 1px solid var(--warning-line);
   border-radius: 0.5rem;
-  background: #fff9e8;
+  background: var(--warning-surface);
+  color: var(--warning-ink);
 }
 .article-conflict h3 {
   margin: 0 0 0.5rem;

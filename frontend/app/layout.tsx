@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import { connection } from 'next/server';
+import { headers } from 'next/headers';
 import './globals.css';
 import { SiteFooter } from '@/components/site-footer';
 import { AppFrame } from '@/components/app-frame';
 import { PwaInstall } from '@/components/pwa-install';
 import { Providers } from '@/components/providers';
+import { ThemeBootstrap } from '@/components/theme-bootstrap';
+import { getReaderLocale } from '@/lib/reader-locale';
 import { brand } from '@/lib/brand';
 import officialLogo from '@/public/brand/up24-logo.png';
 
@@ -24,12 +27,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#071c36' };
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   await connection();
+  const [locale, requestHeaders] = await Promise.all([getReaderLocale(), headers()]);
   return (
-    <html lang="hi" data-scroll-behavior="smooth">
+    <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <ThemeBootstrap nonce={requestHeaders.get('x-nonce') ?? undefined} />
+      </head>
       <body id="top">
         <Providers>
-          <AppFrame footer={<SiteFooter />}>{children}</AppFrame>
-          <PwaInstall />
+          <AppFrame locale={locale} footer={<SiteFooter />}>{children}</AppFrame>
+          <PwaInstall locale={locale} />
         </Providers>
       </body>
     </html>

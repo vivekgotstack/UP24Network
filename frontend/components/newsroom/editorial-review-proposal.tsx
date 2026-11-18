@@ -7,11 +7,11 @@ import { YouTubeStory } from '@/components/youtube-story';
 import type { Account } from '@/lib/cms';
 import { canonicalReelUrl } from '@/lib/instagram';
 import { articleReviews, type Review, type ReviewDetail } from '@/lib/newsroom/reviews';
-import { allowedMedia, toDraft, type Draft } from '@/lib/newsroom/types';
+import { allowedMedia, toDraft, type Draft, type EnglishArticleDraft } from '@/lib/newsroom/types';
 import { useNewsroomResource } from '@/lib/session';
 import styles from './editorial-review-queue.module.css';
 
-const fields: { key: keyof Draft; label: string }[] = [
+const fields: { key: Exclude<keyof Draft, 'english'>; label: string }[] = [
   { key: 'title', label: 'Headline' },
   { key: 'slug', label: 'Article address' },
   { key: 'summary', label: 'Summary' },
@@ -26,6 +26,12 @@ const fields: { key: keyof Draft; label: string }[] = [
   { key: 'reelUrl', label: 'Instagram Reel address' },
   { key: 'sourceNotes', label: 'Private source notes' },
 ];
+const englishFields: { key: keyof EnglishArticleDraft; label: string }[] = [
+  { key: 'title', label: 'English headline' },
+  { key: 'summary', label: 'English summary' },
+  { key: 'body', label: 'English report' },
+  { key: 'imageAlt', label: 'English photograph description' },
+];
 
 function ReviewComparison({ detail }: { detail: ReviewDetail }) {
   const current =
@@ -35,33 +41,37 @@ function ReviewComparison({ detail }: { detail: ReviewDetail }) {
   const values = fields.flatMap(({ key, label }) => {
     const before = current?.[key]?.trim() ?? '';
     const after = detail.input[key]?.trim() ?? '';
-    return before === after ? [] : [{ key, label, before, after }];
+    return before === after ? [] : [{ key, label, before, after, long: key === 'body' }];
   });
+  const changes = [
+    ...values,
+    ...englishFields.flatMap(({ key, label }) => {
+      const before = current?.english[key].trim() ?? '';
+      const after = detail.input.english ? (detail.input.english[key]?.trim() ?? '') : before;
+      return before === after
+        ? []
+        : [{ key: `english-${key}`, label, before, after, long: key === 'body' }];
+    }),
+  ];
   return (
     <section className={styles.comparison} aria-labelledby={`changes-${detail.id}`}>
       <h5 id={`changes-${detail.id}`}>{current ? 'Proposed changes' : 'Submitted article'}</h5>
-      {values.length === 0 && <p>The submitted article matches the saved version.</p>}
-      {values.map(({ key, label, before, after }) => (
+      {changes.length === 0 && <p>The submitted article matches the saved version.</p>}
+      {changes.map(({ key, label, before, after, long }) => (
         <section className={styles.comparisonField} key={key} aria-label={label}>
           <h6>{label}</h6>
           <div className={current ? styles.comparisonValues : undefined}>
             {current && (
               <div className={styles.value}>
                 <span>Current article</span>
-                <p
-                  className={key === 'body' ? styles.longValue : undefined}
-                  tabIndex={key === 'body' ? 0 : undefined}
-                >
+                <p className={long ? styles.longValue : undefined} tabIndex={long ? 0 : undefined}>
                   {before || 'Empty'}
                 </p>
               </div>
             )}
             <div className={styles.value}>
               <span>Submitted</span>
-              <p
-                className={key === 'body' ? styles.longValue : undefined}
-                tabIndex={key === 'body' ? 0 : undefined}
-              >
+              <p className={long ? styles.longValue : undefined} tabIndex={long ? 0 : undefined}>
                 {after || 'Empty'}
               </p>
             </div>

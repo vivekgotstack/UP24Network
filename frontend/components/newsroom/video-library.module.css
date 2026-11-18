@@ -2,7 +2,7 @@
 .upload { border: 1px dashed var(--line); padding: 18px; display: grid; gap: 10px; min-width: 0; }
 .upload label { display: grid; gap: 10px; min-width: 0; }
 .upload input { width: 100%; min-width: 0; font-size: 16px; }
-.upload progress { width: 100%; accent-color: var(--brand-navy); }
+.upload progress { width: 100%; accent-color: var(--primary); }
 .grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
 .card { border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; min-width: 0; }
 .card strong,.card p { overflow-wrap: anywhere; }

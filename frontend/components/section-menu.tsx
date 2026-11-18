@@ -6,12 +6,19 @@ import { Menu, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
-import { cities, regions } from '@/lib/regions';
+import { cities, regions, cityTitle, regionTitle } from '@/lib/regions';
+import { copy, type SiteLocale } from '@/lib/locale';
 
-export function SectionMenu() {
+export function SectionMenu({ locale = 'hi' }: { locale?: SiteLocale }) {
   const [query, setQuery] = useState('');
-  const term = query.trim().toLocaleLowerCase('hi-IN');
-  const matches = (text: string) => text.toLocaleLowerCase('hi-IN').includes(term);
+  const term = query.trim().normalize('NFC').toLowerCase();
+  const matches = (text: string) => text.normalize('NFC').toLowerCase().includes(term);
+  const sections = newsSections.filter(({ title, name }) => matches(`${title} ${name}`));
+  const matchingRegions = regions.filter((region) => matches(`${region.title} ${regionTitle(region, 'en')} ${region.slug}`));
+  const matchingCities = cities.filter((city) => matches(`${city.title} ${city.aliases.join(' ')}`));
+  const allSectionsLabel = copy(locale, 'सभी विभाग', 'All sections');
+  const statesLabel = copy(locale, 'राज्य', 'States');
+  const citiesLabel = copy(locale, 'शहर', 'Cities');
   return (
     <Dialog.Root
       onOpenChange={(open) => {
@@ -19,9 +26,9 @@ export function SectionMenu() {
       }}
     >
       <Dialog.Trigger asChild>
-        <Button variant="ghost" className="section-menu-trigger" aria-label="सभी विभाग">
+        <Button variant="ghost" className="section-menu-trigger" aria-label={allSectionsLabel}>
           <Menu size={18} aria-hidden="true" />
-          <span>सभी विभाग</span>
+          <span>{allSectionsLabel}</span>
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -29,49 +36,47 @@ export function SectionMenu() {
         <Dialog.Content className="section-dialog">
           <div className="section-dialog-heading">
             <div>
-              <Dialog.Title>खबरों की हर दिशा</Dialog.Title>
-              <Dialog.Description>विषय, राज्य या अपना शहर चुनिए।</Dialog.Description>
+              <Dialog.Title>{allSectionsLabel}</Dialog.Title>
+              <Dialog.Description>{copy(locale, 'विषय, राज्य या अपना शहर चुनिए।', 'Choose a topic, state, or city.')}</Dialog.Description>
             </div>
             <Dialog.Close asChild>
-              <Button variant="ghost" size="icon" aria-label="Close sections menu">
+              <Button variant="ghost" size="icon" aria-label={copy(locale, 'विभाग सूची बंद करें', 'Close sections menu')}>
                 <X />
               </Button>
             </Dialog.Close>
           </div>
           <label className="menu-search">
             <Search size={18} aria-hidden="true" />
-            <span className="sr-only">Find a section or city</span>
+            <span className="sr-only">{copy(locale, 'विभाग या शहर खोजें', 'Find a section or city')}</span>
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="विषय या शहर तलाशिए"
+              placeholder={copy(locale, 'विषय या शहर खोजें', 'Topic or city')}
               maxLength={100}
             />
           </label>
           <div className="menu-quick-links">
             <Dialog.Close asChild>
-              <Link href="/latest">ताजा खबरें</Link>
+              <Link href="/latest">{copy(locale, 'ताज़ा खबरें', 'Latest news')}</Link>
             </Dialog.Close>
             <Dialog.Close asChild>
-              <Link href="/sections">सभी विभाग</Link>
+              <Link href="/sections">{allSectionsLabel}</Link>
             </Dialog.Close>
             <Dialog.Close asChild>
-              <Link href="/regions">राज्य और शहर</Link>
+              <Link href="/regions">{copy(locale, 'राज्य और शहर', 'States and cities')}</Link>
             </Dialog.Close>
           </div>
           <div className="menu-groups">
             {sectionGroups.map((group) => {
-              const items = newsSections.filter(
-                (section) =>
-                  group.slugs.includes(section.slug) && matches(`${section.title} ${section.name}`),
-              );
+              const items = sections.filter((section) => group.slugs.includes(section.slug));
+              const title = copy(locale, group.title, group.englishTitle);
               return items.length ? (
-                <nav key={group.title} aria-label={group.title}>
-                  <h3>{group.title}</h3>
+                <nav key={group.title} aria-label={title}>
+                  <h3>{title}</h3>
                   {items.map((section) => (
                     <Dialog.Close key={section.slug} asChild>
-                      <Link href={sectionHref(section.name)}>{section.title}</Link>
+                      <Link href={sectionHref(section.name)}>{copy(locale, section.title, section.name)}</Link>
                     </Dialog.Close>
                   ))}
                 </nav>
@@ -79,32 +84,25 @@ export function SectionMenu() {
             })}
           </div>
           <div className="menu-places">
-            <h3>राज्य</h3>
-            <nav aria-label="States">
-              {regions
-                .filter((region) => matches(`${region.title} ${region.slug}`))
-                .map((region) => (
+            <h3>{statesLabel}</h3>
+            <nav aria-label={statesLabel}>
+              {matchingRegions.map((region) => (
                   <Dialog.Close key={region.slug} asChild>
-                    <Link href={`/region/${region.slug}`}>{region.title}</Link>
+                    <Link href={`/region/${region.slug}`}>{regionTitle(region, locale)}</Link>
                   </Dialog.Close>
                 ))}
             </nav>
-            <h3>शहर</h3>
-            <nav aria-label="Cities">
-              {cities
-                .filter((city) => matches(`${city.title} ${city.aliases.join(' ')}`))
-                .map((city) => (
+            <h3>{citiesLabel}</h3>
+            <nav aria-label={citiesLabel}>
+              {matchingCities.map((city) => (
                   <Dialog.Close key={city.slug} asChild>
-                    <Link href={`/city/${city.slug}`}>{city.title}</Link>
+                    <Link href={`/city/${city.slug}`}>{cityTitle(city, locale)}</Link>
                   </Dialog.Close>
                 ))}
             </nav>
           </div>
-          {term &&
-            !newsSections.some((section) => matches(`${section.title} ${section.name}`)) &&
-            !regions.some((region) => matches(`${region.title} ${region.slug}`)) &&
-            !cities.some((city) => matches(`${city.title} ${city.aliases.join(' ')}`)) && (
-              <p role="status">कोई विभाग या शहर नहीं मिला। दूसरा नाम आजमाइए।</p>
+          {term && !sections.length && !matchingRegions.length && !matchingCities.length && (
+              <p role="status">{copy(locale, 'कोई विभाग, राज्य या शहर नहीं मिला।', 'No matching section, state, or city.')}</p>
             )}
         </Dialog.Content>
       </Dialog.Portal>

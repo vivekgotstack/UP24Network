@@ -47,7 +47,7 @@
   height: 20px;
   flex-shrink: 0;
   margin-top: 3px;
-  accent-color: var(--brand-navy);
+  accent-color: var(--primary);
 }
 .age {
   max-width: 280px;

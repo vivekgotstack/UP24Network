@@ -1,4 +1,5 @@
 import type { Article } from '@/lib/articles';
+import type { SiteLocale } from '@/lib/locale';
 
 export function newest(articles: Article[]) {
   return [...articles].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
@@ -17,8 +18,8 @@ export function pageOf(articles: Article[], rawPage?: string, size = 12) {
     total: articles.length,
   };
 }
-export function shortDate(date: string) {
-  return new Intl.DateTimeFormat('hi-IN', {
+export function shortDate(date: string, locale: SiteLocale = 'hi') {
+  return new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {
     day: 'numeric',
     month: 'short',
     timeZone: 'Asia/Kolkata',

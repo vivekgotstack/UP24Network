@@ -104,14 +104,14 @@
   font: 600 13px/1.4 var(--sans);
 }
 .state[data-state='PENDING'] {
-  background: #fff0c1;
-  color: #563c00;
-  border-color: #d8c277;
+  background: var(--warning-surface);
+  color: var(--warning-ink);
+  border-color: var(--warning-line);
 }
 .state[data-state='APPROVED'] {
-  background: #e1efe5;
-  color: #245437;
-  border-color: #a9c2ae;
+  background: var(--positive-surface);
+  color: var(--positive-ink);
+  border-color: var(--positive-line);
 }
 .summary,
 .evidence p,
@@ -215,7 +215,7 @@
   inline-size: 18px;
   block-size: 18px;
   margin-block-start: 3px;
-  accent-color: var(--brand-navy);
+  accent-color: var(--primary);
 }
 .approval {
   padding-block-start: 12px;

@@ -6,6 +6,7 @@ import { Dialog } from 'radix-ui';
 import { Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useConsent } from '@/lib/consent';
+import { copy, type SiteLocale } from '@/lib/locale';
 import styles from './pwa-install.module.css';
 
 type InstallPrompt = Event & {
@@ -13,7 +14,7 @@ type InstallPrompt = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 };
 
-export function PwaInstall() {
+export function PwaInstall({ locale = 'hi' }: { locale?: SiteLocale }) {
   const pathname = usePathname();
   const consent = useConsent();
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
@@ -69,7 +70,7 @@ export function PwaInstall() {
     } catch {}
   };
   return (
-    <aside className={styles.panel} aria-label="Install UP24Network">
+    <aside className={styles.panel} aria-label={copy(locale, 'UP24Network इंस्टॉल करें', 'Install UP24Network')}>
       {prompt ? (
         <Button
           variant="outline"
@@ -86,31 +87,31 @@ export function PwaInstall() {
           }}
         >
           <Download aria-hidden="true" size={16} />
-          ऐप इंस्टॉल करें
+          {copy(locale, 'ऐप इंस्टॉल करें', 'Install app')}
         </Button>
       ) : (
         <Dialog.Root>
           <Dialog.Trigger asChild>
             <Button variant="outline">
               <Download size={16} aria-hidden="true" />
-              ऐप इंस्टॉल करें
+              {copy(locale, 'ऐप इंस्टॉल करें', 'Install app')}
             </Button>
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="confirmation-overlay" />
             <Dialog.Content className="confirmation-dialog">
-              <Dialog.Title>UP24Network को होम स्क्रीन पर जोड़ें</Dialog.Title>
+              <Dialog.Title>{copy(locale, 'UP24Network को होम स्क्रीन पर जोड़ें', 'Add UP24Network to your Home Screen')}</Dialog.Title>
               <Dialog.Description>
-                Safari में Share खोलें, फिर “Add to Home Screen” चुनें। ऐप सीधे आपके होम स्क्रीन से खुलेगा।
+                {copy(locale, 'Safari में Share खोलें, फिर “Add to Home Screen” चुनें।', 'In Safari, open Share and choose “Add to Home Screen”.')}
               </Dialog.Description>
               <Dialog.Close asChild>
-                <Button variant="outline">बंद करें</Button>
+                <Button variant="outline">{copy(locale, 'बंद करें', 'Close')}</Button>
               </Dialog.Close>
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
       )}
-      <Button variant="ghost" size="icon" aria-label="Dismiss app installation" onClick={dismiss}>
+      <Button variant="ghost" size="icon" aria-label={copy(locale, 'इंस्टॉल सुझाव बंद करें', 'Dismiss app installation')} onClick={dismiss}>
         <X size={16} aria-hidden="true" />
       </Button>
     </aside>
