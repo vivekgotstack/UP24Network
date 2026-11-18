@@ -2,7 +2,8 @@
 
 import { useSyncExternalStore } from 'react';
 
-type Choice = { version: 1; externalVideo: boolean; savedAt: number };
+const POLICY_VERSION = 2;
+type Choice = { version: typeof POLICY_VERSION; externalVideo: boolean; savedAt: number };
 const KEY = 'UP24_CONSENT';
 const EVENT = 'up24-consent-change';
 const MAX_AGE = 180 * 86400;
@@ -15,7 +16,7 @@ function parse(raw: string): Choice | null {
     if (raw.length > 1024) return null;
     const value = JSON.parse(decodeURIComponent(raw));
     if (
-      value.version === 1 &&
+      value.version === POLICY_VERSION &&
       typeof value.externalVideo === 'boolean' &&
       Number.isFinite(value.savedAt) &&
       value.savedAt <= Date.now() &&
@@ -75,7 +76,7 @@ function subscribe(callback: () => void) {
   };
 }
 export function saveConsent(externalVideo: boolean) {
-  const value: Choice = { version: 1, externalVideo, savedAt: Date.now() };
+  const value: Choice = { version: POLICY_VERSION, externalVideo, savedAt: Date.now() };
   const raw = encodeURIComponent(JSON.stringify(value));
   try {
     document.cookie = `${KEY}=${raw}; Path=/; Max-Age=${MAX_AGE}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;

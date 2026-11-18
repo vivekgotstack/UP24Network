@@ -14,6 +14,8 @@ import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
 import { RashifalSection } from '@/components/rashifal-section';
 import { AirQualityStrip } from '@/components/air-quality-strip';
+import { TrendingReels } from '@/components/trending-reels';
+import { trendingReelsCategory } from '@/lib/instagram';
 import { getPublicationSettings } from '@/lib/publication-api';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +32,7 @@ export default async function Home({
     redirect(sectionHref(filters.category));
   if (filters.view === 'latest') redirect('/latest');
   const [reports, settings] = await Promise.all([getArticles(), getPublicationSettings()]);
-  const articles = newest(reports);
+  const articles = newest(reports.filter(({ category }) => category !== trendingReelsCategory));
   const lead =
     articles.find((a) => a.breaking && Date.now() - Date.parse(a.publishedAt) < 86400000) ??
     articles[0];
@@ -92,6 +94,7 @@ export default async function Home({
         <Suspense fallback={null}>
           <AirQualityStrip />
         </Suspense>
+        <Suspense fallback={null}><TrendingReels /></Suspense>
         <Reveal>{settings.showVideo && <WatchSection articles={articles} />}</Reveal>
         <Suspense fallback={null}>{settings.showRashifal && <RashifalSection />}</Suspense>
         {remaining.length > 0 && (

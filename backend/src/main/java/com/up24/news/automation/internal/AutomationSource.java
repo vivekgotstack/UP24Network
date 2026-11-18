@@ -10,6 +10,7 @@ interface AutomationSource {
     default int minIntervalMinutes() { return 5; }
     default int maxIntervalMinutes() { return 10080; }
     default Instant nextRun(Instant now, int intervalMinutes) { return now.plusSeconds(intervalMinutes * 60L); }
+    default String resultMessage(int count) { return count == 0 ? "Source checked. Existing edition kept." : "Refreshed " + count + " source items."; }
 
     record Status(boolean configured, String detail) {}
     @FunctionalInterface interface Prepared { int publish(); }

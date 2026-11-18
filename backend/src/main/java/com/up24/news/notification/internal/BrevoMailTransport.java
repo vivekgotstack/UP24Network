@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,21 +30,14 @@ class BrevoMailTransport implements MailTransport {
     }
     @Override public boolean configured() { return !apiKey.isBlank() && !senderEmail.isBlank(); }
 
-    @Override public void deliver(UUID deliveryId,CodeMail mail) {
-        String subject=mail.recovery()?"Reset your UP24Network password":"Your UP24Network newsroom sign-in code";
-        String introduction=mail.recovery()?"Your password reset code is: ":"Your newsroom sign-in code is: ";
-        String tag=mail.recovery()?"password-recovery":"newsroom-login";
+    @Override public void deliver(UUID deliveryId,MailMessage mail) {
         if (!configured()) throw new IllegalStateException("Email delivery is not configured");
-        // The code never enters URLs, logs, analytics, or browser API responses.
         try {
             client.post().uri("/smtp/email").header("api-key",apiKey).contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("sender",Map.of("email",senderEmail,"name","UP24Network"),
-                            "to",List.of(Map.of("email",mail.recipient())),"subject",subject,
+                            "to",List.of(Map.of("email",mail.recipient())),"subject",mail.subject(),
                             "headers",Map.of("IdempotencyKey",deliveryId.toString()),
-                            "textContent",introduction + mail.code()
-                                    + "\n\nIt expires at " + mail.expiresAt() + " and can be used once. Do not share this code."
-                                    + "\n\nIf you did not request this email, you can safely ignore it. Your password has not changed.",
-                            "tags",List.of(tag)))
+                            "textContent",mail.body(),"tags",List.of(mail.tag())))
                     .exchange((request,response) -> {
                         if(response.getStatusCode().is2xxSuccessful()) return true;
                         byte[] body=response.getBody().readNBytes(8193);
@@ -59,7 +51,7 @@ class BrevoMailTransport implements MailTransport {
         } catch(PermanentJobFailure exception) { throw exception;
         } catch (RuntimeException exception) {
             // Provider response bodies can contain private delivery details.
-            throw new IllegalStateException("The sign-in email could not be delivered");
+            throw new IllegalStateException("The transactional email could not be delivered");
         }
     }
 }

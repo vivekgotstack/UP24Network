@@ -92,7 +92,7 @@ class AutomationService {
                 int interval = Objects.requireNonNull(jdbc.queryForObject("SELECT interval_minutes FROM automation_job WHERE job_key=?", Integer.class, key));
                 jdbc.update("""
                         UPDATE automation_job SET running=FALSE, lease_token=NULL, failure_count=0, last_result=?, next_run_at=? WHERE job_key=?
-                        """, count == 0 ? "Source checked. Existing edition kept." : "Refreshed " + count + " source items.",
+                        """, source.resultMessage(count),
                         Timestamp.from(source.nextRun(clock.instant(), interval)), key);
             });
         } catch (Exception exception) {

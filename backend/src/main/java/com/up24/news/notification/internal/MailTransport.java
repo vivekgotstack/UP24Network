@@ -4,5 +4,5 @@ import java.util.UUID;
 
 interface MailTransport {
     boolean configured();
-    void deliver(UUID deliveryId,CodeMail message);
+    void deliver(UUID deliveryId,MailMessage message);
 }

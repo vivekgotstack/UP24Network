@@ -8,10 +8,12 @@ import { StoryCard } from '@/components/story-card';
 import { NewsImage } from '@/components/news-image';
 import { VideoStory } from '@/components/video-story';
 import { YouTubeStory } from '@/components/youtube-story';
+import { InstagramReel } from '@/components/instagram-reel';
 import { ReadingExperience } from '@/components/reading-experience';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { newest } from '@/lib/news';
+import { canonicalReelUrl } from '@/lib/instagram';
 import officialLogo from '@/public/brand/up24-logo.png';
 
 export const dynamic = 'force-dynamic';
@@ -43,6 +45,7 @@ export default async function ArticlePage({ params }: Props) {
   const [article, all] = await Promise.all([getArticle(slug), getArticles()]);
   if (!article) notFound();
   if (article.slug !== slug) permanentRedirect(`/news/${encodeURIComponent(article.slug)}`);
+  const reelUrl = canonicalReelUrl(article.reelUrl);
   const byline = article.author.trim();
   const isDeskByline = deskBylines.has(byline);
   const otherReports = newest(all).filter((report) => report.slug !== slug);
@@ -103,14 +106,14 @@ export default async function ArticlePage({ params }: Props) {
                 <p>
                   <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time>
                   <span aria-hidden="true"> · </span>
-                  {article.youtubeId || article.videoUrl
+                  {reelUrl ? 'Instagram Reel' : article.youtubeId || article.videoUrl
                     ? 'Video report'
                     : `${article.readingMinutes} min read`}
                 </p>
               </div>
             </div>
           </header>
-          <figure className="article-figure">
+          {reelUrl ? <InstagramReel url={reelUrl} title={article.title} cover={article.image} /> : <figure className="article-figure">
             <div className="article-image">
               {article.youtubeId ? (
                 <YouTubeStory
@@ -134,7 +137,7 @@ export default async function ArticlePage({ params }: Props) {
                 />
               )}
             </div>
-          </figure>
+          </figure>}
           <ReadingExperience
             story={{
               slug: article.slug,

@@ -1,3 +1,5 @@
+import { trendingReelsCategory } from '@/lib/instagram';
+
 export type NewsSection = {
   slug: string;
   name: string;
@@ -126,6 +128,13 @@ export const newsSections: readonly NewsSection[] = [
     description: 'वेब सीरीज, डिजिटल फिल्में और स्ट्रीमिंग की दुनिया।',
   },
   {
+    slug: 'trending-reels',
+    name: trendingReelsCategory,
+    title: 'ट्रेंडिंग रील्स',
+    parent: 'entertainment',
+    description: 'Instagram की चुनिंदा रील्स, मूल पोस्ट और ज़रूरी संदर्भ के साथ।',
+  },
+  {
     slug: 'technology',
     name: 'Technology',
     title: 'टेक्नोलॉजी',
@@ -221,7 +230,7 @@ export const sectionGroups = [
   },
   {
     title: 'खेल और मनोरंजन',
-    slugs: ['sports', 'cricket', 'entertainment', 'bollywood', 'television', 'ott', 'videos'],
+    slugs: ['sports', 'cricket', 'entertainment', 'bollywood', 'television', 'ott', 'videos', 'trending-reels'],
   },
   {
     title: 'जीवन और संस्कृति',

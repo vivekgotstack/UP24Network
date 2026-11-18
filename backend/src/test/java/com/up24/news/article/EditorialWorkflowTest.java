@@ -51,6 +51,13 @@ class EditorialWorkflowTest {
                 "/images/newsroom.jpg","UP24Network newsroom",null,null,"परीक्षण रिपोर्ट का पाठ।",version,"Local test reporting notes","uttar-pradesh");
     }
 
+    private ArticleDesk.Input reel(String slug, String url, Long version) {
+        return new ArticleDesk.Input("Instagram report", slug, "A reel submitted by the editorial desk.",
+                ArticleDesk.TRENDING_REELS, "Lucknow", null, null, null, null,
+                "Editorial context for the linked reel.", version, "Original Instagram link verified.",
+                "uttar-pradesh", null, url);
+    }
+
     private String reviewBody(long version, ArticleDesk.Input input, boolean rightsVerified) throws Exception {
         return json.writeValueAsString(Map.of("articleVersion", version, "input", input,
                 "changeSummary", "Update the story with newly checked details.",
@@ -177,6 +184,35 @@ class EditorialWorkflowTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.reviews[0].decisionNote").value(decision))
                 .andExpect(jsonPath("$.latestInput.title").value("Returned proposal"));
         submit(saved,reporter,input(saved.article().slug(),"Revised proposal",saved.version()));
+    }
+
+    @Test void instagramReelLinksAreCanonicalAndStayPrivateUntilDailyApproval() throws Exception {
+        String slug = "reel-" + UUID.randomUUID();
+        String canonical = "https://www.instagram.com/reel/Editorial_test-42/";
+        var draftInput = reel(slug, "https://instagram.com/reel/Editorial_test-42?igsh=tracking#share", null);
+        var draftResponse = mvc.perform(post("/api/admin/articles").with(user(editor.email()))
+                        .with(verified(editor.email())).with(csrf()).contentType("application/json")
+                        .content(json.writeValueAsString(draftInput)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.article.reelUrl").value(canonical)).andReturn();
+        var draft = json.readValue(draftResponse.getResponse().getContentAsString(), ArticleDesk.Managed.class);
+        var invalid = reel(slug, "https://www.instagram.com.example.test/reel/Editorial_test-42/", draft.version());
+        mvc.perform(post("/api/admin/articles/" + draft.id() + "/review").with(user(editor.email()))
+                        .with(verified(editor.email())).with(csrf()).contentType("application/json")
+                        .content(reviewBody(draft.version(), invalid, true)))
+                .andExpect(status().isBadRequest());
+
+        UUID review = submit(draft, editor, draftInput);
+        mvc.perform(get("/api/articles/browse").param("category", ArticleDesk.TRENDING_REELS))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(get("/api/admin/article-reviews/" + review).with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.input.reelUrl").value(canonical));
+
+        approve(review, editor).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1));
+        mvc.perform(get("/api/articles/browse").param("category", ArticleDesk.TRENDING_REELS))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].reelUrl").value(canonical));
+        mvc.perform(get("/api/admin/articles/" + draft.id() + "/revisions/" + draft.version())
+                        .with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.article.reelUrl").value(canonical));
     }
 
     @Test void dailyBatchRequiresExactPendingSetBeforeApprovalAndRecordsRewardOnlyOnce() throws Exception {
