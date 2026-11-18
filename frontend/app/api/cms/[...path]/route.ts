@@ -11,6 +11,7 @@ type Context = { params: Promise<{ path: string[] }> };
 const MAX_BODY_BYTES = 512 * 1024;
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 const REVIEW_BATCH = `admin/article-reviews/batches/${UUID}/[0-9]{4}-[0-9]{2}-[0-9]{2}`;
+const ARTICLE_VIEW = /^articles\/([\p{L}\p{N}\p{M}_-]{1,500})\/view$/u;
 const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me|workflow)$/, ['GET']],
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
@@ -18,6 +19,7 @@ const endpoints: [RegExp, string[]][] = [
   [/^auth\/password\/(request|reset)$/, ['POST']],
   [/^publication\/contact$/, ['POST']],
   [/^publication\/newsletter$/, ['POST']],
+  [ARTICLE_VIEW, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
   [/^admin\/articles\/browse$/, ['GET']],
   [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT', 'DELETE']],
@@ -31,6 +33,7 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}/return$`, 'i'), ['POST']],
   [/^admin\/article-reviews\/batches$/, ['GET']],
+  [/^admin\/readership$/, ['GET']],
   [new RegExp(`^${REVIEW_BATCH}$`, 'i'), ['GET']],
   [new RegExp(`^${REVIEW_BATCH}/(approve|reward)$`, 'i'), ['POST']],
   [/^admin\/accounts$/, ['GET', 'POST']],
@@ -73,6 +76,7 @@ async function proxy(request: NextRequest, context: Context) {
   if (!endpoint) return problem('Not found', 404);
   if (!endpoint[1].includes(request.method))
     return problem('Method not allowed', 405, { Allow: endpoint[1].join(', ') });
+  const articleView = ARTICLE_VIEW.exec(path);
   if (request.nextUrl.search) {
     const allowed =
       path === 'admin/articles/browse'
@@ -85,9 +89,11 @@ async function proxy(request: NextRequest, context: Context) {
               ? ['page', 'state']
               : path === 'admin/article-reviews/batches'
                 ? ['page']
-                : path === 'admin/media' || path === 'admin/videos'
-                  ? ['page', 'size']
-                  : [];
+                : path === 'admin/readership'
+                  ? ['year', 'month', 'page', 'q']
+                  : path === 'admin/media' || path === 'admin/videos'
+                    ? ['page', 'size']
+                    : [];
     for (const [key, value] of request.nextUrl.searchParams) {
       if (
         !allowed.includes(key) ||
@@ -111,8 +117,9 @@ async function proxy(request: NextRequest, context: Context) {
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
   try {
-    const maxBodyBytes =
-      path === 'publication/newsletter'
+    const maxBodyBytes = articleView
+      ? 0
+      : path === 'publication/newsletter'
         ? 4096
         : path === 'publication/contact'
           ? 32 * 1024
@@ -135,8 +142,9 @@ async function proxy(request: NextRequest, context: Context) {
       }
     }
     const headers = backendRequestHeaders(request);
+    const upstreamPath = articleView ? `articles/${encodeURIComponent(articleView[1])}/view` : path;
     const response = await fetch(
-      `${process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080'}/api/${path}${request.nextUrl.search}`,
+      `${process.env.NEWS_API_URL ?? 'http://127.0.0.1:8080'}/api/${upstreamPath}${request.nextUrl.search}`,
       {
         method: request.method,
         headers,
@@ -146,6 +154,10 @@ async function proxy(request: NextRequest, context: Context) {
         signal: AbortSignal.timeout(60000),
       },
     );
+    if (path === 'admin/article-reviews/batches' && response.status === 404) {
+      await response.body?.cancel();
+      return problem('The running backend is missing daily editorial reviews. Restart it from the current build.', 503);
+    }
     if (mutation && response.ok) {
       if (
         (path.startsWith('admin/articles') && !path.endsWith('/review')) ||
