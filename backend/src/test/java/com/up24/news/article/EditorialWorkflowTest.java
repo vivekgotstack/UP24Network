@@ -2,6 +2,7 @@ package com.up24.news.article;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.identity.Accounts;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -94,6 +96,46 @@ class EditorialWorkflowTest {
                 .contentType("application/json").content(json.writeValueAsString(Map.of("note", "Recorded the owner's editorial recognition."))));
     }
 
+    @Test void readershipCountsPublishedVisitsFromSubscribersAndGuestsOnly() throws Exception {
+        var reader = accounts.create(UUID.randomUUID() + "@reader.test", "Test reader", PASSWORD, Accounts.Role.SUBSCRIBER);
+        String slug = "reader-views-" + UUID.randomUUID();
+        var draft = desk.save(null, input(slug,"Reader report",null), owner.id(), owner.displayName());
+        var view = "/api/articles/" + slug + "/view";
+        mvc.perform(post(view).with(csrf())).andExpect(status().isNoContent());
+        var published = desk.publish(draft.id(), draft.version(), true, false, owner.id());
+        desk.save(draft.id(), input(slug + "-updated", "Reader report", published.version()), owner.id(), owner.displayName());
+
+        mvc.perform(post(view)).andExpect(status().isForbidden());
+        mvc.perform(post(view).with(csrf())).andExpect(status().isNoContent());
+        var login = mvc.perform(formLogin("/api/auth/login").user("email",reader.email()).password(PASSWORD))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        mvc.perform(post(view).cookie(login.getCookie("UP24_ACCESS")).with(csrf())).andExpect(status().isNoContent());
+        for (var staff : List.of(editor, reporter, owner)) {
+            mvc.perform(post(view).with(user(staff.email())).with(csrf())).andExpect(status().isNoContent());
+        }
+        mvc.perform(post(view).cookie(new Cookie("UP24_REFRESH", "unresolved")).with(csrf())).andExpect(status().isNoContent());
+
+        var today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
+        assertThat(jdbc.queryForObject("SELECT view_count FROM article_readership_day WHERE article_id=? AND view_day=?",
+                Long.class, draft.id(), today)).isEqualTo(2L);
+        int anotherMonth = today.getMonthValue() == 1 ? 2 : 1;
+        jdbc.update("INSERT INTO article_readership_day(article_id,view_day,view_count) VALUES (?,?,?)", draft.id(),
+                LocalDate.of(today.getYear(), anotherMonth, 1), 3L);
+        jdbc.update("INSERT INTO article_readership_day(article_id,view_day,view_count) VALUES (?,?,?)", draft.id(),
+                today.minusYears(1), 7L);
+
+        String report = "/api/admin/readership";
+        mvc.perform(get(report).with(user(reader.email()))).andExpect(status().isForbidden());
+        mvc.perform(get(report).with(user(owner.email())).with(verified(owner.email())).param("q", slug))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.year").value(today.getYear()))
+                .andExpect(jsonPath("$.month").value(today.getMonthValue()))
+                .andExpect(jsonPath("$.monthViews").value(2)).andExpect(jsonPath("$.yearViews").value(5))
+                .andExpect(jsonPath("$.items[0].slug").value(slug + "-updated"))
+                .andExpect(jsonPath("$.items[0].monthViews").value(2))
+                .andExpect(jsonPath("$.items[0].yearViews").value(5))
+                .andExpect(jsonPath("$.hasNext").value(false));
+    }
+
     @Test void realLoginAndDraftPublicationRespectPermissionsAndCsrf() throws Exception {
         mvc.perform(formLogin("/api/auth/login").user("email",editor.email()).password(PASSWORD))
                 .andExpect(status().isOk()).andExpect(cookie().httpOnly("UP24_ACCESS",true));
@@ -113,6 +155,12 @@ class EditorialWorkflowTest {
         mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).with(verified(editor.email())).with(csrf())
                 .contentType("application/json").content(publication)).andExpect(status().isForbidden());
         var review = submit(draft, reporter, input(slug,"परीक्षण रिपोर्ट",draft.version()));
+        String batches = "/api/admin/article-reviews/batches?page=1";
+        mvc.perform(get(batches).with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].contributorId").value(reporter.id().toString()));
+        mvc.perform(get(batches).with(user(editor.email())).with(verified(editor.email())))
+                .andExpect(status().isForbidden());
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isNotFound());
         mvc.perform(put("/api/admin/articles/"+draft.id()).with(user(reporter.email())).with(verified(reporter.email())).with(csrf())
                 .contentType("application/json").content(json.writeValueAsString(input(slug,"Late draft edit",draft.version()))))

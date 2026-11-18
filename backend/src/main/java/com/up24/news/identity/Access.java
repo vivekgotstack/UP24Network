@@ -4,4 +4,6 @@ package com.up24.news.identity;
 public interface Access {
     Accounts.Account current();
     boolean hasAny(String... roles);
+    /** Allows first-party aggregate views for subscribers and signed-out readers. */
+    boolean isReaderVisit();
 }

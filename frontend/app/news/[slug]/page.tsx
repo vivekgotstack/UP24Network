@@ -10,6 +10,7 @@ import { VideoStory } from '@/components/video-story';
 import { YouTubeStory } from '@/components/youtube-story';
 import { InstagramReel } from '@/components/instagram-reel';
 import { ReadingExperience } from '@/components/reading-experience';
+import { ArticleViewEvent } from '@/components/article-view-event';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { newest } from '@/lib/news';
@@ -86,6 +87,7 @@ export default async function ArticlePage({ params }: Props) {
           </Link>
         </nav>
         <article>
+          {!article.demo && <ArticleViewEvent key={article.slug} slug={article.slug} />}
           <header className="article-heading">
             <p className="eyebrow" lang="hi">
               {sectionTitle(article.category)}
