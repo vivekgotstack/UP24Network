@@ -10,7 +10,6 @@ import java.util.*;
 
 @Repository
 class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
-    private static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,breaking,source_url,region";
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     JdbcArticleLifecycleStore(JdbcTemplate jdbc, ObjectMapper json) { this.jdbc=jdbc; this.json=json; }
@@ -33,7 +32,7 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
         long total=Objects.requireNonNull(named.queryForObject("SELECT count(*)"+filter,parameters,Long.class));
         int pages=ArticlePage.pages(total,size),currentPage=Math.min(page,pages);
         parameters.put("limit",size); parameters.put("offset",(long)(currentPage-1)*size);
-        var rows=named.query("SELECT "+SUMMARY_COLUMNS+filter+" ORDER BY updated_at DESC,id DESC LIMIT :limit OFFSET :offset",
+        var rows=named.query("SELECT "+ArticleStore.SUMMARY_COLUMNS+filter+" ORDER BY updated_at DESC,id DESC LIMIT :limit OFFSET :offset",
                 parameters,(row,index) -> ArticleRows.summary(row));
         return new ArticleLifecycle.Page(rows,total,currentPage,size,pages,counts);
     }
@@ -69,7 +68,7 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
                     UPDATE article_record a SET title=r.snapshot->>'title',slug=r.snapshot->>'slug',
                         summary=r.snapshot->>'summary',category=r.snapshot->>'category',city=COALESCE(r.snapshot->>'city',''),
                         author=r.snapshot->>'author',image=r.snapshot->>'image',image_alt=COALESCE(r.snapshot->>'image_alt',''),
-                        video_url=r.snapshot->>'video_url',youtube_id=r.snapshot->>'youtube_id',paragraphs=r.snapshot->'paragraphs',
+                        video_url=r.snapshot->>'video_url',youtube_id=r.snapshot->>'youtube_id',reel_url=r.snapshot->>'reel_url',paragraphs=r.snapshot->'paragraphs',
                         source_notes=COALESCE(r.snapshot->>'source_notes',''),region=COALESCE(r.snapshot->>'region',''),
                         status='DRAFT',breaking=FALSE,manual_override=TRUE,edited_by=?,version=a.version+1,updated_at=CURRENT_TIMESTAMP
                     FROM article_revision r WHERE a.id=? AND r.article_id=a.id AND r.version=?

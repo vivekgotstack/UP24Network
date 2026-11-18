@@ -13,6 +13,7 @@ import { MediaUpload } from '@/components/newsroom/media-upload';
 import { VideoUpload } from '@/components/newsroom/video-upload';
 import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
 import { articleReviews, type Review, type ReviewHistory } from '@/lib/newsroom/reviews';
+import { canonicalReelUrl, trendingReelsCategory } from '@/lib/instagram';
 import styles from './article-admin.module.css';
 
 import { sections } from '@/lib/sections';
@@ -81,6 +82,7 @@ export function ArticleEditor({
   const dirty = JSON.stringify(draft) !== saved;
   const unsaved = dirty || reviewEvidence;
   const proposedUpdate = !adminMode && articleStatus === 'PUBLISHED';
+  const reelArticle = draft.category === trendingReelsCategory;
   const approvedOnCurrentVersion =
     latest?.state === 'APPROVED' && latest.articleVersion === version;
   const canReview =
@@ -131,12 +133,18 @@ export function ArticleEditor({
     }));
   }
   function validated() {
+    const reelUrl = reelArticle ? canonicalReelUrl(draft.reelUrl) : null;
+    if (reelArticle && !reelUrl)
+      throw new Error(
+        'Enter a public Instagram Reel link such as https://www.instagram.com/reel/ABC123/.',
+      );
     if (requireDateline && !draft.city.trim())
       throw new Error('Add a location or dateline before saving.');
     if (requireSources && !draft.sourceNotes.trim())
       throw new Error('Add your reporting sources before saving.');
     if (
       requireMedia &&
+      !reelUrl &&
       !draft.videoUrl &&
       !draft.youtubeId &&
       (!draft.image || draft.image.startsWith('/brand/'))
@@ -146,13 +154,15 @@ export function ArticleEditor({
       throw new Error('Add a description for the photograph.');
     if (!draft.slug.trim() || !/^[\p{L}\p{N}\p{M}_-]+$/u.test(draft.slug))
       throw new Error('Use letters, numbers and hyphens for the article slug.');
-    if (!allowedMedia(draft.image) || !allowedMedia(draft.videoUrl, false))
+    if (!allowedMedia(draft.image) || (!reelArticle && !allowedMedia(draft.videoUrl, false)))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
     return {
       ...draft,
       version,
       byline: adminMode ? draft.byline : '',
-      youtubeId: videoId(draft.youtubeId.trim()),
+      reelUrl,
+      youtubeId: reelArticle ? '' : videoId(draft.youtubeId.trim()),
+      videoUrl: reelArticle ? '' : draft.videoUrl,
     };
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -195,7 +205,11 @@ export function ArticleEditor({
   }
   function openReturned(input: SaveArticle) {
     const { version: _version, ...returnedDraft } = input;
-    setDraft((current) => ({ ...returnedDraft, byline: current.byline }));
+    setDraft((current) => ({
+      ...returnedDraft,
+      reelUrl: returnedDraft.reelUrl ?? '',
+      byline: current.byline,
+    }));
   }
   function markSubmitted(review: Review) {
     history.setData({ reviews: [review, ...(history.data?.reviews ?? [])], latestInput: null });
@@ -496,7 +510,7 @@ export function ArticleEditor({
             </label>
           </details>
           <label>
-            Report
+            {reelArticle ? 'Editorial context' : 'Report'}
             <textarea
               name="body"
               className="body-editor"
@@ -505,20 +519,42 @@ export function ArticleEditor({
               maxLength={100000}
               value={draft.body}
               onChange={(event) => set('body', event.target.value)}
-              placeholder="Write the report. Leave a blank line between paragraphs."
+              placeholder={
+                reelArticle
+                  ? 'Credit the creator and explain the context readers should know.'
+                  : 'Write the report. Leave a blank line between paragraphs.'
+              }
             />
             <span className="field-help">
               {wordCount} words · Separate paragraphs with a blank line.
             </span>
           </label>
           <fieldset className="media-fields">
-            <legend>Photograph & video</legend>
+            <legend>{reelArticle ? 'Instagram Reel & cover' : 'Photograph & video'}</legend>
+            {reelArticle && (
+              <label>
+                Public Instagram Reel link
+                <input
+                  name="reelUrl"
+                  type="url"
+                  required
+                  maxLength={2000}
+                  value={draft.reelUrl}
+                  onChange={(event) => set('reelUrl', event.target.value)}
+                  placeholder="https://www.instagram.com/reel/ABC123/"
+                />
+                <span className="field-help">
+                  Use the Reel’s share link. Confirm the original creator and any publication rights
+                  in your review notes.
+                </span>
+              </label>
+            )}
             <MediaUpload
               disabled={busy || assisting}
               onUploaded={(asset) => set('image', asset.url)}
             />
             <label>
-              Photograph
+              {reelArticle ? 'Cover photograph (optional)' : 'Photograph'}
               <input
                 name="image"
                 maxLength={2000}
@@ -537,53 +573,57 @@ export function ArticleEditor({
                 placeholder="Describe what the photograph shows"
               />
             </label>
-            <label>
-              YouTube video
-              <input
-                name="youtubeId"
-                maxLength={2000}
-                value={draft.youtubeId}
-                onChange={(event) => set('youtubeId', event.target.value)}
-                placeholder="Video link or 11-character ID"
-              />
-            </label>
-            {helpersAllowed && (
-              <div className={styles.assist}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!draft.youtubeId.trim() || assisting}
-                  onClick={() => void fetchVideoDetails()}
-                >
-                  {assisting ? 'Fetching video details…' : 'Fetch video details'}
-                </Button>
-              </div>
+            {!reelArticle && (
+              <>
+                <label>
+                  YouTube video
+                  <input
+                    name="youtubeId"
+                    maxLength={2000}
+                    value={draft.youtubeId}
+                    onChange={(event) => set('youtubeId', event.target.value)}
+                    placeholder="Video link or 11-character ID"
+                  />
+                </label>
+                {helpersAllowed && (
+                  <div className={styles.assist}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!draft.youtubeId.trim() || assisting}
+                      onClick={() => void fetchVideoDetails()}
+                    >
+                      {assisting ? 'Fetching video details…' : 'Fetch video details'}
+                    </Button>
+                  </div>
+                )}
+                <label>
+                  Direct video source
+                  <input
+                    name="videoUrl"
+                    maxLength={2000}
+                    value={draft.videoUrl}
+                    onChange={(event) => set('videoUrl', event.target.value)}
+                    placeholder="/videos/report.mp4 or an approved HTTPS URL"
+                  />
+                </label>
+                <VideoUpload
+                  disabled={busy}
+                  onReady={(video) => {
+                    set('videoUrl', video.url);
+                    set('youtubeId', '');
+                  }}
+                />
+                <p className="field-help">
+                  A completed upload selects its playback copy for this report and replaces the
+                  YouTube source.
+                </p>
+                <p className="field-help">
+                  A YouTube video takes priority, then a direct video, then the photograph. Channel
+                  imports are managed in Automations.
+                </p>
+              </>
             )}
-            <label>
-              Direct video source
-              <input
-                name="videoUrl"
-                maxLength={2000}
-                value={draft.videoUrl}
-                onChange={(event) => set('videoUrl', event.target.value)}
-                placeholder="/videos/report.mp4 or an approved HTTPS URL"
-              />
-            </label>
-            <VideoUpload
-              disabled={busy}
-              onReady={(video) => {
-                set('videoUrl', video.url);
-                set('youtubeId', '');
-              }}
-            />
-            <p className="field-help">
-              A completed upload selects its playback copy for this report and replaces the YouTube
-              source.
-            </p>
-            <p className="field-help">
-              A YouTube video takes priority, then a direct video, then the photograph. Channel
-              imports are managed in Automations.
-            </p>
           </fieldset>
           {error && (
             <p className="inline-error" role="alert">

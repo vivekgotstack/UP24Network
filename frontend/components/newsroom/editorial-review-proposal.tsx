@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { YouTubeStory } from '@/components/youtube-story';
 import type { Account } from '@/lib/cms';
+import { canonicalReelUrl } from '@/lib/instagram';
 import { articleReviews, type Review, type ReviewDetail } from '@/lib/newsroom/reviews';
 import { allowedMedia, toDraft, type Draft } from '@/lib/newsroom/types';
 import { useNewsroomResource } from '@/lib/session';
@@ -22,6 +23,7 @@ const fields: { key: keyof Draft; label: string }[] = [
   { key: 'imageAlt', label: 'Photograph description' },
   { key: 'videoUrl', label: 'Video address' },
   { key: 'youtubeId', label: 'YouTube video ID' },
+  { key: 'reelUrl', label: 'Instagram Reel address' },
   { key: 'sourceNotes', label: 'Private source notes' },
 ];
 
@@ -74,13 +76,20 @@ function ProposedMedia({ detail }: { detail: ReviewDetail }) {
   const [failedPhoto, setFailedPhoto] = useState(false);
   const [failedVideo, setFailedVideo] = useState(false);
   const { title, image, imageAlt, videoUrl, youtubeId } = detail.input;
-  const photo = image && allowedMedia(image) ? image : '';
+  const reelUrl = canonicalReelUrl(detail.input.reelUrl);
+  const photo =
+    image && allowedMedia(image) && (!reelUrl || !image.startsWith('/brand/')) ? image : '';
   const video = videoUrl && allowedMedia(videoUrl, false) ? videoUrl : '';
   const youtube = youtubeId && /^[A-Za-z0-9_-]{11}$/.test(youtubeId) ? youtubeId : '';
-  if (!photo && !video && !youtube) return null;
+  if (!photo && !video && !youtube && !reelUrl) return null;
   return (
     <section className={styles.proposalMedia} aria-labelledby={`media-${detail.id}`}>
       <h5 id={`media-${detail.id}`}>Proposed media</h5>
+      {reelUrl && (
+        <a className="text-link" href={reelUrl} target="_blank" rel="noopener noreferrer">
+          Open the original Reel on Instagram
+        </a>
+      )}
       {video ? (
         failedVideo ? (
           <p role="status">The proposed video could not be loaded.</p>

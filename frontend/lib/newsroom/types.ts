@@ -20,11 +20,15 @@ export type Draft = {
   imageAlt: string;
   videoUrl: string;
   youtubeId: string;
+  reelUrl: string;
   body: string;
   sourceNotes: string;
   byline: string;
 };
-export type SaveArticle = Draft & { version: number | null };
+export type SaveArticle = Omit<Draft, 'reelUrl'> & {
+  version: number | null;
+  reelUrl?: string | null;
+};
 export const emptyDraft: Draft = {
   title: '',
   slug: '',
@@ -36,6 +40,7 @@ export const emptyDraft: Draft = {
   imageAlt: '',
   videoUrl: '',
   youtubeId: '',
+  reelUrl: '',
   body: '',
   sourceNotes: '',
   byline: '',
@@ -53,6 +58,7 @@ export function toDraft(row?: ManagedArticle | null): Draft {
         imageAlt: row.article.imageAlt,
         videoUrl: row.article.videoUrl ?? '',
         youtubeId: row.article.youtubeId ?? '',
+        reelUrl: row.article.reelUrl ?? '',
         body: row.article.paragraphs.join('\n\n'),
         sourceNotes: row.sourceNotes ?? '',
         byline: row.article.author,
@@ -93,7 +99,13 @@ export function videoId(input: string) {
 export function allowedMedia(input: string, image = true) {
   if (!input) return true;
   if (image && /^\/media\/[a-f0-9]{64}\.webp$/.test(input)) return true;
-  if (!image && /^\/media\/videos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.mp4$/.test(input)) return true;
+  if (
+    !image &&
+    /^\/media\/videos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.mp4$/.test(
+      input,
+    )
+  )
+    return true;
   if (/^\/(images|brand|videos)\/[A-Za-z0-9._/-]+$/.test(input) && !input.includes('..'))
     return true;
   try {

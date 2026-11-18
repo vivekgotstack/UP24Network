@@ -20,5 +20,13 @@ public record ArticleView(
         boolean demo,
         String youtubeId,
         boolean breaking,
-        String sourceUrl
-) {}
+        String sourceUrl,
+        String reelUrl
+) {
+    public ArticleView(String slug, String title, String summary, String category, String city, String author,
+                       Instant publishedAt, int readingMinutes, String image, String imageAlt, String videoUrl,
+                       List<String> paragraphs, boolean demo, String youtubeId, boolean breaking, String sourceUrl) {
+        this(slug, title, summary, category, city, author, publishedAt, readingMinutes, image, imageAlt, videoUrl,
+                paragraphs, demo, youtubeId, breaking, sourceUrl, null);
+    }
+}

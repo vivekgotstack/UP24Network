@@ -16,6 +16,7 @@ export type Article = {
   paragraphs: string[];
   demo: boolean;
   youtubeId: string | null;
+  reelUrl?: string | null;
   breaking: boolean;
   sourceUrl: string | null;
 };

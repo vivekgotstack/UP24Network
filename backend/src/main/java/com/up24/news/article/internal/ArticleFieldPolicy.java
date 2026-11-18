@@ -7,9 +7,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 final class ArticleFieldPolicy {
+    private static final Pattern INSTAGRAM_REEL_PATH = Pattern.compile("/reel/([A-Za-z0-9_-]{1,64})/?");
     private ArticleFieldPolicy() {}
 
     static String slug(String input) {
@@ -20,7 +22,7 @@ final class ArticleFieldPolicy {
         return slug;
     }
 
-    static void verifyProposal(ArticleDesk.Input input) {
+    static String verifyProposal(ArticleDesk.Input input) {
         slug(input.slug());
         media(input.image(), "image");
         media(input.videoUrl(), "video");
@@ -28,7 +30,34 @@ final class ArticleFieldPolicy {
                 input.body(), input.sourceNotes()).anyMatch(text -> text != null && text.indexOf('\0') >= 0)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Remove invalid control characters from the article.");
         }
+        return reel(input);
     }
+
+    static String reel(ArticleDesk.Input input) {
+        String text = input.reelUrl() == null ? "" : input.reelUrl().strip();
+        if (!ArticleDesk.TRENDING_REELS.equals(input.category())) {
+            if (text.isEmpty()) return null;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select Trending Reels to add an Instagram Reel.");
+        }
+        if (present(input.videoUrl()) || present(input.youtubeId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use one Instagram Reel as the video source for this entry.");
+        }
+        try {
+            URI url = URI.create(text);
+            String host = url.getHost();
+            if ("https".equalsIgnoreCase(url.getScheme()) && host != null
+                    && Set.of("instagram.com", "www.instagram.com").contains(host.toLowerCase(Locale.ROOT))
+                    && url.getRawUserInfo() == null && url.getPort() == -1) {
+                var path = INSTAGRAM_REEL_PATH.matcher(url.getRawPath());
+                if (path.matches()) return "https://www.instagram.com/reel/" + path.group(1) + "/";
+            }
+        } catch (IllegalArgumentException ignored) {
+            // A malformed link is handled by the same validation response as an unsupported link.
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Add an HTTPS link to a public Instagram Reel.");
+    }
+
+    private static boolean present(String value) { return value != null && !value.isBlank(); }
 
     static String media(String input, String kind) {
         String text = input == null ? "" : input.trim();

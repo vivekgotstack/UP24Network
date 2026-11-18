@@ -94,11 +94,12 @@ class ArticleStore implements ArticleDesk {
         String slug=ArticleFieldPolicy.slug(input.slug());
         String paragraphs=bodyJson(Arrays.stream(input.body().split("\\n\\s*\\n")).map(String::trim).filter(p->!p.isBlank()).toList());
         String image=media(input.image(),"image"),video=media(input.videoUrl(),"video");
+        String reel=ArticleFieldPolicy.reel(input);
         try {
-            if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,paragraphs,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,TRUE,?,?,?)",
-                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),paragraphs,value(input.sourceNotes()),value(input.region()),actor);
-            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,paragraphs=?::jsonb,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
-                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),paragraphs,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
+            if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,reel_url,paragraphs,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,TRUE,?,?,?)",
+                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,value(input.sourceNotes()),value(input.region()),actor);
+            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
+                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
                 concurrentChange(id);
         } catch(DuplicateKeyException exception) { throw new ResponseStatusException(HttpStatus.CONFLICT,"That article slug is already in use"); }
         events.publishEvent(new ArticleChanged(articleId));
@@ -136,5 +137,5 @@ class ArticleStore implements ArticleDesk {
         if(changed) events.publishEvent(new ArticleChanged(id));
         return changed;
     }
-    static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,breaking,source_url,region";
+    static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region";
 }

@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.*;
 
 public interface ArticleDesk {
+    String TRENDING_REELS = "Trending Reels";
+
     record Input(@NotBlank @Size(max=500) String title,@NotBlank @Size(max=500) String slug,
                  @NotBlank @Size(max=2000) String summary,@NotBlank @Size(max=100) String category,
                  @Size(max=100) String city,@Size(max=2000) String image,@Size(max=500) String imageAlt,
@@ -12,7 +14,12 @@ public interface ArticleDesk {
                  @NotBlank @Size(max=100000) String body,@PositiveOrZero Long version,
                  @Size(max=10000) String sourceNotes,
                  @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region,
-                 @Size(max=100) String byline) {
+                 @Size(max=100) String byline,
+                 @Size(max=2048) String reelUrl) {
+        public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
+                     String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region,String byline) {
+            this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,byline,null);
+        }
         public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
                      String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region) {
             this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,null);

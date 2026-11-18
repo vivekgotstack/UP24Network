@@ -12,7 +12,8 @@ final class ReportingRequirements {
         if (input.byline() != null && !input.byline().isBlank()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only an administrator can override a byline.");
         }
-        check(input.city(), input.image(), input.imageAlt(), input.videoUrl(), input.youtubeId(), input.sourceNotes(), policy);
+        String footage = ArticleDesk.TRENDING_REELS.equals(input.category()) ? input.reelUrl() : input.videoUrl();
+        check(input.city(), input.image(), input.imageAlt(), footage, input.youtubeId(), input.sourceNotes(), policy);
     }
     static void check(String city,String image,String imageAlt,String video,String youtube,String sourceNotes) {
         check(city,image,imageAlt,video,youtube,sourceNotes,null);
