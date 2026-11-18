@@ -62,6 +62,14 @@ const settings={
 for (const [variable,key] of Object.entries({BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key'})) {
   const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;
 }
+for (const [variable,key] of Object.entries({NEWSLETTER_LIST_ID:'up24.newsletter.list-id',NEWSLETTER_DOI_TEMPLATE_ID:'up24.newsletter.doi-template-id'})) {
+  const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key];
+  if (value) settings[key]=value;
+}
+const newsletterReturn=new URL(process.env.NEWSLETTER_CONFIRM_URL || environment.NEWSLETTER_CONFIRM_URL || local['up24.newsletter.confirmation-url'] || '/newsletter?confirmed=1',site);
+if (newsletterReturn.origin!==site.origin || newsletterReturn.username || newsletterReturn.password || newsletterReturn.hash)
+  throw new Error('Use the public site HTTPS origin for NEWSLETTER_CONFIRM_URL.');
+settings['up24.newsletter.confirmation-url']=newsletterReturn.href;
 const mediaKeys={
   UP24_MEDIA_STORAGE:'up24.media.storage',UP24_S3_BUCKET:'up24.media.s3.bucket',AWS_REGION:'up24.media.s3.region',
   UP24_S3_PREFIX:'up24.media.s3.prefix',UP24_MEDIA_CDN_URL:'up24.media.s3.cdn-url',

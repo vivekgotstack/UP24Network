@@ -1,5 +1,6 @@
 import { EditionArt } from '@/components/edition-art';
 import { CookiePreferences } from '@/components/cookie-consent';
+import { NewsletterSection } from '@/components/newsletter-section';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
@@ -35,6 +36,7 @@ export async function SiteFooter() {
           {settings.footerDescription}
         </p>
       )}
+      <NewsletterSection />
       <div className="footer-directory">
         {sectionGroups.map((group) => (
           <nav key={group.title} aria-label={group.title}>

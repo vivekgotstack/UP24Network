@@ -68,6 +68,15 @@ export const getPublicationNavigation = cache(
     return publicationNavigation;
   },
 );
+export const getNewsletterAvailability = cache(async (): Promise<boolean> => {
+  try {
+    const response = await publicRequest('newsletter');
+    if (response.ok) return (await response.json()).available === true;
+  } catch {
+    // Unavailable signup must stay separate from reading the publication.
+  }
+  return false;
+});
 export async function publicationMetadata(fallback: PublicationDocument): Promise<Metadata> {
   const document = (await getPublicationPage(fallback.path)) ?? fallback;
   return {

@@ -16,6 +16,8 @@ import officialLogo from '@/public/brand/up24-logo.png';
 
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
+const deskBylines = new Set(['UP24Network Editorial Team', 'UP24Network Desk']);
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getArticle((await params).slug);
   if (!article) return { title: 'Report not found' };
@@ -41,8 +43,14 @@ export default async function ArticlePage({ params }: Props) {
   const [article, all] = await Promise.all([getArticle(slug), getArticles()]);
   if (!article) notFound();
   if (article.slug !== slug) permanentRedirect(`/news/${encodeURIComponent(article.slug)}`);
-  const related = newest(all)
-    .filter((a) => a.slug !== slug)
+  const byline = article.author.trim();
+  const isDeskByline = deskBylines.has(byline);
+  const otherReports = newest(all).filter((report) => report.slug !== slug);
+  const authorReports = byline
+    ? otherReports.filter((report) => report.author.trim() === byline).slice(0, 2)
+    : [];
+  const related = otherReports
+    .filter((report) => !authorReports.some((authorReport) => authorReport.slug === report.slug))
     .sort(
       (a, b) => Number(b.category === article.category) - Number(a.category === article.category),
     )
@@ -56,7 +64,7 @@ export default async function ArticlePage({ params }: Props) {
     datePublished: article.publishedAt,
     image: new URL(article.image, origin).href,
     mainEntityOfPage: new URL(`/news/${article.slug}`, origin).href,
-    author: { '@type': 'Person', name: article.author },
+    author: { '@type': isDeskByline ? 'Organization' : 'Person', name: article.author },
     publisher: {
       '@type': 'Organization',
       name: 'UP24Network',
@@ -89,7 +97,9 @@ export default async function ArticlePage({ params }: Props) {
                 {article.author.slice(0, 1)}
               </span>
               <div>
-                <strong>{article.author}</strong>
+                <strong lang={textLanguage(byline)}>
+                  <Link href="#about-the-author">{byline}</Link>
+                </strong>
                 <p>
                   <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time>
                   <span aria-hidden="true"> · </span>
@@ -159,6 +169,42 @@ export default async function ArticlePage({ params }: Props) {
               <Link href={sectionHref(article.category)}>More from {article.category}</Link>
             </div>
           </ReadingExperience>
+          <section
+            className="article-author"
+            id="about-the-author"
+            aria-labelledby="article-author-heading"
+          >
+            <h2 id="article-author-heading">About the author</h2>
+            <h3 lang={textLanguage(byline)}>{byline}</h3>
+            {isDeskByline && (
+              <p>
+                UP24Network’s editorial desk covers Uttar Pradesh, national affairs, and
+                international news. <Link href="/editorial-policy">Our editorial standards</Link>
+              </p>
+            )}
+            {authorReports.length > 0 ? (
+              <ul aria-label="More reports by this author">
+                {authorReports.map((report) => (
+                  <li key={report.slug}>
+                    <Link
+                      href={`/news/${encodeURIComponent(report.slug)}`}
+                      lang={textLanguage(report.title)}
+                    >
+                      {report.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : !isDeskByline ? (
+              <p>
+                This report appears in{' '}
+                <Link href={sectionHref(article.category)} lang="hi">
+                  {sectionTitle(article.category)}
+                </Link>
+                .
+              </p>
+            ) : null}
+          </section>
         </article>
         {related.length > 0 && (
           <section className="more-stories related-stories">

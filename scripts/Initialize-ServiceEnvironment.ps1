@@ -9,6 +9,9 @@ foreach ($line in $lines) { if ($line -match '^\s*([^#!\s=]+)\s*=') { $keys[$Mat
 $defaults = [ordered]@{
     BREVO_API_KEY = ''
     BREVO_SENDER_EMAIL = ''
+    NEWSLETTER_LIST_ID = ''
+    NEWSLETTER_DOI_TEMPLATE_ID = ''
+    NEWSLETTER_CONFIRM_URL = ''
     ASTROLOGICS_API_KEY = ''
     YOUTUBE_API_KEY = ''
     WEATHERBIT_API_KEY = ''

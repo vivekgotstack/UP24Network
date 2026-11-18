@@ -17,6 +17,7 @@ const endpoints: [RegExp, string[]][] = [
   [/^auth\/newsroom\/(code|verify)$/, ['POST']],
   [/^auth\/password\/(request|reset)$/, ['POST']],
   [/^publication\/contact$/, ['POST']],
+  [/^publication\/newsletter$/, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
   [/^admin\/articles\/browse$/, ['GET']],
   [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT', 'DELETE']],
@@ -110,7 +111,12 @@ async function proxy(request: NextRequest, context: Context) {
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
   try {
-    const maxBodyBytes = path === 'publication/contact' ? 32 * 1024 : MAX_BODY_BYTES;
+    const maxBodyBytes =
+      path === 'publication/newsletter'
+        ? 4096
+        : path === 'publication/contact'
+          ? 32 * 1024
+          : MAX_BODY_BYTES;
     const body = mutation ? await readLimitedBody(request, maxBodyBytes) : undefined;
     if (body === null) return problem('Request body is too large', 413);
     const contentType = request.headers.get('content-type')?.split(';')[0].trim();

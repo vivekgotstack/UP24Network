@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/latest',
       '/archive',
       '/watch',
+      '/newsletter',
       '/sections',
       '/regions',
       ...(hasAirQuality ? ['/aqi-india'] : []),
