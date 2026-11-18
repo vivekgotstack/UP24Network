@@ -28,6 +28,7 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+$`, 'i'), ['GET']],
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+/restore$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
+  [new RegExp(`^admin/articles/${UUID}/continuations$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/review$`, 'i'), ['GET', 'POST']],
   [/^admin\/article-reviews$/, ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
@@ -156,7 +157,10 @@ async function proxy(request: NextRequest, context: Context) {
     );
     if (path === 'admin/article-reviews/batches' && response.status === 404) {
       await response.body?.cancel();
-      return problem('The running backend is missing daily editorial reviews. Restart it from the current build.', 503);
+      return problem(
+        'The running backend is missing daily editorial reviews. Restart it from the current build.',
+        503,
+      );
     }
     if (mutation && response.ok) {
       if (

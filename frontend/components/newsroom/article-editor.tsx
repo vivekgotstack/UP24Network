@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ArticleConflict } from '@/components/newsroom/article-conflict';
+import { EditorialCityPicker, EditorialSectionPicker } from '@/components/newsroom/editorial-picker';
+import { ContinueStoryButton } from '@/components/newsroom/continue-story-button';
+import { EditorialVideoPreview } from '@/components/newsroom/editorial-video-preview';
 import {
   StaffReviewStatus,
   StaffReviewSubmission,
@@ -16,7 +19,6 @@ import { articleReviews, type Review, type ReviewHistory } from '@/lib/newsroom/
 import { canonicalReelUrl, trendingReelsCategory } from '@/lib/instagram';
 import styles from './article-admin.module.css';
 
-import { sections } from '@/lib/sections';
 import { cities, regions } from '@/lib/regions';
 import {
   toDraft,
@@ -276,6 +278,7 @@ export function ArticleEditor({
           <h2>
             {proposedUpdate ? 'Propose an update' : article ? 'Edit article' : 'Create a draft'}
           </h2>
+          {article && <p className="field-help">Story version {article.editionNumber ?? 1}</p>}
         </div>
         <span className={`save-state ${dirty ? 'is-dirty' : ''}`} role="status">
           {pendingReview
@@ -400,45 +403,16 @@ export function ArticleEditor({
             </label>
           )}
           <div className="cms-form-row">
-            <label>
-              Section
-              <select
-                name="category"
-                value={draft.category}
-                onChange={(event) => set('category', event.target.value)}
-              >
-                {sections.map((section) => (
-                  <option key={section}>{section}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              City
-              <input
-                name="city"
-                list="newsroom-cities"
-                required={requireDateline}
-                value={draft.city}
-                maxLength={100}
-                onChange={(event) => {
-                  touched.current = true;
-                  const city = event.target.value;
-                  const known = cities.find((item) =>
-                    item.aliases.some((alias) => alias.toLowerCase() === city.trim().toLowerCase()),
-                  );
-                  setDraft((current) => ({
-                    ...current,
-                    city,
-                    region: known?.region ?? current.region,
-                  }));
-                }}
-              />
-              <datalist id="newsroom-cities">
-                {cities.map((city) => (
-                  <option key={city.slug} value={city.title} />
-                ))}
-              </datalist>
-            </label>
+            <EditorialSectionPicker value={draft.category} choose={(value) => set('category', value)} />
+            <EditorialCityPicker
+              value={draft.city}
+              required={requireDateline}
+              custom={adminMode}
+              choose={(city, region) => {
+                touched.current = true;
+                setDraft((current) => ({ ...current, city, region: region ?? current.region }));
+              }}
+            />
           </div>
           <label>
             Regional edition
@@ -624,6 +598,13 @@ export function ArticleEditor({
                 </p>
               </>
             )}
+            <EditorialVideoPreview
+              title={draft.title.trim() || 'Video preview'}
+              image={draft.image}
+              reel={reelArticle ? draft.reelUrl : null}
+              youtube={reelArticle ? null : draft.youtubeId}
+              direct={reelArticle ? null : draft.videoUrl}
+            />
           </fieldset>
           {error && (
             <p className="inline-error" role="alert">
@@ -639,7 +620,7 @@ export function ArticleEditor({
             {!proposedUpdate && (
               <>
                 <Button disabled={busy} type="submit" variant={adminMode ? 'default' : 'outline'}>
-                  {busy ? 'Saving…' : adminMode ? 'Save article' : 'Save draft'}
+                  {busy ? 'Saving…' : articleStatus === 'PUBLISHED' ? 'Save changes' : 'Save draft'}
                 </Button>
                 <Button type="submit" name="intent" value="preview" disabled={busy}>
                   Save &amp; preview
@@ -656,10 +637,13 @@ export function ArticleEditor({
                 {proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
               </Button>
             )}
-            {adminMode && onPublish && (
+            {adminMode && onPublish && articleStatus !== 'PUBLISHED' && (
               <Button type="submit" name="intent" value="publish" disabled={busy}>
-                Save &amp; publish
+                Save and publish
               </Button>
+            )}
+            {article?.status === 'PUBLISHED' && session.data && (
+              <ContinueStoryButton article={article} user={session.data} disabled={busy || unsaved} />
             )}
             <Button
               type="button"
@@ -672,7 +656,7 @@ export function ArticleEditor({
           </div>
           {adminMode && article?.status === 'PUBLISHED' && (
             <p className="field-help">
-              Saving updates the published report. Publication controls are on the article desk.
+              Saving updates the live report. Use Continue story to draft the next version separately.
             </p>
           )}
           {proposedUpdate && (

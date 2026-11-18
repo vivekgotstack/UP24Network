@@ -114,6 +114,18 @@ export default async function ArticlePage({ params }: Props) {
                       ? 'Video report'
                       : `${article.readingMinutes} min read`}
                 </p>
+                <p>
+                  Version {article.editionNumber ?? 1}
+                  {article.continuationOfSlug && (
+                    <>
+                      {' '}
+                      ·{' '}
+                      <Link href={`/news/${encodeURIComponent(article.continuationOfSlug)}`}>
+                        Previous version
+                      </Link>
+                    </>
+                  )}
+                </p>
               </div>
             </div>
           </header>

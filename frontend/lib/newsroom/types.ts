@@ -5,6 +5,8 @@ export type ManagedArticle = {
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'TRASH';
   manualOverride: boolean;
   version: number;
+  editionNumber?: number;
+  continuationRootId?: string | null;
   article: Article;
   sourceNotes: string;
   region: string;

@@ -25,7 +25,14 @@ public interface ArticleDesk {
             this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,region,null);
         }
     }
-    record Managed(UUID id,UUID authorId,String status,boolean manualOverride,long version,ArticleView article,String sourceNotes,String region) {}
+    record Managed(UUID id, UUID authorId, String status, boolean manualOverride, long version, ArticleView article,
+                   String sourceNotes, String region, int editionNumber, UUID continuationRootId) {
+        public Managed(UUID id, UUID authorId, String status, boolean manualOverride, long version, ArticleView article,
+                       String sourceNotes, String region) {
+            this(id, authorId, status, manualOverride, version, article, sourceNotes, region,
+                    article.editionNumber(), article.continuationRootId());
+        }
+    }
     record Imported(String upstreamKey,String slug,String title,String summary,String category,String city,
                     String image,String imageAlt,String videoUrl,String youtubeId,List<String> paragraphs,
                     Instant publishedAt,boolean breaking,String sourceUrl,String region) {}

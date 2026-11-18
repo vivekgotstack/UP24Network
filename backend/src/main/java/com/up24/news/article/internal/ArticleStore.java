@@ -29,10 +29,10 @@ class ArticleStore implements ArticleDesk {
     }
     @Override public List<Managed> list(UUID authorId) {
         return authorId==null
-                ? jdbc.query("SELECT * FROM article_record WHERE status IN ('DRAFT','PUBLISHED') ORDER BY updated_at DESC LIMIT 150",this::map)
-                : jdbc.query("SELECT * FROM article_record WHERE author_id=? AND status IN ('DRAFT','PUBLISHED') ORDER BY updated_at DESC LIMIT 150",this::map,authorId);
+                ? jdbc.query("SELECT "+FULL_COLUMNS+" FROM article_record WHERE status IN ('DRAFT','PUBLISHED') ORDER BY updated_at DESC LIMIT 150",this::map)
+                : jdbc.query("SELECT "+FULL_COLUMNS+" FROM article_record WHERE author_id=? AND status IN ('DRAFT','PUBLISHED') ORDER BY updated_at DESC LIMIT 150",this::map,authorId);
     }
-    @Override public Optional<Managed> find(UUID id) { return jdbc.query("SELECT * FROM article_record WHERE id=?",this::map,id).stream().findFirst(); }
+    @Override public Optional<Managed> find(UUID id) { return jdbc.query("SELECT "+FULL_COLUMNS+" FROM article_record WHERE id=?",this::map,id).stream().findFirst(); }
     @Cacheable(cacheNames="article-feed",condition="@articleCacheInvalidation.readable()")
     @Override public List<ArticleView> published() {
         return jdbc.query("SELECT "+SUMMARY_COLUMNS+" FROM article_record WHERE status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP ORDER BY published_at DESC LIMIT 100",(row,index)->ArticleRows.summary(row))
@@ -75,7 +75,7 @@ class ArticleStore implements ArticleDesk {
     }
     @Cacheable(cacheNames="article-detail",condition="@articleCacheInvalidation.readable()")
     @Override public Optional<ArticleView> findPublished(String slug) {
-        return jdbc.query("SELECT a.* FROM article_record a JOIN article_address address ON address.article_id=a.id WHERE address.slug=? AND a.status='PUBLISHED' AND a.published_at<=CURRENT_TIMESTAMP",this::map,slug)
+        return jdbc.query("SELECT "+FULL_COLUMNS+" FROM article_record JOIN article_address address ON address.article_id=article_record.id WHERE address.slug=? AND article_record.status='PUBLISHED' AND article_record.published_at<=CURRENT_TIMESTAMP",this::map,slug)
                 .stream().map(Managed::article).findFirst();
     }
     private void concurrentChange(UUID id) {
@@ -137,5 +137,12 @@ class ArticleStore implements ArticleDesk {
         if(changed) events.publishEvent(new ArticleChanged(id));
         return changed;
     }
-    static final String SUMMARY_COLUMNS="id,author_id,status,manual_override,version,slug,title,summary,category,city,author,published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region";
+    private static final String CONTINUATION_SLUG = """
+        (SELECT earlier.slug FROM article_record earlier WHERE earlier.id=article_record.continuation_of_id
+             AND earlier.status='PUBLISHED' AND earlier.published_at<=CURRENT_TIMESTAMP) AS continuation_of_slug
+        """;
+    static final String FULL_COLUMNS = "article_record.*, " + CONTINUATION_SLUG;
+    static final String SUMMARY_COLUMNS = "id,author_id,status,manual_override,version,slug,title,summary,category,city,author,"
+            + "published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region,"
+            + "edition_number,continuation_root_id, " + CONTINUATION_SLUG;
 }

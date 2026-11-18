@@ -59,7 +59,7 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
                 (row,index) -> new ArticleLifecycle.Revision(row.getLong("version"),row.getTimestamp("saved_at").toInstant(),row.getString("title"),row.getString("status"),row.getObject("actor_id",UUID.class)),id);
     }
     @Override public Optional<ArticleDesk.Managed> revision(UUID id, long version) {
-        return jdbc.query("SELECT (jsonb_populate_record(NULL::article_record,snapshot)).* FROM article_revision WHERE article_id=? AND version=?",
+        return jdbc.query("SELECT "+ArticleStore.FULL_COLUMNS+" FROM (SELECT (jsonb_populate_record(NULL::article_record,snapshot)).* FROM article_revision WHERE article_id=? AND version=?) article_record",
                 (row,index) -> ArticleRows.full(row,json),id,version).stream().findFirst();
     }
     @Override public boolean restore(UUID id, long version, UUID actorId) {

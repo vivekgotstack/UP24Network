@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Search, FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ContinueStoryButton } from '@/components/newsroom/continue-story-button';
 import { textLanguage } from '@/lib/language';
 import { useNewsroomResource } from '@/lib/session';
 import type { Account } from '@/lib/cms';
@@ -289,7 +290,8 @@ export function ArticleWorkspace({
                 <h3 lang={textLanguage(row.article.title)}>{row.article.title}</h3>
                 <p>
                   {row.article.author}
-                  {row.article.city ? ` · ${row.article.city}` : ''} · Version {row.version}
+                  {row.article.city ? ` · ${row.article.city}` : ''} · Story version{' '}
+                  {row.editionNumber ?? 1}
                   {row.manualOverride ? ' · Editorial control' : ' · Imported'}
                 </p>
                 <div className="cms-row-actions">
@@ -311,6 +313,9 @@ export function ArticleWorkspace({
                     >
                       View public report
                     </Link>
+                  )}
+                  {!trashMode && (
+                    <ContinueStoryButton article={row} user={user} disabled={busy} compact />
                   )}
                   {!trashMode && administrator && (
                     <Button

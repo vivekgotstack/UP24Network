@@ -98,20 +98,24 @@ export default async function Home({
           <TrendingReels />
         </Suspense>
         <Reveal>{settings.showVideo && <WatchSection articles={articles} />}</Reveal>
-        <Suspense fallback={null}>{settings.showRashifal && <RashifalSection />}</Suspense>
-        {remaining.length > 0 && (
-          <section className="more-stories">
-            <div className="section-heading">
-              <h2 lang="hi">खबरें विस्तार से</h2>
-              <Link href="/latest">All reports</Link>
-            </div>
-            <Reveal className="story-grid">
-              {remaining.slice(0, 6).map((article) => (
-                <StoryCard key={article.slug} article={article} />
-              ))}
-            </Reveal>
-          </section>
-        )}
+        <div className="home-reading-desk">
+          {remaining.length > 0 && (
+            <section className="more-stories">
+              <div className="section-heading">
+                <h2 lang="hi">खबरें विस्तार से</h2>
+                <Link href="/latest">All reports</Link>
+              </div>
+              <Reveal className="story-grid">
+                {remaining.slice(0, 6).map((article) => (
+                  <StoryCard key={article.slug} article={article} />
+                ))}
+              </Reveal>
+            </section>
+          )}
+          <Suspense fallback={null}>
+            {settings.showRashifal && <RashifalSection compact />}
+          </Suspense>
+        </div>
         {desks.map((desk) => (
           <section className="more-stories" key={desk.slug}>
             <div className="section-heading">

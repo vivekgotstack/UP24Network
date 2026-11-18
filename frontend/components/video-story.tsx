@@ -48,6 +48,7 @@ export function VideoStory({
         </video>
       ) : (
         <motion.button
+          type="button"
           className="video-trigger"
           aria-label={`Play video: ${title}`}
           onClick={() => setPlaying(true)}

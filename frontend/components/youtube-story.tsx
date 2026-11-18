@@ -43,6 +43,7 @@ export function YouTubeStory({
         />
       ) : (
         <motion.button
+          type="button"
           className="video-trigger"
           aria-label={`Play: ${title}`}
           onClick={() => setPlaying(true)}

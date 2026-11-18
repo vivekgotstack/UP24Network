@@ -136,6 +136,38 @@ class EditorialWorkflowTest {
                 .andExpect(jsonPath("$.hasNext").value(false));
     }
 
+    @Test void creatingAContinuationKeepsTheSourcePublicAndTheNewEditionPrivateUntilApproval() throws Exception {
+        String slug = "first-edition-" + UUID.randomUUID();
+        var source = desk.save(null, input(slug, "Original report", null), owner.id(), owner.displayName());
+        desk.publish(source.id(), source.version(), true, false, owner.id());
+        String create = "/api/admin/articles/" + source.id() + "/continuations";
+        mvc.perform(post(create).with(user(reporter.email())).with(verified(reporter.email())).with(csrf()))
+                .andExpect(status().isNotFound());
+        var created = mvc.perform(post(create).with(user(editor.email())).with(verified(editor.email())).with(csrf()))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.version").value(0)).andExpect(jsonPath("$.editionNumber").value(2))
+                .andExpect(jsonPath("$.continuationRootId").value(source.id().toString()))
+                .andExpect(jsonPath("$.sourceNotes").value(""))
+                .andExpect(jsonPath("$.article.author").value(editor.displayName()))
+                .andReturn().getResponse();
+        var draft = json.readValue(created.getContentAsByteArray(), ArticleDesk.Managed.class);
+        assertThat(draft.id()).isNotEqualTo(source.id());
+        assertThat(draft.article().slug()).isNotEqualTo(slug);
+        assertThat(draft.article().paragraphs()).isEqualTo(source.article().paragraphs());
+        String continuation = "/api/articles/" + draft.article().slug();
+        mvc.perform(get(continuation)).andExpect(status().isNotFound());
+        var review = submit(draft, editor, input(draft.article().slug(), "Follow-up report", draft.version()));
+        approve(review, editor).andExpect(status().isOk());
+        mvc.perform(get(continuation)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.editionNumber").value(2)).andExpect(jsonPath("$.continuationOfSlug").value(slug));
+        mvc.perform(get("/api/articles/" + slug)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Original report")).andExpect(jsonPath("$.editionNumber").value(1));
+        mvc.perform(post("/api/admin/articles/" + draft.id() + "/continuations")
+                .with(user(editor.email())).with(verified(editor.email())).with(csrf()))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.editionNumber").value(3))
+                .andExpect(jsonPath("$.continuationRootId").value(source.id().toString()));
+    }
+
     @Test void realLoginAndDraftPublicationRespectPermissionsAndCsrf() throws Exception {
         mvc.perform(formLogin("/api/auth/login").user("email",editor.email()).password(PASSWORD))
                 .andExpect(status().isOk()).andExpect(cookie().httpOnly("UP24_ACCESS",true));
@@ -158,7 +190,7 @@ class EditorialWorkflowTest {
         String batches = "/api/admin/article-reviews/batches?page=1";
         mvc.perform(get(batches).with(user(owner.email())).with(verified(owner.email())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].contributorId").value(reporter.id().toString()));
+                .andExpect(jsonPath("$.items[*].contributorId", org.hamcrest.Matchers.hasItem(reporter.id().toString())));
         mvc.perform(get(batches).with(user(editor.email())).with(verified(editor.email())))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isNotFound());

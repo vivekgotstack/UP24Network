@@ -1,12 +1,19 @@
 'use client';
 
 import { Tabs } from 'radix-ui';
+import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { HoroscopeEdition } from '@/lib/horoscope';
 import { luckyColourSwatch, zodiacFor, zodiacSigns } from '@/lib/zodiac';
 import { ZodiacArt } from '@/components/zodiac-art';
 
-export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
+export function RashifalReadings({
+  edition,
+  compact = false,
+}: {
+  edition: HoroscopeEdition;
+  compact?: boolean;
+}) {
   const reducedMotion = useReducedMotion();
   const readings = zodiacSigns.flatMap((zodiac) => {
     const reading = edition.signs.find((sign) => sign.sign === zodiac.id);
@@ -18,15 +25,20 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
   }).format(new Date(`${edition.date}T00:00:00+05:30`));
 
   return (
-    <section className="rashifal-section" id="rashifal" lang="hi" aria-labelledby="rashifal-title">
+    <section
+      className={`rashifal-section${compact ? ' rashifal-section-compact' : ''}`}
+      id="rashifal"
+      lang="hi"
+      aria-labelledby="rashifal-title"
+    >
       <div className="rashifal-heading">
         <div>
-          <p className="eyebrow">दैनिक विशेष · {readings.length} राशियाँ</p>
           <h2 id="rashifal-title">आज का राशिफल</h2>
-          <p className="rashifal-intro">अपनी राशि चुनें और आज का फल, शुभ अंक व शुभ रंग पढ़ें।</p>
+          {!compact && (
+            <p className="rashifal-intro">अपनी राशि चुनें और आज का फल, शुभ अंक व शुभ रंग पढ़ें।</p>
+          )}
         </div>
         <div className="rashifal-date">
-          <span>दैनिक संस्करण</span>
           <time dateTime={edition.date}>{date}</time>
         </div>
       </div>
@@ -41,9 +53,11 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
             >
               <ZodiacArt sign={sign.sign} />
               <span className="rashi-sign-name">{sign.name}</span>
-              <span className="rashi-sign-english" lang="en" aria-hidden="true">
-                {zodiacFor(sign.sign)?.englishName}
-              </span>
+              {!compact && (
+                <span className="rashi-sign-english" lang="en" aria-hidden="true">
+                  {zodiacFor(sign.sign)?.englishName}
+                </span>
+              )}
             </Tabs.Trigger>
           ))}
         </Tabs.List>
@@ -55,13 +69,15 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              <figure className="rashi-portrait">
-                <ZodiacArt sign={sign.sign} large />
-                <figcaption>
-                  <span>{zodiacFor(sign.sign)?.motif}</span>
-                  <span lang="en">{zodiacFor(sign.sign)?.englishName}</span>
-                </figcaption>
-              </figure>
+              {!compact && (
+                <figure className="rashi-portrait">
+                  <ZodiacArt sign={sign.sign} large />
+                  <figcaption>
+                    <span>{zodiacFor(sign.sign)?.motif}</span>
+                    <span lang="en">{zodiacFor(sign.sign)?.englishName}</span>
+                  </figcaption>
+                </figure>
+              )}
               <div className="rashi-copy">
                 <header>
                   <p className="eyebrow">आपकी राशि · आज का फल</p>
@@ -92,6 +108,11 @@ export function RashifalReadings({ edition }: { edition: HoroscopeEdition }) {
           </Tabs.Content>
         ))}
       </Tabs.Root>
+      {compact && (
+        <Link className="rashi-full-edition" href="/section/rashifal">
+          पूरा राशिफल पढ़ें
+        </Link>
+      )}
       <p className="rashi-note">
         ज्योतिष परंपरा पर आधारित सामान्य मार्गदर्शन। यह निश्चित भविष्यवाणी या पेशेवर सलाह नहीं है।
       </p>

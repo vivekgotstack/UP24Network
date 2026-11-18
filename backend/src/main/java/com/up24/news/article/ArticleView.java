@@ -2,6 +2,7 @@ package com.up24.news.article;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /** Public read contract. Other modules may use this without depending on storage. */
 public record ArticleView(
@@ -21,8 +22,18 @@ public record ArticleView(
         String youtubeId,
         boolean breaking,
         String sourceUrl,
-        String reelUrl
+        String reelUrl,
+        int editionNumber,
+        UUID continuationRootId,
+        String continuationOfSlug
 ) {
+    public ArticleView(String slug, String title, String summary, String category, String city, String author,
+                       Instant publishedAt, int readingMinutes, String image, String imageAlt, String videoUrl,
+                       List<String> paragraphs, boolean demo, String youtubeId, boolean breaking, String sourceUrl,
+                       String reelUrl) {
+        this(slug, title, summary, category, city, author, publishedAt, readingMinutes, image, imageAlt, videoUrl,
+                paragraphs, demo, youtubeId, breaking, sourceUrl, reelUrl, 1, null, null);
+    }
     public ArticleView(String slug, String title, String summary, String category, String city, String author,
                        Instant publishedAt, int readingMinutes, String image, String imageAlt, String videoUrl,
                        List<String> paragraphs, boolean demo, String youtubeId, boolean breaking, String sourceUrl) {

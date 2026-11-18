@@ -129,9 +129,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
               <section aria-labelledby="reader-view-counts-heading">
                 <h2 id="reader-view-counts-heading">Article view counts</h2>
                 <p>
-                  We count public article views to understand which reports readers open. We use
-                  the current sign-in status to exclude staff views. The resulting totals contain
-                  no reader names, account identifiers, or browsing histories.
+                  We count public article views to understand which reports readers open. We use the
+                  current sign-in status to exclude staff views. The resulting totals contain no
+                  reader names, account identifiers, or browsing histories.
                 </p>
               </section>
             )}

@@ -201,6 +201,111 @@
     line-height: 1.8;
     margin-top: 16px;
   }
+  .home-reading-desk:has(> .rashifal-section-compact) {
+    margin-block: clamp(28px, 5vw, 56px);
+  }
+  .home-reading-desk:has(> .rashifal-section-compact) > .more-stories {
+    min-width: 0;
+    margin: 0;
+  }
+  .rashifal-section-compact {
+    width: 100%;
+    max-width: 460px;
+    margin: 28px 0 0;
+    border-top-width: 3px;
+  }
+  .rashifal-section-compact .rashifal-heading {
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 10px 0;
+  }
+  .rashifal-section-compact .rashifal-heading h2 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 28px);
+  }
+  .rashifal-section-compact .rashifal-date {
+    padding: 0;
+    border: 0;
+    text-align: start;
+  }
+  .rashifal-section-compact .rashifal-date time {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .rashifal-section-compact .rashi-signs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .rashifal-section-compact .rashi-signs .rashi-sign {
+    min-height: 54px;
+    gap: 2px;
+    padding: 5px 2px;
+  }
+  .rashifal-section-compact .rashi-sign .zodiac-art {
+    width: 32px;
+    margin: 0;
+  }
+  .rashifal-section-compact .rashi-sign-name {
+    font-size: 13px;
+  }
+  .rashifal-section-compact .rashi-reading {
+    display: block;
+  }
+  .rashifal-section-compact .rashi-copy {
+    padding: 12px;
+  }
+  .rashifal-section-compact .rashi-copy h3 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .rashifal-section-compact .rashi-text {
+    max-height: 11rem;
+    overflow-y: auto;
+    margin-top: 7px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .rashifal-section-compact .rashi-details {
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .rashifal-section-compact .rashi-details > div {
+    padding: 5px 8px;
+  }
+  .rashifal-section-compact .rashi-details dt {
+    margin: 0;
+    font-size: 12px;
+  }
+  .rashifal-section-compact .rashi-details dd {
+    min-height: 0;
+    font-size: 17px;
+  }
+  .rashifal-section-compact .rashi-colour-chip {
+    width: 15px;
+    height: 15px;
+  }
+  .rashifal-section-compact .rashi-note {
+    margin-top: 0;
+  }
+  .rashi-full-edition {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font: 600 14px/1.4 var(--sans);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  @media (min-width: 950px) {
+    .home-reading-desk:has(> .more-stories):has(> .rashifal-section-compact) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(290px, 30%);
+      align-items: start;
+      gap: clamp(22px, 3vw, 46px);
+    }
+    .home-reading-desk > .rashifal-section-compact {
+      margin: 0;
+    }
+  }
   @media (max-width: 1000px) {
     .rashi-signs {
       grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -215,3 +215,11 @@
     gap: 12px;
   }
 }
+.videoPreview {
+  position: relative;
+  width: min(100%, 48rem);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--brand-navy);
+}

@@ -59,24 +59,24 @@ export function ArticleRevisions({
       <summary>Revision history &amp; recovery</summary>
       <div className={styles.historyContent}>
         <p className="field-help">
-          The latest 20 previous versions are retained. Restoring creates a new draft and preserves
-          the current version in history.
+          The latest 20 saved revisions of this story version are retained. Restoring brings back
+          the selected content as a draft.
         </p>
         {disabled && (
           <p className="field-help">Save your current changes before restoring a revision.</p>
         )}
-        {revisions.isLoading && <p role="status">Loading saved versions…</p>}
+        {revisions.isLoading && <p role="status">Loading saved revisions…</p>}
         {revisions.error && (
           <p className="inline-error" role="alert">
             {revisions.error.message}
           </p>
         )}
         {!revisions.isLoading && revisions.data?.length === 0 && (
-          <p>No earlier versions yet. They appear after the next saved change.</p>
+          <p>No earlier revisions yet. They appear after the next saved change.</p>
         )}
         {Boolean(revisions.data?.length) && (
           <label className={styles.revisionPicker}>
-            Saved version
+            Saved revision
             <select
               value={selected ?? ''}
               onChange={(event) => {
@@ -84,10 +84,10 @@ export function ArticleRevisions({
                 restore.reset();
               }}
             >
-              <option value="">Choose a version to compare</option>
+              <option value="">Choose a revision to compare</option>
               {revisions.data?.map((revision) => (
                 <option key={revision.version} value={revision.version}>
-                  Version {revision.version} · {savedAt(revision.savedAt)} · {revision.title}
+                  Revision {revision.version} · {savedAt(revision.savedAt)} · {revision.title}
                 </option>
               ))}
             </select>
@@ -103,8 +103,8 @@ export function ArticleRevisions({
           <>
             <div className={styles.comparison}>
               {[
-                { label: `Saved version ${selected}`, row: snapshot.data },
-                { label: `Current version ${article.version}`, row: article },
+                { label: `Saved revision ${selected}`, row: snapshot.data },
+                { label: `Current revision ${article.version}`, row: article },
               ].map(({ label, row }) => (
                 <article key={label} className={styles.compareColumn}>
                   <h3>{label}</h3>
@@ -136,7 +136,7 @@ export function ArticleRevisions({
               disabled={disabled || restore.isPending}
               onClick={() => setConfirm(true)}
             >
-              Restore this version as a draft
+              Restore this revision as a draft
             </Button>
           </>
         )}
@@ -149,7 +149,7 @@ export function ArticleRevisions({
       <ConfirmDialog
         open={confirm}
         onOpenChange={setConfirm}
-        title="Restore this saved version?"
+        title="Restore this saved revision?"
         description="The selected headline, byline, report and media will replace the current content. The restored report will be a draft until you publish it again."
         confirmLabel="Restore as draft"
         destructive={article.status === 'PUBLISHED'}

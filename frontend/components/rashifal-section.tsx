@@ -1,7 +1,13 @@
 import { getHoroscope } from '@/lib/horoscope';
 import { RashifalReadings } from '@/components/rashifal-readings';
 
-export async function RashifalSection({ showEmpty = false }: { showEmpty?: boolean }) {
+export async function RashifalSection({
+  showEmpty = false,
+  compact = false,
+}: {
+  showEmpty?: boolean;
+  compact?: boolean;
+}) {
   const edition = await getHoroscope();
   if (!edition)
     return showEmpty ? (
@@ -10,5 +16,5 @@ export async function RashifalSection({ showEmpty = false }: { showEmpty?: boole
         <p>नया दैनिक संस्करण उपलब्ध होने पर यहाँ दिखाई देगा।</p>
       </section>
     ) : null;
-  return <RashifalReadings edition={edition} />;
+  return <RashifalReadings edition={edition} compact={compact} />;
 }

@@ -20,8 +20,10 @@ class EditorialController {
     private final Access access;
     private final WorkflowPolicies workflows;
     private final ArticleReviewService reviews;
-    EditorialController(ArticleDesk desk,Access access,WorkflowPolicies workflows,ArticleReviewService reviews) {
-        this.desk=desk; this.access=access; this.workflows=workflows; this.reviews=reviews;
+    private final ArticleContinuationService continuations;
+    EditorialController(ArticleDesk desk,Access access,WorkflowPolicies workflows,ArticleReviewService reviews,
+                        ArticleContinuationService continuations) {
+        this.desk=desk; this.access=access; this.workflows=workflows; this.reviews=reviews; this.continuations=continuations;
     }
     @GetMapping List<ArticleDesk.Managed> list() {
         var actor=access.current();
@@ -31,6 +33,10 @@ class EditorialController {
         var actor=access.current();
         if (actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.staff(input,workflows.get(actor.id()));
         return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?"UP24Network Editorial Team":actor.displayName());
+    }
+    @PostMapping("/{id}/continuations") @ResponseStatus(HttpStatus.CREATED)
+    ArticleDesk.Managed continueArticle(@PathVariable UUID id) {
+        return continuations.create(id, access.current());
     }
     @GetMapping("/{id}") ArticleDesk.Managed find(@PathVariable UUID id) {
         var actor=access.current();
