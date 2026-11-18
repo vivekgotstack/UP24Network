@@ -42,6 +42,8 @@ export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers } });
   response.headers.set('Content-Security-Policy', policy);
   response.headers.set('Cache-Control', 'private, no-store');
+  if (/^\/(admin|newsroom)(\/|$)/.test(request.nextUrl.pathname))
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   return response;
 }
 export const config = {

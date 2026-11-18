@@ -68,6 +68,7 @@ events and never reach into another module's internal repositories.
 - RabbitMQ carries job identifiers in production. PostgreSQL holds encrypted payloads, retries and job state. Brevo delivers sign-in and recovery codes. Operations shows configuration presence and job status to verified administrators.
 - Cookie preferences are available on public pages and in the footer. YouTube embeds require an explicit choice and a play action. The cookie policy explains storage and external connections.
 - Deployment preparation, structure and provider preflight, launch, checksummed backup and guarded restore are in [VPS operations](deploy/OPERATIONS.md). The owner supplies provider credentials and domain configuration.
+- Release verification (18 November 2026): both production builds passed, all 48 backend checks passed, and a clean PostgreSQL test schema applied all 23 migrations. The local browser confirmed OTP, video upload/encoding and ranged delivery, cookie consent and withdrawal, old article redirects, and archive/media/operations pages at 320 and 768 px. Docker startup and real provider delivery require the configured VPS and owner accounts.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
@@ -92,8 +93,8 @@ events and never reach into another module's internal repositories.
   protected. Automatically imported WordPress stories are preserved as drafts.
 - Hindi Rashifal has its own module, dated editions, keyboard-accessible sign tabs,
   admin visibility/schedule controls, complete-feed validation and persisted retries.
-  It stays disabled until a live provider key is configured locally. Health, books
-  and awards show an unconfigured state and cannot be enabled prematurely.
+  It stays disabled until a live provider key is configured. Health, books and
+  awards remain editorial sections.
 - Public Hindi API research confirmed the AstroLogics free plan and direct
   [signup page](https://developers.astrologics.in/auth/sign-up). The admin
   automation screen now provides that link and server-only setup instructions.
@@ -103,23 +104,18 @@ events and never reach into another module's internal repositories.
   publisher endpoint on 12 November 2026: HTTP 200, all 12 signs, matching dates,
   Hindi readings and required metadata. The temporary key file was deleted;
   test output was not published. Next: verify an edition with a local live key.
-- Next small step: configure and verify a real Hindi edition and add a keyed
-  YouTube Data API adapter: the public RSS endpoint returned intermittent 404s
-  during live checks. Existing videos are retained and failed jobs retry.
+- Official YouTube ingestion supports a keyed Data API adapter and an RSS fallback.
+  Existing videos are retained when a source fetch fails. Configure the owner’s
+  provider keys before enabling live updates.
   See [daily edition setup, checks and boundaries](docs/03-daily-editions.md).
 
 Prototype links: [Reader](http://127.0.0.1:3000/),
 [Newsroom](http://127.0.0.1:3000/admin), [Reader account](http://127.0.0.1:3000/account).
 
-Latest local milestone (13 November 2026): versioned article edits prevent lost
-updates; older published articles remain addressable; runtime and migration DB
-accounts are separate. The private newsroom requires a password and a session-bound
-email code. Only `vivekni1224@gmail.com` can be Admin; invited Editors and Reporters
-have restricted permissions. Configure the real email sender with
-`./scripts/Configure-Brevo.ps1`, then restart the backend. Public navigation has no
-newsroom link. Nine publication/policy pages now share a full reading layout.
-Backend checks (21), frontend production build and local access/DB checks passed.
-Next small step: authenticated local photograph uploads for the article editor.
+Only the designated owner account can become Administrator. Set its address and
+password in the ignored backend environment. The private newsroom requires a
+password and a session-bound email code. Set the verified Brevo sender and key
+before production. Public publication and policy pages share a reading layout.
 
 ## Run locally
 

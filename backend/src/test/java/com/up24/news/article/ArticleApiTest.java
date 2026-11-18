@@ -11,7 +11,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties="up24.automation.scheduling-enabled=false")
+@SpringBootTest(properties={"up24.automation.scheduling-enabled=false","up24.bootstrap.admin-email=",
+        "spring.datasource.hikari.schema=up24_integration","spring.flyway.schemas=up24_integration",
+        "spring.flyway.default-schema=up24_integration"})
 @AutoConfigureMockMvc
 @ActiveProfiles("demo")
 class ArticleApiTest {

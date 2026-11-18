@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Dialog } from 'radix-ui';
 import { X } from 'lucide-react';
@@ -8,90 +8,105 @@ import { Button } from '@/components/ui/button';
 import { saveConsent, useConsent } from '@/lib/consent';
 import styles from './cookie-consent.module.css';
 
+const OpenCookiePreferences = createContext<(trigger: HTMLButtonElement) => void>(() => {});
+
 export function CookiePreferences({ children = 'कुकी सेटिंग्स' }: { children?: ReactNode }) {
+  const open = useContext(OpenCookiePreferences);
+  return (
+    <button
+      type="button"
+      className={styles.preferences}
+      aria-haspopup="dialog"
+      onClick={(event) => open(event.currentTarget)}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function CookiePreferencesProvider({ children }: { children: ReactNode }) {
   const { choice } = useConsent();
   const [open, setOpen] = useState(false),
     [video, setVideo] = useState(false);
+  const returnFocus = useRef<HTMLButtonElement>(null);
+  function show(trigger: HTMLButtonElement) {
+    returnFocus.current = trigger;
+    setVideo(choice?.externalVideo ?? false);
+    setOpen(true);
+  }
+  function save(externalVideo: boolean) {
+    setOpen(false);
+    saveConsent(externalVideo);
+  }
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(value) => {
-        setOpen(value);
-        if (value) setVideo(choice?.externalVideo ?? false);
-      }}
-    >
-      <Dialog.Trigger asChild>
-        <button type="button" className={styles.preferences}>
-          {children}
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.dialog} lang="hi">
-          <Dialog.Title>आपकी गोपनीयता, आपकी पसंद</Dialog.Title>
-          <Dialog.Description>
-            पढ़ने के लिए वैकल्पिक सेवाओं की अनुमति देना ज़रूरी नहीं है। अपनी पसंद कभी भी बदल सकते हैं।
-          </Dialog.Description>
-          <div className={styles.option}>
-            <div>
-              <strong>ज़रूरी सुविधाएँ</strong>
-              <p>सुरक्षित लॉगिन, सुरक्षा जाँच और आपकी कुकी पसंद को याद रखने के लिए।</p>
+    <OpenCookiePreferences.Provider value={show}>
+      {children}
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className={styles.overlay} />
+          <Dialog.Content
+            className={styles.dialog}
+            lang="hi"
+            onCloseAutoFocus={(event) => {
+              if (returnFocus.current?.isConnected) {
+                event.preventDefault();
+                returnFocus.current.focus({ preventScroll: true });
+              }
+            }}
+          >
+            <Dialog.Title>आपकी गोपनीयता, आपकी पसंद</Dialog.Title>
+            <Dialog.Description>
+              पढ़ने के लिए वैकल्पिक सेवाओं की अनुमति देना ज़रूरी नहीं है। अपनी पसंद कभी भी बदल सकते हैं।
+            </Dialog.Description>
+            <div className={styles.option}>
+              <div>
+                <strong>ज़रूरी सुविधाएँ</strong>
+                <p>सुरक्षित लॉगिन, सुरक्षा जाँच और आपकी कुकी पसंद को याद रखने के लिए।</p>
+              </div>
+              <span>हमेशा चालू</span>
             </div>
-            <span>हमेशा चालू</span>
-          </div>
-          <label className={styles.option}>
-            <span>
-              <strong>YouTube वीडियो</strong>
-              <span className={styles.explanation}>
-                अनुमति मिलने पर और वीडियो चलाने का विकल्प चुनने पर YouTube का बाहरी प्लेयर लोड होगा। वह आपके
-                IP पते और डिवाइस की जानकारी प्राप्त कर सकता है।
+            <label className={styles.option}>
+              <span>
+                <strong>YouTube वीडियो</strong>
+                <span className={styles.explanation}>
+                  अनुमति मिलने पर और वीडियो चलाने का विकल्प चुनने पर YouTube का बाहरी प्लेयर लोड होगा। वह
+                  आपके IP पते और डिवाइस की जानकारी प्राप्त कर सकता है।
+                </span>
               </span>
-            </span>
-            <input
-              aria-label="YouTube वीडियो की अनुमति"
-              type="checkbox"
-              checked={video}
-              onChange={(event) => setVideo(event.target.checked)}
-            />
-          </label>
-          <p>
-            यह साइट अभी विज्ञापन ट्रैकिंग या बाहरी एनालिटिक्स नहीं चलाती।{' '}
-            <Link href="/cookies" onClick={() => setOpen(false)}>
-              कुकी नीति
-            </Link>{' '}
-            ·{' '}
-            <Link href="/privacy" onClick={() => setOpen(false)}>
-              गोपनीयता नीति
-            </Link>
-          </p>
-          <div className={styles.actions}>
-            <Button
-              variant="outline"
-              onClick={() => {
-                saveConsent(false);
-                setOpen(false);
-              }}
-            >
-              वैकल्पिक सेवाएँ अस्वीकार करें
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                saveConsent(video);
-                setOpen(false);
-              }}
-            >
-              मेरी पसंद सहेजें
-            </Button>
-          </div>
-          <Dialog.Close asChild>
-            <button className={styles.close} aria-label="सेटिंग्स बंद करें">
-              <X size={22} />
-            </button>
-          </Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+              <input
+                aria-label="YouTube वीडियो की अनुमति"
+                type="checkbox"
+                checked={video}
+                onChange={(event) => setVideo(event.target.checked)}
+              />
+            </label>
+            <p>
+              यह साइट अभी विज्ञापन ट्रैकिंग या बाहरी एनालिटिक्स नहीं चलाती।{' '}
+              <Link href="/cookies" onClick={() => setOpen(false)}>
+                कुकी नीति
+              </Link>{' '}
+              ·{' '}
+              <Link href="/privacy" onClick={() => setOpen(false)}>
+                गोपनीयता नीति
+              </Link>
+            </p>
+            <div className={styles.actions}>
+              <Button variant="outline" onClick={() => save(false)}>
+                वैकल्पिक सेवाएँ अस्वीकार करें
+              </Button>
+              <Button variant="outline" onClick={() => save(video)}>
+                मेरी पसंद सहेजें
+              </Button>
+            </div>
+            <Dialog.Close asChild>
+              <button className={styles.close} aria-label="सेटिंग्स बंद करें">
+                <X size={22} />
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </OpenCookiePreferences.Provider>
   );
 }
 export function CookieConsent() {

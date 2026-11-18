@@ -16,8 +16,9 @@ public final class VerifiedLogin {
     private VerifiedLogin() {}
     public static RequestPostProcessor verified(Account account, JdbcTemplate jdbc, Instant now) {
         var id=UUID.randomUUID();
+        boolean staff=!account.role().name().equals("SUBSCRIBER");
         jdbc.update("INSERT INTO identity_login_session(id,account_id,created_at,expires_at,verified_until,verified_role) VALUES (?,?,?,?,?,?)",
-                id,account.id(),Timestamp.from(now),Timestamp.from(now.plusSeconds(3600)),Timestamp.from(now.plusSeconds(1800)),account.role().name());
+                id,account.id(),Timestamp.from(now),Timestamp.from(now.plusSeconds(3600)),staff?Timestamp.from(now.plusSeconds(1800)):null,staff?account.role().name():null);
         var jwt=Jwt.withTokenValue("role-fixture").header("alg","RS256").subject(account.id().toString())
                 .claim("email",account.email()).claim("sid",id.toString()).issuedAt(now).expiresAt(now.plusSeconds(300)).build();
         // jwt() deliberately skips CSRF in Spring's test support; these tests must exercise CSRF.

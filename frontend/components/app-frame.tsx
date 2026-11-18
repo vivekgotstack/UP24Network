@@ -3,12 +3,12 @@
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ReadingProgress } from '@/components/reading-progress';
-import { CookieConsent } from '@/components/cookie-consent';
+import { CookieConsent, CookiePreferencesProvider } from '@/components/cookie-consent';
 
 export function AppFrame({ children, footer }: { children: ReactNode; footer: ReactNode }) {
   const pathname = usePathname();
   const privateArea = /^\/(admin|newsroom)(\/|$)/.test(pathname);
-  return (
+  const frame = (
     <div className={privateArea ? 'workspace-frame' : 'site-shell'}>
       {!privateArea && <ReadingProgress />}
       {children}
@@ -16,4 +16,5 @@ export function AppFrame({ children, footer }: { children: ReactNode; footer: Re
       {!privateArea && <CookieConsent />}
     </div>
   );
+  return privateArea ? frame : <CookiePreferencesProvider>{frame}</CookiePreferencesProvider>;
 }
