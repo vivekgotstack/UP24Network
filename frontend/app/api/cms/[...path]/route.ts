@@ -15,6 +15,7 @@ const endpoints: [RegExp, string[]][] = [
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
   [/^auth\/newsroom\/(code|verify)$/, ['POST']],
   [/^auth\/password\/(request|reset)$/, ['POST']],
+  [/^publication\/contact$/, ['POST']],
   [/^admin\/articles$/, ['GET', 'POST']],
   [/^admin\/articles\/browse$/, ['GET']],
   [new RegExp(`^admin/articles/${UUID}$`, 'i'), ['GET', 'PUT', 'DELETE']],
@@ -33,6 +34,8 @@ const endpoints: [RegExp, string[]][] = [
   [/^admin\/publication\/settings$/, ['GET', 'PUT']],
   [/^admin\/publication\/pages$/, ['GET']],
   [/^admin\/publication\/pages\/[a-z-]+$/, ['PUT']],
+  [/^admin\/publication\/inbox$/, ['GET']],
+  [new RegExp(`^admin/publication/inbox/${UUID}$`, 'i'), ['PATCH', 'DELETE']],
   [/^admin\/media$/, ['GET']],
   [/^admin\/media\/storage$/, ['GET', 'PUT']],
   [/^admin\/media\/storage\/sync$/, ['POST']],
@@ -55,9 +58,6 @@ function problem(detail: string, status: number, headers?: HeadersInit) {
   response.headers.set('cache-control', 'no-store');
   return response;
 }
-async function readBody(request: NextRequest) {
-  return readLimitedBody(request, MAX_BODY_BYTES);
-}
 async function proxy(request: NextRequest, context: Context) {
   const path = (await context.params).path.join('/');
   const endpoint = endpoints.find(([pattern]) => pattern.test(path));
@@ -70,9 +70,11 @@ async function proxy(request: NextRequest, context: Context) {
         ? ['status', 'q', 'page', 'size']
         : path === 'admin/accounts/browse'
           ? ['scope', 'q', 'page', 'size']
-          : path === 'admin/media' || path === 'admin/videos'
-            ? ['page', 'size']
-            : [];
+          : path === 'admin/publication/inbox'
+            ? ['page', 'open']
+            : path === 'admin/media' || path === 'admin/videos'
+              ? ['page', 'size']
+              : [];
     for (const [key, value] of request.nextUrl.searchParams) {
       if (
         !allowed.includes(key) ||
@@ -96,8 +98,9 @@ async function proxy(request: NextRequest, context: Context) {
     if (!request.headers.get('x-csrf-token')) return problem('A CSRF token is required', 403);
   }
   try {
-    const body = mutation ? await readBody(request) : undefined;
-    if (body === null) return problem('Request body exceeds 512 KiB', 413);
+    const maxBodyBytes = path === 'publication/contact' ? 32 * 1024 : MAX_BODY_BYTES;
+    const body = mutation ? await readLimitedBody(request, maxBodyBytes) : undefined;
+    if (body === null) return problem('Request body is too large', 413);
     const contentType = request.headers.get('content-type')?.split(';')[0].trim();
     if (body?.byteLength) {
       const expectedType =
@@ -127,7 +130,8 @@ async function proxy(request: NextRequest, context: Context) {
     );
     if (mutation && response.ok) {
       if (path.startsWith('admin/articles')) revalidateTag('articles', { expire: 0 });
-      if (path.startsWith('admin/publication')) revalidateTag('publication', { expire: 0 });
+      if (/^admin\/publication\/(settings|pages\/)/.test(path))
+        revalidateTag('publication', { expire: 0 });
     }
     const result = new NextResponse(response.body, { status: response.status });
     result.headers.set('cache-control', 'private, no-store');

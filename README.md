@@ -69,6 +69,7 @@ events and never reach into another module's internal repositories.
 - Cookie preferences are available on public pages and in the footer. YouTube embeds require an explicit choice and a play action. The cookie policy explains storage and external connections.
 - Deployment preparation, structure and provider preflight, launch, checksummed backup and guarded restore are in [VPS operations](deploy/OPERATIONS.md). The owner supplies provider credentials and domain configuration.
 - Release verification (18 November 2026): both production builds passed, all 48 backend checks passed, and a clean PostgreSQL test schema applied all 23 migrations. The local browser confirmed OTP, video upload/encoding and ranged delivery, cookie consent and withdrawal, old article redirects, and archive/media/operations pages at 320 and 768 px. Docker startup and real provider delivery require the configured VPS and owner accounts.
+- Reader correspondence: Contact, Corrections, and Complaints accept messages into the admin-only Reader inbox. PostgreSQL handles delivery, throttling, and retention, so this channel works independently of Brevo. Next step: configure the owner’s launch credentials and verify the VPS runbook against the live domain.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage

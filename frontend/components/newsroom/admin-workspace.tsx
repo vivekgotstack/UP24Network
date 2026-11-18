@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, FileText, Users, Settings2, Images, Newspaper, SlidersHorizontal, Trash2, Activity } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings2, Images, Newspaper, SlidersHorizontal, Trash2, Activity, Inbox } from 'lucide-react';
 import { useSession } from '@/lib/session';
 import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ const adminPages = [
   { key: 'trash', href: '/admin/trash', label: 'Withdrawn & trash', icon: Trash2 },
   { key: 'media', href: '/admin/media', label: 'Media library', icon: Images },
   { key: 'pages', href: '/admin/pages', label: 'Publication pages', icon: Newspaper },
+  { key: 'inbox', href: '/admin/inbox', label: 'Reader inbox', icon: Inbox },
   { key: 'accounts', href: '/admin/accounts', label: 'Team & readers', icon: Users },
   { key: 'workflows', href: '/admin/workflows', label: 'Staff workflows', icon: SlidersHorizontal },
   { key: 'automations', href: '/admin/automations', label: 'Automations', icon: Settings2 },

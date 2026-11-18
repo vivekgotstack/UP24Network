@@ -46,7 +46,7 @@ class SecurityConfiguration {
         var bearer=new DefaultBearerTokenResolver();
         var principal=new JwtAuthenticationConverter();
         principal.setPrincipalClaimName("email");
-        var anonymousTokenPaths=Set.of("/api/auth/login","/api/auth/register","/api/auth/csrf","/api/auth/refresh","/api/auth/logout","/api/auth/password/request","/api/auth/password/reset");
+        var anonymousTokenPaths=Set.of("/api/auth/login","/api/auth/register","/api/auth/csrf","/api/auth/refresh","/api/auth/logout","/api/auth/password/request","/api/auth/password/reset","/api/publication/contact");
         return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 .requestCache(cache -> cache.disable())
@@ -64,6 +64,7 @@ class SecurityConfiguration {
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/media/**","/api/publication/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.HEAD,"/media/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/auth/password/request","/api/auth/password/reset").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/publication/contact").permitAll()
                 .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/me","/api/auth/workflow","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
                 .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login").usernameParameter("email")

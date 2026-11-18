@@ -1,0 +1,52 @@
+.section {
+  display: grid;
+  gap: 16px;
+  max-width: 960px;
+  font: 400 16px/1.55 var(--sans);
+}
+.controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.controls label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.controls select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--background);
+}
+.message {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.message summary {
+  cursor: pointer;
+  padding: 14px clamp(12px, 3vw, 24px);
+}
+.message summary span {
+  display: block;
+  color: var(--muted);
+  font-size: 14px;
+}
+.content {
+  padding: 16px clamp(12px, 3vw, 24px);
+  border-top: 1px solid var(--line);
+}
+.content a {
+  text-decoration: underline;
+}
+.body {
+  margin: 12px 0;
+  white-space: pre-wrap;
+}

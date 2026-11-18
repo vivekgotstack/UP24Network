@@ -4,6 +4,7 @@ import { brand } from '@/lib/brand';
 import type { PublicationDocument as Document } from '@/lib/publication';
 import { getPublicationPage, getPublicationNavigation } from '@/lib/publication-api';
 import { CookiePreferences } from '@/components/cookie-consent';
+import { ReaderContactForm } from '@/components/reader-contact-form';
 
 export async function PublicationDocument({ document: initial }: { document: Document }) {
   const [persisted, publicationNavigation] = await Promise.all([
@@ -11,6 +12,13 @@ export async function PublicationDocument({ document: initial }: { document: Doc
     getPublicationNavigation(),
   ]);
   const document = persisted ?? initial;
+  const contactTopic =
+    document.path === '/corrections'
+      ? 'CORRECTION'
+      : document.path === '/complaints'
+        ? 'COMPLAINT'
+        : undefined;
+  const showContactForm = document.path === '/contact' || Boolean(contactTopic);
   return (
     <>
       <SiteHeader compact />
@@ -57,6 +65,7 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                   {section.title}
                 </a>
               ))}
+              {showContactForm && <a href="#reader-contact">Send a message</a>}
             </nav>
           </aside>
           <article className="publication-copy" aria-label={document.title}>
@@ -83,7 +92,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                   </div>
                 )}
                 {document.path === '/cookies' && section.id === 'choice' && (
-                  <div className="publication-related"><CookiePreferences>अपनी कुकी पसंद बदलें</CookiePreferences></div>
+                  <div className="publication-related">
+                    <CookiePreferences>अपनी कुकी पसंद बदलें</CookiePreferences>
+                  </div>
                 )}
                 {document.path === '/contact' && section.id === 'channels' && (
                   <div className="publication-channels">
@@ -104,6 +115,7 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 )}
               </section>
             ))}
+            {showContactForm && <ReaderContactForm topic={contactTopic} />}
             <footer className="publication-note">
               <p>
                 For a question about this policy or a published report,{' '}
