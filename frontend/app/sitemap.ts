@@ -2,11 +2,13 @@ import type { MetadataRoute } from 'next';
 import { newsSections } from '@/lib/sections';
 import { publicationNavigation } from '@/lib/publication';
 import { cities, regions } from '@/lib/regions';
+import { getAirQuality } from '@/lib/air-quality-api';
 export const dynamic = 'force-dynamic';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (process.env.SITE_INDEXABLE !== 'true') return [];
   const origin = process.env.SITE_URL!;
   if (!origin) throw new Error('Set SITE_URL before enabling search indexing.');
+  const hasAirQuality = (await getAirQuality()).length > 0;
   return [
     ...[
       '',
@@ -15,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/watch',
       '/sections',
       '/regions',
+      ...(hasAirQuality ? ['/aqi-india'] : []),
       ...regions.map((item) => `/region/${item.slug}`),
       ...cities.map((item) => `/city/${item.slug}`),
       ...publicationNavigation.map((item) => item.path),

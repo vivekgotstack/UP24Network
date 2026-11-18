@@ -28,7 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.admin-email=owner@automation.test", "up24.bootstrap.admin-email=", "up24.providers.astrologics.api-key=al_live_integration_placeholder"})
+@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.admin-email=owner@automation.test", "up24.bootstrap.admin-email=", "up24.providers.astrologics.api-key=al_live_integration_placeholder", "up24.providers.weatherbit.api-key=integration-only"})
 @AutoConfigureMockMvc
 @Transactional
 @Import(AutomationIntegrationTest.TestBeans.class)
@@ -41,6 +41,7 @@ class AutomationIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired Accounts accounts;
     @Autowired ControlledSource source;
+    @Autowired AirQualityReadings airQuality;
     private String admin;
     private String subscriber;
 
@@ -76,6 +77,22 @@ class AutomationIntegrationTest {
     private HoroscopeEdition edition(LocalDate day) {
         return new HoroscopeEdition(day, NOW, HoroscopeEdition.SIGN_IDS.stream()
                 .map(id -> new HoroscopeEdition.Reading(id, "राशि", "आज का परीक्षण पाठ।", "1", "नीला")).toList());
+    }
+
+    @Test void airQualityKeepsNewerReadingsAndObeysTheAdminSchedule() throws Exception {
+        airQuality.save(java.util.List.of(new AirQualityReadings.Reading("lucknow", 174, NOW),
+                new AirQualityReadings.Reading("noida", 250, NOW.minusSeconds(90000))), "fixture");
+        airQuality.save(java.util.List.of(new AirQualityReadings.Reading("lucknow", 192, NOW.minusSeconds(60))), "fixture");
+        assertThat(airQuality.locations().stream().map(AirQualityReadings.Location::state).distinct()).hasSize(36);
+        mvc.perform(get("/api/air-quality")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(patch("/api/admin/automations/aqi").with(user(admin)).with(verified()).with(csrf()).contentType("application/json")
+                .content("{\"enabled\":true,\"intervalMinutes\":15}")).andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/admin/automations/aqi").with(user(admin)).with(verified()).with(csrf()).contentType("application/json")
+                .content("{\"enabled\":true,\"intervalMinutes\":60}")).andExpect(status().isOk());
+        mvc.perform(get("/api/air-quality")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(44)).andExpect(jsonPath("$[0].aqi").value(174))
+                .andExpect(jsonPath("$[1].aqi").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$[0].provider").doesNotExist());
     }
 
     @Test void onlyAdminWithCsrfCanChangeVisibilityAndPublicDataContainsNoProviderDetails() throws Exception {

@@ -4,14 +4,17 @@ import { AirQualityReading } from '@/components/air-quality-reading';
 import styles from './air-quality.module.css';
 
 export async function AirQualityStrip() {
-  const cities = (await getAirQuality()).filter((city) => city.featured && city.aqi !== null);
+  const available = (await getAirQuality()).filter((city) => city.aqi !== null);
+  const cities = available.sort((a, b) => Number(b.featured) - Number(a.featured)).slice(0, 3);
   if (cities.length === 0) return null;
   const asOf = Date.now();
   return (
     <section className={styles.strip} aria-labelledby="air-quality-strip-title">
       <div className={styles.stripHeading}>
         <div>
-          <h2 id="air-quality-strip-title">वायु गुणवत्ता <span lang="en">(AQI)</span></h2>
+          <h2 id="air-quality-strip-title">
+            वायु गुणवत्ता <span lang="en">(AQI)</span>
+          </h2>
           <span className={styles.scale}>US EPA पैमाना</span>
         </div>
         <Link href="/aqi-india">सभी शहर</Link>

@@ -12,7 +12,19 @@ export type AutomationJob = {
   configured: boolean;
   configurationDetail: string;
   failureCount: number;
+  minIntervalMinutes: number;
+  maxIntervalMinutes: number;
 };
+
+const intervals = [5, 15, 60, 180, 360, 1440, 10080];
+
+function intervalLabel(minutes: number) {
+  if (minutes === 10080) return '7 days';
+  if (minutes === 1440) return '1 day';
+  if (minutes === 60) return '1 hour';
+  if (minutes % 60 === 0) return `${minutes / 60} hours`;
+  return `${minutes} minutes`;
+}
 
 function time(value: string | null) {
   return value
@@ -99,12 +111,17 @@ export function AutomationPanel({ jobs, busy, onSettings, onRun }: Props) {
                     void onSettings(job, job.enabled, Number(event.target.value))
                   }
                 >
-                  <option value={5}>5 minutes</option>
-                  <option value={15}>15 minutes</option>
-                  <option value={60}>Hour</option>
-                  <option value={360}>6 hours</option>
-                  <option value={1440}>Day</option>
-                  <option value={10080}>Week</option>
+                  {[...new Set([...intervals, job.intervalMinutes])]
+                    .filter(
+                      (interval) =>
+                        interval >= job.minIntervalMinutes && interval <= job.maxIntervalMinutes,
+                    )
+                    .sort((a, b) => a - b)
+                    .map((interval) => (
+                      <option key={interval} value={interval}>
+                        {intervalLabel(interval)}
+                      </option>
+                    ))}
                 </select>
               </label>
               <Button

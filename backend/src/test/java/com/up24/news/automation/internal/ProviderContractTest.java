@@ -14,6 +14,18 @@ class ProviderContractTest {
     private final LocalDate date = LocalDate.of(2026, 11, 12);
     private final Instant now = Instant.parse("2026-11-12T05:00:00Z");
 
+    @Test void aqiRequiresAnIndianReadingWithAValidObservationTime() {
+        var response = json.createObjectNode();
+        var reading = response.putArray("data").addObject()
+                .put("country_code", "IN").put("aqi", 0).put("ts", now.getEpochSecond());
+        assertThat(AirQualitySource.decode("lucknow", response, now))
+                .isEqualTo(new AirQualityReadings.Reading("lucknow", 0, now));
+        reading.put("ts", now.minusSeconds(90000).getEpochSecond());
+        assertThat(AirQualitySource.decode("lucknow", response, now)).isNull();
+        reading.put("ts", now.getEpochSecond()).putNull("aqi");
+        assertThat(AirQualitySource.decode("lucknow", response, now)).isNull();
+    }
+
     private ObjectNode edition() {
         var root = json.createObjectNode();
         root.putObject("meta").put("mode", "live");

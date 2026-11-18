@@ -11,25 +11,41 @@ export const aqiBands = [
 ];
 
 const timeInIndia = new Intl.DateTimeFormat('hi-IN', {
-  timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+  timeZone: 'Asia/Kolkata',
+  day: 'numeric',
+  month: 'short',
+  hour: 'numeric',
+  minute: '2-digit',
 });
 
-export function AirQualityReading({ city, asOf, compact = false }: {
-  city: AirQualityCity; asOf: number; compact?: boolean;
+export function AirQualityReading({
+  city,
+  asOf,
+  compact = false,
+}: {
+  city: AirQualityCity;
+  asOf: number;
+  compact?: boolean;
 }) {
-  if (city.aqi === null || city.observedAt === null)
+  const { aqi, observedAt } = city;
+  if (aqi === null || observedAt === null)
     return <span className={styles.unavailable}>रीडिंग उपलब्ध नहीं</span>;
-  const band = aqiBands.find(({ limit }) => city.aqi! <= limit)!;
-  const older = asOf - Date.parse(city.observedAt) >= 3 * 60 * 60 * 1000;
+  const band = aqiBands.find(({ limit }) => aqi <= limit) ?? aqiBands[5];
+  const older = asOf - Date.parse(observedAt) >= 3 * 60 * 60 * 1000;
   return (
     <span className={styles.reading} data-compact={compact || undefined}>
-      <span className={`${styles.value} ${band.color}`} aria-label={`AQI ${city.aqi}`}>{city.aqi}</span>
+      <span className={`${styles.value} ${band.color}`}>
+        <span className="sr-only">AQI </span>
+        {aqi}
+      </span>
       <span className={styles.readingDetail}>
         <strong>{band.label}</strong>
-        {(!compact || older) && <span className={styles.time}>
-          {older && 'पिछली रीडिंग · '}
-          <time dateTime={city.observedAt}>{timeInIndia.format(new Date(city.observedAt))} IST</time>
-        </span>}
+        {(!compact || older) && (
+          <span className={styles.time}>
+            {older && 'पिछली रीडिंग · '}
+            <time dateTime={observedAt}>{timeInIndia.format(new Date(observedAt))} IST</time>
+          </span>
+        )}
       </span>
     </span>
   );

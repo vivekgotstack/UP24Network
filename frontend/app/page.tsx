@@ -89,7 +89,9 @@ export default async function Home({
         ) : (
           <EmptyState />
         )}
-        <Suspense fallback={null}><AirQualityStrip /></Suspense>
+        <Suspense fallback={null}>
+          <AirQualityStrip />
+        </Suspense>
         <Reveal>{settings.showVideo && <WatchSection articles={articles} />}</Reveal>
         <Suspense fallback={null}>{settings.showRashifal && <RashifalSection />}</Suspense>
         {remaining.length > 0 && (

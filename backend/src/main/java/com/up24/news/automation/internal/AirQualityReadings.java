@@ -30,13 +30,13 @@ class AirQualityReadings {
 
     List<Location> locations() { return locations; }
 
-    List<City> latest(Instant minimumAge) {
+    List<City> latest(Instant oldestAllowed) {
         var readings = new HashMap<String, Reading>();
         jdbc.query("""
                 SELECT location_key, aqi, observed_at FROM air_quality_reading
                 WHERE observed_at >= ? AND EXISTS (SELECT 1 FROM automation_job WHERE job_key = 'aqi' AND enabled)
                 """, (row, index) -> new Reading(row.getString(1), row.getInt(2), row.getTimestamp(3).toInstant()),
-                Timestamp.from(minimumAge)).forEach(reading -> readings.put(reading.key(), reading));
+                Timestamp.from(oldestAllowed)).forEach(reading -> readings.put(reading.key(), reading));
         if (readings.isEmpty()) return List.of();
         return locations.stream().map(location -> {
             Reading reading = readings.get(location.key());

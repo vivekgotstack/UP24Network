@@ -10,12 +10,14 @@ export const metadata: Metadata = {
   alternates: { canonical: '/aqi-india' },
 };
 
-export default async function AirQualityPage({ searchParams }: {
+export default async function AirQualityPage({
+  searchParams,
+}: {
   searchParams: Promise<{ city?: string }>;
 }) {
   const [cities, params] = await Promise.all([getAirQuality(), searchParams]);
-  const initialCity = cities.find(({ key }) => key === params.city)
-    ?? cities.find(({ aqi }) => aqi !== null);
+  const initialCity =
+    cities.find(({ key }) => key === params.city) ?? cities.find(({ aqi }) => aqi !== null);
   return (
     <>
       <SiteHeader compact />
@@ -25,9 +27,16 @@ export default async function AirQualityPage({ searchParams }: {
           <p>उत्तर प्रदेश और भारत के चुने हुए शहरों की वायु गुणवत्ता। रीडिंग शहर के एक स्थान की है।</p>
           <span className={styles.scale}>US EPA पैमाना</span>
         </header>
-        {initialCity
-          ? <AirQualityCityPicker key={initialCity.key} cities={cities} asOf={Date.now()} initialCity={initialCity.key} />
-          : <p className={styles.empty}>इस समय वायु गुणवत्ता की रीडिंग उपलब्ध नहीं है।</p>}
+        {initialCity ? (
+          <AirQualityCityPicker
+            key={initialCity.key}
+            cities={cities}
+            asOf={Date.now()}
+            initialCity={initialCity.key}
+          />
+        ) : (
+          <p className={styles.empty}>इस समय वायु गुणवत्ता की रीडिंग उपलब्ध नहीं है।</p>
+        )}
       </main>
     </>
   );
