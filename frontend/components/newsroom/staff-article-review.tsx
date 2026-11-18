@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { textLanguage } from '@/lib/language';
-import { articleReviews, type Review } from '@/lib/newsroom/reviews';
+import { articleReviews, type Review, type ReviewSubmission } from '@/lib/newsroom/reviews';
 import type { SaveArticle } from '@/lib/newsroom/types';
 import styles from './staff-article-review.module.css';
 
@@ -12,9 +12,13 @@ const dates = new Intl.DateTimeFormat('en-IN', {
   timeStyle: 'short',
   timeZone: 'Asia/Kolkata',
 });
+const reviewDates = new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'long',
+  timeZone: 'Asia/Kolkata',
+});
 
 const stateLabel: Record<Review['state'], string> = {
-  PENDING: 'Awaiting admin review',
+  PENDING: 'Queued for daily review',
   APPROVED: 'Approved',
   RETURNED: 'Changes requested',
 };
@@ -32,12 +36,21 @@ const checks = {
     label: 'Editorial and privacy standards checked',
     note: 'Review sensitive details, confidential information, and the opportunity to respond where applicable.',
   },
-} satisfies Record<keyof import('@/lib/newsroom/reviews').ReviewSubmission['checks'], {
-  label: string;
-  note: string;
-}>;
+} satisfies Record<
+  keyof ReviewSubmission['checks'],
+  {
+    label: string;
+    note: string;
+  }
+>;
 
-export function StaffReviewStatus({ reviews, latestInput, canResume, version, onResume }: {
+export function StaffReviewStatus({
+  reviews,
+  latestInput,
+  canResume,
+  version,
+  onResume,
+}: {
   reviews: Review[];
   latestInput?: SaveArticle | null;
   canResume: boolean;
@@ -56,15 +69,23 @@ export function StaffReviewStatus({ reviews, latestInput, canResume, version, on
           {stateLabel[latest.state]}
         </strong>
         <span className={styles.meta}>
-          <time dateTime={latest.submittedAt}>{dates.format(new Date(latest.submittedAt))} IST</time>
+          <time dateTime={latest.submittedAt}>
+            {dates.format(new Date(latest.submittedAt))} IST
+          </time>
           {' · '}Article version {latest.articleVersion}
         </span>
       </div>
       <p className={styles.prose}>{latest.changeSummary}</p>
       {latest.state === 'PENDING' && (
         <p className={styles.meta}>
-          The submitted version is locked while the administrator reviews it.{' '}
-          {latest.kind === 'UPDATE' ? 'Readers still see the current published report.' : 'The draft stays private.'}
+          This version is in your daily review batch for{' '}
+          <time dateTime={latest.reviewDay}>
+            {reviewDates.format(new Date(`${latest.reviewDay}T12:00:00+05:30`))}
+          </time>{' '}
+          (India time).{' '}
+          {latest.kind === 'UPDATE'
+            ? 'Readers still see the current published report.'
+            : 'The draft stays private.'}
         </p>
       )}
       {returned && latest.decisionNote && (
@@ -73,28 +94,42 @@ export function StaffReviewStatus({ reviews, latestInput, canResume, version, on
           <p className={styles.prose}>{latest.decisionNote}</p>
         </div>
       )}
-      {returned && latestInput && (
-        sameVersion ? (
+      {returned &&
+        latestInput &&
+        (sameVersion ? (
           <div>
-            <Button type="button" variant="outline" disabled={!canResume} onClick={() => onResume(latestInput)}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!canResume}
+              onClick={() => onResume(latestInput)}
+            >
               Load returned proposal
             </Button>
-            {!canResume && <p className={styles.meta}>Finish your current edits before loading the returned proposal.</p>}
+            {!canResume && (
+              <p className={styles.meta}>
+                Finish your current edits before loading the returned proposal.
+              </p>
+            )}
           </div>
         ) : (
           <details className={styles.history}>
             <summary>Read returned proposal</summary>
             <p className={styles.meta}>
-              The article version has changed. Review the previous proposal and apply the changes that still belong in a new request.
+              The article version has changed. Review the previous proposal and apply the changes
+              that still belong in a new request.
             </p>
             <div className={styles.proposalBody}>
               <h3 lang={textLanguage(latestInput.title)}>{latestInput.title}</h3>
-              <p className={styles.prose} lang={textLanguage(latestInput.summary)}>{latestInput.summary}</p>
-              <p className={styles.prose} lang={textLanguage(latestInput.body)}>{latestInput.body}</p>
+              <p className={styles.prose} lang={textLanguage(latestInput.summary)}>
+                {latestInput.summary}
+              </p>
+              <p className={styles.prose} lang={textLanguage(latestInput.body)}>
+                {latestInput.body}
+              </p>
             </div>
           </details>
-        )
-      )}
+        ))}
       {reviews.length > 1 && (
         <details className={styles.history}>
           <summary>Earlier requests</summary>
@@ -102,7 +137,9 @@ export function StaffReviewStatus({ reviews, latestInput, canResume, version, on
             {reviews.slice(1).map((review) => (
               <li key={review.id}>
                 <strong>{stateLabel[review.state]}</strong>
-                <time dateTime={review.submittedAt}>{dates.format(new Date(review.submittedAt))} IST</time>
+                <time dateTime={review.submittedAt}>
+                  {dates.format(new Date(review.submittedAt))} IST
+                </time>
                 <p className={styles.prose}>{review.decisionNote || review.changeSummary}</p>
               </li>
             ))}
@@ -113,7 +150,15 @@ export function StaffReviewStatus({ reviews, latestInput, canResume, version, on
   );
 }
 
-export function StaffReviewSubmission({ articleId, input, published, onBack, onSubmitted, onConflict, onEvidenceChange }: {
+export function StaffReviewSubmission({
+  articleId,
+  input,
+  published,
+  onBack,
+  onSubmitted,
+  onConflict,
+  onEvidenceChange,
+}: {
   articleId: string;
   input: SaveArticle | null;
   published: boolean;
@@ -124,7 +169,11 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
 }) {
   const [changeSummary, setChangeSummary] = useState('');
   const [verificationNotes, setVerificationNotes] = useState('');
-  const [confirmed, setConfirmed] = useState({ factsVerified: false, rightsVerified: false, standardsVerified: false });
+  const [confirmed, setConfirmed] = useState({
+    factsVerified: false,
+    rightsVerified: false,
+    standardsVerified: false,
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
@@ -144,7 +193,9 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
     const summary = changeSummary.trim();
     const evidence = verificationNotes.trim();
     if (summary.length < 20 || evidence.length < 40 || Object.values(confirmed).includes(false)) {
-      setError('Provide a substantive summary and verification record, then complete the checklist.');
+      setError(
+        'Provide a substantive summary and verification record, then complete the checklist.',
+      );
       return;
     }
     setBusy(true);
@@ -162,7 +213,9 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
       onEvidenceChange(false);
       onSubmitted(review);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The review request could not be submitted.');
+      setError(
+        reason instanceof Error ? reason.message : 'The review request could not be submitted.',
+      );
       onConflict(reason);
     } finally {
       setBusy(false);
@@ -172,15 +225,24 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
   return (
     <form className={`${styles.submission} cms-form`} onSubmit={submit} aria-busy={busy}>
       <header className={styles.intro}>
-        <h3 ref={heading} tabIndex={-1}>{published ? 'Submit a proposed update' : 'Request publication'}</h3>
-        <p>The administrator reviews this version and its supporting evidence before it can go live.</p>
+        <h3 ref={heading} tabIndex={-1}>
+          {published ? 'Submit a proposed update' : 'Request publication'}
+        </h3>
+        <p>
+          This version and its evidence join your daily review batch in India Standard Time.
+          Publication requires administrator approval.
+        </p>
       </header>
       <details className={styles.preview}>
         <summary>Review submitted article text</summary>
         <div className={styles.proposalBody}>
           <h4 lang={textLanguage(proposal.title)}>{proposal.title}</h4>
-          <p className={styles.prose} lang={textLanguage(proposal.summary)}>{proposal.summary}</p>
-          <p className={styles.prose} lang={textLanguage(proposal.body)}>{proposal.body}</p>
+          <p className={styles.prose} lang={textLanguage(proposal.summary)}>
+            {proposal.summary}
+          </p>
+          <p className={styles.prose} lang={textLanguage(proposal.body)}>
+            {proposal.body}
+          </p>
         </div>
       </details>
       <fieldset className={styles.evidence} disabled={busy}>
@@ -200,7 +262,10 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
             }}
           />
           <span className="field-help">
-            {published ? 'Identify the changed details and explain why the update is needed.' : 'Explain the public interest and why the report is ready.'} At least 20 characters.
+            {published
+              ? 'Identify the changed details and explain why the update is needed.'
+              : 'Explain the public interest and why the report is ready.'}{' '}
+            At least 20 characters.
           </span>
         </label>
         <label>
@@ -217,7 +282,10 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
               onEvidenceChange(true);
             }}
           />
-          <span className="field-help">Record the checks completed, source links or references, and media permissions or restrictions. At least 40 characters.</span>
+          <span className="field-help">
+            Record the checks completed, source links or references, and media permissions or
+            restrictions. At least 40 characters.
+          </span>
         </label>
       </fieldset>
       <fieldset className={styles.checklist} disabled={busy}>
@@ -240,10 +308,18 @@ export function StaffReviewSubmission({ articleId, input, published, onBack, onS
           </label>
         ))}
       </fieldset>
-      {error && <p className="inline-error" role="alert">{error}</p>}
+      {error && (
+        <p className="inline-error" role="alert">
+          {error}
+        </p>
+      )}
       <div className={styles.actions}>
-        <Button type="submit" disabled={busy}>{busy ? 'Submitting…' : 'Submit for review'}</Button>
-        <Button type="button" variant="outline" disabled={busy} onClick={onBack}>Back to article</Button>
+        <Button type="submit" disabled={busy}>
+          {busy ? 'Submitting…' : 'Submit for review'}
+        </Button>
+        <Button type="button" variant="outline" disabled={busy} onClick={onBack}>
+          Back to article
+        </Button>
       </div>
     </form>
   );

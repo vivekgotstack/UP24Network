@@ -20,7 +20,7 @@ final class ReportingRequirements {
     static void check(String city,String image,String imageAlt,String video,String youtube,String sourceNotes,WorkflowPolicies.Policy policy) {
         if ((policy==null || policy.requireDateline()) && (city==null || city.isBlank())) reject("Add a location or dateline for this report.");
         if ((policy==null || policy.requireSources()) && (sourceNotes==null || sourceNotes.isBlank())) reject("Add your reporting sources and verification notes.");
-        boolean photograph=image!=null && !image.isBlank() && !image.startsWith("/brand/");
+        boolean photograph=image!=null && !image.isBlank() && !image.trim().startsWith("/brand/");
         boolean footage=(video!=null && !video.isBlank()) || (youtube!=null && !youtube.isBlank());
         if ((policy==null || policy.requireMedia()) && !photograph && !footage) reject("Choose a report photograph or video.");
         if (photograph && (imageAlt==null || imageAlt.isBlank())) reject("Describe the photograph for readers using assistive technology.");

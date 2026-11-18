@@ -19,21 +19,18 @@ class EditorialController {
     private final ArticleDesk desk;
     private final Access access;
     private final WorkflowPolicies workflows;
-    EditorialController(ArticleDesk desk,Access access,WorkflowPolicies workflows) { this.desk=desk; this.access=access; this.workflows=workflows; }
+    private final ArticleReviewService reviews;
+    EditorialController(ArticleDesk desk,Access access,WorkflowPolicies workflows,ArticleReviewService reviews) {
+        this.desk=desk; this.access=access; this.workflows=workflows; this.reviews=reviews;
+    }
     @GetMapping List<ArticleDesk.Managed> list() {
         var actor=access.current();
         return desk.list(actor.role()==Accounts.Role.REPORTER?actor.id():null);
     }
     @PostMapping ArticleDesk.Managed create(@Valid @RequestBody ArticleDesk.Input input) {
         var actor=access.current();
-        requirements(actor,input);
+        if (actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.staff(input,workflows.get(actor.id()));
         return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?"UP24Network Editorial Team":actor.displayName());
-    }
-    private void requirements(Accounts.Account actor,ArticleDesk.Input input) {
-        if(actor.role()!=Accounts.Role.ADMIN) {
-            if(input.byline()!=null && !input.byline().isBlank()) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Only an administrator can override a byline.");
-            ReportingRequirements.check(input.city(),input.image(),input.imageAlt(),input.videoUrl(),input.youtubeId(),input.sourceNotes(),workflows.get(actor.id()));
-        }
     }
     @GetMapping("/{id}") ArticleDesk.Managed find(@PathVariable UUID id) {
         var actor=access.current();
@@ -45,20 +42,10 @@ class EditorialController {
         return article;
     }
     @PutMapping("/{id}") ArticleDesk.Managed update(@PathVariable UUID id,@Valid @RequestBody ArticleDesk.Input input) {
-        var actor=access.current(); var existing=desk.find(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if(actor.role()!=Accounts.Role.ADMIN && !Set.of("DRAFT","PUBLISHED").contains(existing.status()))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        if(actor.role()==Accounts.Role.REPORTER && (!actor.id().equals(existing.authorId()) || !existing.status().equals("DRAFT")))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        requirements(actor,input);
-        return desk.save(id,input,actor.id(),actor.displayName());
+        var actor=access.current();
+        return actor.role()==Accounts.Role.ADMIN ? desk.save(id,input,actor.id(),actor.displayName()) : reviews.saveStaffDraft(id,input,actor);
     }
-    @PostMapping("/{id}/publication") @PreAuthorize("@access.hasAny('ADMIN','EDITOR')") ArticleDesk.Managed publish(@PathVariable UUID id,@Valid @RequestBody Publication input) {
-        if(input.published() && access.current().role()!=Accounts.Role.ADMIN) {
-            var managed=desk.find(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
-            var article=managed.article();
-            ReportingRequirements.check(article.city(),article.image(),article.imageAlt(),article.videoUrl(),article.youtubeId(),managed.sourceNotes(),workflows.get(access.current().id()));
-        }
+    @PostMapping("/{id}/publication") @PreAuthorize("@access.hasAny('ADMIN')") ArticleDesk.Managed publish(@PathVariable UUID id,@Valid @RequestBody Publication input) {
         return desk.publish(id,input.version(),input.published(),input.breaking(),access.current().id());
     }
 }

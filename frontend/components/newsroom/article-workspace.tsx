@@ -56,8 +56,7 @@ export function ArticleWorkspace({
   }, [query]);
   const resource = useNewsroomResource<DeskPage>(user, articlePagePath(filter, search, page));
   const rows = resource.data?.items ?? [];
-  const administrator = user.role === 'ADMIN',
-    canPublish = administrator || user.role === 'EDITOR';
+  const administrator = user.role === 'ADMIN';
   const refresh = () =>
     client.invalidateQueries({
       predicate: (entry) =>
@@ -128,6 +127,12 @@ export function ArticleWorkspace({
         <p className="cms-muted">
           Withdrawn reports stay off the public site. Trashed reports can be restored or permanently
           removed. Restoration always creates a draft.
+        </p>
+      )}
+      {!administrator && (
+        <p className="cms-muted">
+          Prepare a review request to publish a draft or propose changes to a published report. Your
+          submissions are grouped into one daily batch for administrator review.
         </p>
       )}
       <div className="desk-filters">
@@ -288,9 +293,13 @@ export function ArticleWorkspace({
                   {row.manualOverride ? ' · Editorial control' : ' · Imported'}
                 </p>
                 <div className="cms-row-actions">
-                  {!trashMode && !(user.role === 'REPORTER' && row.status !== 'DRAFT') && (
+                  {!trashMode && (
                     <Button size="sm" variant="outline" asChild>
-                      <Link href={`${basePath}/articles/${row.id}`}>Edit report</Link>
+                      <Link href={`${basePath}/articles/${row.id}`}>
+                        {!administrator && row.status === 'PUBLISHED'
+                          ? 'Propose update'
+                          : 'Edit report'}
+                      </Link>
                     </Button>
                   )}
                   <Link href={`${basePath}/articles/${row.id}/preview`}>Preview</Link>
@@ -303,7 +312,7 @@ export function ArticleWorkspace({
                       View public report
                     </Link>
                   )}
-                  {!trashMode && canPublish && (
+                  {!trashMode && administrator && (
                     <Button
                       size="sm"
                       disabled={busy}
@@ -315,7 +324,7 @@ export function ArticleWorkspace({
                       {row.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
                     </Button>
                   )}
-                  {!trashMode && canPublish && (
+                  {!trashMode && administrator && (
                     <label className="cms-toggle">
                       <input
                         type="checkbox"

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,7 +21,7 @@ class ArticleReviewStore {
     record PendingData(Summary summary, UUID submitterId, ArticleDesk.Input input) {}
 
     private static final String SUMMARY = """
-            id, article_id, article_version, kind, state, title, submitted_by, submitted_at,
+            id, article_id, article_version, review_day, kind, state, title, submitted_by, submitted_at,
             change_summary, verification_notes, decision_note, decided_at
             """;
     private static final int PAGE_SIZE = 20;
@@ -35,7 +36,7 @@ class ArticleReviewStore {
     private Summary summary(ResultSet row, int index) throws SQLException {
         var decided = row.getTimestamp("decided_at");
         return new Summary(row.getObject("id", UUID.class), row.getObject("article_id", UUID.class),
-                row.getLong("article_version"), Kind.valueOf(row.getString("kind")),
+                row.getLong("article_version"), row.getObject("review_day", LocalDate.class), Kind.valueOf(row.getString("kind")),
                 State.valueOf(row.getString("state")), row.getString("title"), row.getString("submitted_by"),
                 row.getTimestamp("submitted_at").toInstant(), row.getString("change_summary"),
                 row.getString("verification_notes"), row.getString("decision_note"), decided == null ? null : decided.toInstant());
@@ -48,13 +49,13 @@ class ArticleReviewStore {
     }
 
     Summary add(UUID articleId, ArticleDesk.Input input, Kind kind, Accounts.Account submitter,
-                String changeSummary, String verificationNotes) {
+                String changeSummary, String verificationNotes, LocalDate reviewDay) {
         return Objects.requireNonNull(jdbc.queryForObject("""
                 INSERT INTO article_review_request(id,article_id,article_version,kind,title,submitter_id,submitted_by,
-                                                  proposed_input,change_summary,verification_notes)
-                VALUES(?,?,?,?,?,?,?,?::jsonb,?,?) RETURNING
+                                                  proposed_input,change_summary,verification_notes,review_day)
+                VALUES(?,?,?,?,?,?,?,?::jsonb,?,?,?) RETURNING
                 """ + SUMMARY, this::summary, UUID.randomUUID(), articleId, input.version(), kind.name(), input.title().strip(),
-                submitter.id(), submitter.displayName(), encode(input), changeSummary, verificationNotes));
+                submitter.id(), submitter.displayName(), encode(input), changeSummary, verificationNotes, reviewDay));
     }
 
     StaffHistory history(UUID articleId, UUID submitterId) {
@@ -75,8 +76,20 @@ class ArticleReviewStore {
         return new Page(List.copyOf(entries.subList(0, Math.min(entries.size(), PAGE_SIZE))), entries.size() > PAGE_SIZE);
     }
 
+    List<Summary> itemsForDay(UUID contributor, LocalDate day) {
+        return jdbc.query("SELECT " + SUMMARY + """
+                FROM article_review_request WHERE submitter_id=? AND review_day=?
+                ORDER BY (state='PENDING') DESC, submitted_at, id
+                """, this::summary, contributor, day);
+    }
+
     Optional<UUID> articleId(UUID id) {
         return jdbc.query("SELECT article_id FROM article_review_request WHERE id=?",
+                (row, index) -> row.getObject(1, UUID.class), id).stream().findFirst();
+    }
+
+    Optional<UUID> contributorId(UUID id) {
+        return jdbc.query("SELECT submitter_id FROM article_review_request WHERE id=?",
                 (row, index) -> row.getObject(1, UUID.class), id).stream().findFirst();
     }
 

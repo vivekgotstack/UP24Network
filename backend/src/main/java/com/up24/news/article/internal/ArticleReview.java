@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ final class ArticleReview {
 
     record Return(@NotBlank @Size(min = 12, max = 2000) String note) {}
 
-    record Summary(UUID id, UUID articleId, long articleVersion, Kind kind, State state, String title,
+    record Summary(UUID id, UUID articleId, long articleVersion, LocalDate reviewDay, Kind kind, State state, String title,
                    String submittedBy, Instant submittedAt, String changeSummary, String verificationNotes,
                    String decisionNote, Instant decidedAt) {}
 

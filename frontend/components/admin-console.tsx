@@ -131,7 +131,11 @@ export function AdminConsole({
     overview: workspace === 'admin' ? 'Administration' : 'Reporting desk',
     articles: 'Article desk',
     trash: 'Withdrawn & trash',
-    editor: articleId ? 'Edit report' : 'Create a draft',
+    editor: articleId
+      ? workspace === 'admin'
+        ? 'Edit report'
+        : 'Report workspace'
+      : 'Create a draft',
     preview: 'Private preview',
     accounts: 'Team and readers',
     automations: 'Automation controls',
@@ -330,10 +334,10 @@ export function AdminConsole({
                     <li>
                       <span>03</span>
                       <div>
-                        <strong>Publish</strong>
+                        <strong>{workspace === 'staff' ? 'Submit for approval' : 'Publish'}</strong>
                         <p>
-                          {user.role === 'REPORTER'
-                            ? 'An editor or administrator publishes completed drafts.'
+                          {workspace === 'staff'
+                            ? 'Add verification and rights evidence. Your requests enter one daily review batch for the administrator.'
                             : 'Publish from the article desk. Breaking reports enter the headline strip.'}
                         </p>
                       </div>
@@ -382,13 +386,9 @@ export function AdminConsole({
                   Back to article desk
                 </Link>
               </section>
-            ) : row &&
-              (['ARCHIVED', 'TRASH'].includes(row.status) ||
-                (user.role === 'REPORTER' && row.status !== 'DRAFT')) ? (
+            ) : row && ['ARCHIVED', 'TRASH'].includes(row.status) ? (
               <p className="inline-error">
-                {row && ['ARCHIVED', 'TRASH'].includes(row.status)
-                  ? 'Restore this report to a draft from Withdrawn & trash before editing.'
-                  : 'A reporter can edit their own drafts. Contact an editor for changes to a published report.'}
+                Restore this report to a draft from Withdrawn &amp; trash before editing.
               </p>
             ) : (
               <>

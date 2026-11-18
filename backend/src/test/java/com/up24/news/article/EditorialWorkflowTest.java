@@ -10,6 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +22,7 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = "up24.automation.scheduling-enabled=false")
+@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.admin-email=owner@editorial.test"})
 @AutoConfigureMockMvc
 @Transactional
 class EditorialWorkflowTest {
@@ -30,12 +33,14 @@ class EditorialWorkflowTest {
     @Autowired JdbcTemplate jdbc;
     private Accounts.Account editor;
     private Accounts.Account reporter;
+    private Accounts.Account owner;
     private static final String PASSWORD = "Local-editorial-test-2026!";
 
     @BeforeEach void accounts() {
         String key = UUID.randomUUID().toString();
         editor = accounts.create(key + "@editor.test", "Test editor", PASSWORD, Accounts.Role.EDITOR);
         reporter = accounts.create(key + "@reporter.test", "Test reporter", PASSWORD, Accounts.Role.REPORTER);
+        owner = accounts.create("owner@editorial.test", "Owner", PASSWORD, Accounts.Role.ADMIN);
     }
 
     private org.springframework.test.web.servlet.request.RequestPostProcessor verified(String email) {
@@ -44,6 +49,42 @@ class EditorialWorkflowTest {
     private ArticleDesk.Input input(String slug, String title, Long version) {
         return new ArticleDesk.Input(title,slug,"परीक्षण का सारांश।","Uttar Pradesh","Lucknow",
                 "/images/newsroom.jpg","UP24Network newsroom",null,null,"परीक्षण रिपोर्ट का पाठ।",version,"Local test reporting notes","uttar-pradesh");
+    }
+
+    private String reviewBody(long version, ArticleDesk.Input input, boolean rightsVerified) throws Exception {
+        return json.writeValueAsString(Map.of("articleVersion", version, "input", input,
+                "changeSummary", "Update the story with newly checked details.",
+                "verificationNotes", "Cross-checked the facts with the original statement and the reporting desk.",
+                "checks", Map.of("factsVerified", true, "rightsVerified", rightsVerified, "standardsVerified", true)));
+    }
+
+    private UUID submit(ArticleDesk.Managed article, Accounts.Account actor, ArticleDesk.Input proposal) throws Exception {
+        var response = mvc.perform(post("/api/admin/articles/"+article.id()+"/review")
+                .with(user(actor.email())).with(verified(actor.email())).with(csrf())
+                .contentType("application/json").content(reviewBody(article.version(), proposal, true)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.state").value("PENDING")).andReturn();
+        return UUID.fromString(json.readTree(response.getResponse().getContentAsString()).path("id").asText());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions approve(UUID id, Accounts.Account author) throws Exception {
+        return approve(batchUrl(id, author), List.of(id));
+    }
+
+    private String batchUrl(UUID id, Accounts.Account author) {
+        var day = jdbc.queryForObject("SELECT review_day FROM article_review_request WHERE id=?",
+                (row, index) -> row.getObject(1, LocalDate.class), id);
+        return "/api/admin/article-reviews/batches/"+author.id()+"/"+day;
+    }
+
+    private org.springframework.test.web.servlet.ResultActions approve(String batch, List<UUID> ids) throws Exception {
+        return mvc.perform(post(batch+"/approve")
+                .with(user(owner.email())).with(verified(owner.email())).with(csrf()).contentType("application/json")
+                .content(json.writeValueAsString(Map.of("ids", ids))));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions reward(String batch) throws Exception {
+        return mvc.perform(post(batch+"/reward").with(user(owner.email())).with(verified(owner.email())).with(csrf())
+                .contentType("application/json").content(json.writeValueAsString(Map.of("note", "Recorded the owner's editorial recognition."))));
     }
 
     @Test void realLoginAndDraftPublicationRespectPermissionsAndCsrf() throws Exception {
@@ -63,9 +104,15 @@ class EditorialWorkflowTest {
         mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(reporter.email())).with(verified(reporter.email())).with(csrf())
                 .contentType("application/json").content(publication)).andExpect(status().isForbidden());
         mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).with(verified(editor.email())).with(csrf())
-                .contentType("application/json").content(publication)).andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1));
+                .contentType("application/json").content(publication)).andExpect(status().isForbidden());
+        var review = submit(draft, reporter, input(slug,"परीक्षण रिपोर्ट",draft.version()));
+        mvc.perform(get("/api/articles/"+slug)).andExpect(status().isNotFound());
+        mvc.perform(put("/api/admin/articles/"+draft.id()).with(user(reporter.email())).with(verified(reporter.email())).with(csrf())
+                .contentType("application/json").content(json.writeValueAsString(input(slug,"Late draft edit",draft.version()))))
+                .andExpect(status().isConflict());
+        approve(review, reporter).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1));
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("परीक्षण रिपोर्ट"));
-        desk.publish(draft.id(),1,false,false);
+        desk.publish(draft.id(),desk.find(draft.id()).orElseThrow().version(),false,false);
         mvc.perform(get("/api/articles/"+slug)).andExpect(status().isNotFound());
     }
 
@@ -77,13 +124,79 @@ class EditorialWorkflowTest {
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.type").value("urn:up24:article-version-conflict"));
         mvc.perform(post("/api/admin/articles/"+draft.id()+"/publication").with(user(editor.email())).with(verified(editor.email())).with(csrf())
                 .contentType("application/json").content("{\"version\":0,\"published\":true,\"breaking\":false}"))
-                .andExpect(status().isConflict());
+                .andExpect(status().isForbidden());
         assertThat(desk.find(draft.id()).orElseThrow().article().title()).isEqualTo("Newer report");
         mvc.perform(get("/api/admin/articles/"+draft.id()).with(user(editor.email())).with(verified(editor.email()))).andExpect(status().isOk());
         jdbc.update("UPDATE identity_account SET role='SUBSCRIBER' WHERE id=?",editor.id());
         mvc.perform(get("/api/admin/articles/"+saved.id()).with(user(editor.email())).with(verified(editor.email()))).andExpect(status().isForbidden());
         var others = desk.save(null,input("private-"+UUID.randomUUID(),"Private",null),editor.id(),editor.displayName());
         mvc.perform(get("/api/admin/articles/"+others.id()).with(user(reporter.email())).with(verified(reporter.email()))).andExpect(status().isNotFound());
+    }
+
+    @Test void releasedArticleStaysPublicUnchangedUntilTheOwnersBatchDecision() throws Exception {
+        var draft = desk.save(null,input("published-"+UUID.randomUUID(),"Original headline",null),reporter.id(),reporter.displayName());
+        var article = desk.publish(draft.id(),draft.version(),true,true,owner.id());
+        String slug = article.article().slug();
+        var proposal = input(slug+"-corrected","Corrected headline",article.version());
+        String staffEndpoint = "/api/admin/articles/"+article.id()+"/review";
+        mvc.perform(put("/api/admin/articles/"+article.id()).with(user(editor.email())).with(verified(editor.email())).with(csrf())
+                .contentType("application/json").content(json.writeValueAsString(proposal))).andExpect(status().isForbidden());
+        mvc.perform(post(staffEndpoint).with(user(editor.email())).with(verified(editor.email())).with(csrf())
+                .contentType("application/json").content(reviewBody(article.version(),proposal,false))).andExpect(status().isBadRequest());
+        UUID review = submit(article,editor,proposal);
+        mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Original headline"));
+        mvc.perform(get("/api/articles/"+proposal.slug())).andExpect(status().isNotFound());
+        mvc.perform(get(staffEndpoint).with(user(reporter.email())).with(verified(reporter.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.reviews.length()").value(0));
+        mvc.perform(get("/api/admin/article-reviews/"+review).with(user(editor.email())).with(verified(editor.email())))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/article-reviews/"+review).with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.kind").value("UPDATE"))
+                .andExpect(jsonPath("$.input.title").value("Corrected headline"))
+                .andExpect(jsonPath("$.current.article.title").value("Original headline"));
+        approve(review, editor).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1));
+        var actual = desk.find(article.id()).orElseThrow().article();
+        assertThat(actual.publishedAt()).isEqualTo(article.article().publishedAt());
+        assertThat(actual.breaking()).isTrue();
+        mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Corrected headline"));
+        mvc.perform(get("/api/articles/"+proposal.slug())).andExpect(status().isOk());
+    }
+
+    @Test void removedContributorCannotBeApprovedAndCanReceiveAPrivateReturnDecision() throws Exception {
+        var saved = desk.save(null,input("return-"+UUID.randomUUID(),"First draft",null),reporter.id(),reporter.displayName());
+        UUID review = submit(saved,reporter,input(saved.article().slug(),"Returned proposal",saved.version()));
+        String decision = "Confirm the original source before resubmitting.";
+        jdbc.update("UPDATE identity_account SET role='SUBSCRIBER' WHERE id=?",reporter.id());
+        approve(review,reporter).andExpect(status().isConflict());
+        mvc.perform(post("/api/admin/article-reviews/"+review+"/return").with(user(owner.email())).with(verified(owner.email())).with(csrf())
+                .contentType("application/json").content(json.writeValueAsString(Map.of("note",decision))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.state").value("RETURNED"));
+        mvc.perform(get("/api/articles/"+saved.article().slug())).andExpect(status().isNotFound());
+        jdbc.update("UPDATE identity_account SET role='REPORTER' WHERE id=?",reporter.id());
+        mvc.perform(get("/api/admin/articles/"+saved.id()+"/review").with(user(reporter.email())).with(verified(reporter.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.reviews[0].decisionNote").value(decision))
+                .andExpect(jsonPath("$.latestInput.title").value("Returned proposal"));
+        submit(saved,reporter,input(saved.article().slug(),"Revised proposal",saved.version()));
+    }
+
+    @Test void dailyBatchRequiresExactPendingSetBeforeApprovalAndRecordsRewardOnlyOnce() throws Exception {
+        var first = desk.save(null,input("first-"+UUID.randomUUID(),"First story",null),editor.id(),editor.displayName());
+        var second = desk.save(null,input("second-"+UUID.randomUUID(),"Second story",null),editor.id(),editor.displayName());
+        UUID firstReview = submit(first,editor,input(first.article().slug(),"First proposal",first.version()));
+        UUID secondReview = submit(second,editor,input(second.article().slug(),"Second proposal",second.version()));
+        String batch = batchUrl(firstReview, editor);
+        assertThat(batchUrl(secondReview, editor)).isEqualTo(batch);
+        reward(batch).andExpect(status().isConflict());
+        approve(batch, List.of(firstReview)).andExpect(status().isConflict());
+        approve(batch, List.of(firstReview, UUID.randomUUID())).andExpect(status().isConflict());
+        mvc.perform(get("/api/articles/"+first.article().slug())).andExpect(status().isNotFound());
+        mvc.perform(get(batch).with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.batch.pendingCount").value(2));
+        approve(batch, List.of(firstReview, secondReview)).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(2));
+        mvc.perform(get("/api/articles/"+first.article().slug())).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("First proposal"));
+        mvc.perform(get("/api/articles/"+second.article().slug())).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Second proposal"));
+        reward(batch).andExpect(status().isOk()).andExpect(jsonPath("$.rewardedCount").value(2));
+        reward(batch).andExpect(status().isConflict());
     }
 
     @Test void oldPublishedArticlesRemainAddressableOutsideTheLatestFeed() throws Exception {

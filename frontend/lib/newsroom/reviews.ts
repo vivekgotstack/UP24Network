@@ -12,6 +12,7 @@ export type Review = {
   title: string;
   submittedBy: string;
   submittedAt: string;
+  reviewDay: string;
   changeSummary: string;
   verificationNotes: string;
   decisionNote?: string | null;
@@ -30,16 +31,38 @@ export type ReviewHistory = { reviews: Review[]; latestInput?: SaveArticle | nul
 export type ReviewQueue = { items: Review[]; hasNext: boolean };
 export type ReviewDetail = Review & { input: SaveArticle; current: ManagedArticle | null };
 
+export type ReviewBatch = {
+  contributorId: string;
+  contributor: string;
+  day: string;
+  pendingCount: number;
+  approvedCount: number;
+  returnedCount: number;
+  ready: boolean;
+  closedAt: string | null;
+  rewardedCount: number;
+  rewardedAt: string | null;
+  rewardNote: string | null;
+};
+export type ReviewBatchQueue = { items: ReviewBatch[]; hasNext: boolean };
+export type ReviewBatchDetail = { batch: ReviewBatch; items: Review[] };
+
 const queue = 'admin/article-reviews';
 const staffPath = (id: string) => `admin/articles/${id}/review`;
 const detailPath = (id: string) => `${queue}/${id}`;
+const batchPath = (contributor: string, day: string) => `${queue}/batches/${contributor}/${day}`;
 
 export const articleReviews = {
   staffPath,
   detailPath,
   queuePath: (page: number, state: ReviewState) => `${queue}?page=${page}&state=${state}`,
   submit: (id: string, request: ReviewSubmission) => cms<Review>(staffPath(id), 'POST', request),
-  approve: (id: string) => cms<Review>(`${detailPath(id)}/approve`, 'POST', {}),
+  batchesPath: (page: number) => `${queue}/batches?page=${page}`,
+  batchPath,
+  approveBatch: (contributor: string, day: string, ids: string[]) =>
+    cms<{ count: number }>(`${batchPath(contributor, day)}/approve`, 'POST', { ids }),
+  recordReward: (contributor: string, day: string, note: string) =>
+    cms<ReviewBatch>(`${batchPath(contributor, day)}/reward`, 'POST', { note }),
   returnForChanges: (id: string, note: string) =>
     cms<Review>(`${detailPath(id)}/return`, 'POST', { note }),
 };

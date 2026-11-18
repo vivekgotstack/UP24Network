@@ -191,6 +191,9 @@
   color: var(--muted);
   line-height: 1.7;
 }
+.editorForm[hidden] {
+  display: none;
+}
 @media (max-width: 760px) {
   .comparison {
     grid-template-columns: minmax(0, 1fr);

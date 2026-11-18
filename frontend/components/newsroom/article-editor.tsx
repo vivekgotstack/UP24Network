@@ -3,11 +3,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ArticleConflict } from '@/components/newsroom/article-conflict';
+import {
+  StaffReviewStatus,
+  StaffReviewSubmission,
+} from '@/components/newsroom/staff-article-review';
 import { cms, CmsError } from '@/lib/cms';
 import { useSession, useNewsroomResource } from '@/lib/session';
 import { MediaUpload } from '@/components/newsroom/media-upload';
 import { VideoUpload } from '@/components/newsroom/video-upload';
 import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
+import { articleReviews, type Review, type ReviewHistory } from '@/lib/newsroom/reviews';
 import styles from './article-admin.module.css';
 
 import { sections } from '@/lib/sections';
@@ -45,6 +50,14 @@ export function ArticleEditor({
 }) {
   const session = useSession();
   const workflow = useNewsroomResource<WorkflowPolicy>(session.data, 'auth/workflow', !adminMode);
+  const history = useNewsroomResource<ReviewHistory>(
+    session.data,
+    articleReviews.staffPath(article?.id ?? ''),
+    !adminMode && Boolean(article),
+    { refetchInterval: 20_000 },
+  );
+  const latest = history.data?.reviews[0];
+  const pendingReview = !adminMode && latest?.state === 'PENDING';
   const policy = workflow.data ?? defaultWorkflow;
   const [helpersEnabled, setHelpersEnabled] = useState(true),
     [assisting, setAssisting] = useState(false),
@@ -59,10 +72,22 @@ export function ArticleEditor({
   const [saved, setSaved] = useState(() => JSON.stringify(toDraft(article)));
   const [error, setError] = useState('');
   const [version, setVersion] = useState(article?.version ?? null);
+  const [articleStatus, setArticleStatus] = useState(article?.status);
+  const [proposal, setProposal] = useState<SaveArticle | null>(null);
+  const [reviewEvidence, setReviewEvidence] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const allowLeave = useRef(false);
   const dirty = JSON.stringify(draft) !== saved;
+  const unsaved = dirty || reviewEvidence;
+  const proposedUpdate = !adminMode && articleStatus === 'PUBLISHED';
+  const approvedOnCurrentVersion =
+    latest?.state === 'APPROVED' && latest.articleVersion === version;
+  const canReview =
+    !adminMode &&
+    Boolean(article && history.data && !history.error) &&
+    !pendingReview &&
+    !approvedOnCurrentVersion;
   useEffect(() => {
     if (defaultsApplied.current || !workflow.data) return;
     defaultsApplied.current = true;
@@ -80,16 +105,16 @@ export function ArticleEditor({
     setSaved(JSON.stringify(next));
   }, [workflow.data, article]);
   useEffect(() => {
-    onDirty(dirty);
-  }, [dirty, onDirty]);
+    onDirty(unsaved);
+  }, [unsaved, onDirty]);
   useEffect(() => {
-    if (!dirty) return;
+    if (!unsaved) return;
     const warn = (event: BeforeUnloadEvent) => {
       if (!allowLeave.current) event.preventDefault();
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  }, [unsaved]);
   const set = (key: keyof Draft, value: string) => {
     touched.current = true;
     setDraft((current) => ({ ...current, [key]: value }));
@@ -136,12 +161,19 @@ export function ArticleEditor({
     try {
       const submitter = (event.nativeEvent as SubmitEvent).submitter;
       const intent = submitter instanceof HTMLButtonElement ? submitter.value : '';
-      const result = await onSave(validated(), intent === 'preview', intent === 'publish');
+      const input = validated();
+      if (intent === 'review' || proposedUpdate) {
+        if (canReview && !conflict && (!proposedUpdate || dirty)) setProposal(input);
+        return;
+      }
+      if (pendingReview || approvedOnCurrentVersion) return;
+      const result = await onSave(input, intent === 'preview', intent === 'publish');
       if (result) {
         const next = toDraft(result);
         setDraft(next);
         setSaved(JSON.stringify(next));
         setVersion(result.version);
+        setArticleStatus(result.status);
         setConflict(false);
         if (intent === 'publish' && onPublish) {
           const published = await onPublish(result);
@@ -150,6 +182,7 @@ export function ArticleEditor({
             setDraft(finalDraft);
             setSaved(JSON.stringify(finalDraft));
             setVersion(published.version);
+            setArticleStatus(published.status);
           }
         }
       }
@@ -158,6 +191,25 @@ export function ArticleEditor({
       setConflict(
         reason instanceof CmsError && reason.problemType === 'urn:up24:article-version-conflict',
       );
+    }
+  }
+  function openReturned(input: SaveArticle) {
+    const { version: _version, ...returnedDraft } = input;
+    setDraft((current) => ({ ...returnedDraft, byline: current.byline }));
+  }
+  function markSubmitted(review: Review) {
+    history.setData({ reviews: [review, ...(history.data?.reviews ?? [])], latestInput: null });
+    setSaved(JSON.stringify(draft));
+    setProposal(null);
+    setConflict(false);
+    void history.refetch();
+  }
+  function reviewConflict(reason: unknown) {
+    if (!(reason instanceof CmsError) || reason.status !== 409) return;
+    void history.refetch();
+    if (reason.problemType === 'urn:up24:article-version-conflict') {
+      setConflict(true);
+      setProposal(null);
     }
   }
   async function fetchVideoDetails() {
@@ -207,10 +259,20 @@ export function ArticleEditor({
       <div className="cms-section-heading">
         <div>
           <p className="eyebrow">{article ? 'ARTICLE WORKSPACE' : 'NEW REPORT'}</p>
-          <h2>{article ? 'Edit article' : 'Create a draft'}</h2>
+          <h2>
+            {proposedUpdate ? 'Propose an update' : article ? 'Edit article' : 'Create a draft'}
+          </h2>
         </div>
         <span className={`save-state ${dirty ? 'is-dirty' : ''}`} role="status">
-          {busy ? 'Saving…' : dirty ? 'Unsaved changes' : article ? 'Saved' : 'New draft'}
+          {pendingReview
+            ? 'Submitted'
+            : busy
+              ? 'Saving…'
+              : unsaved
+                ? 'Unsaved changes'
+                : article
+                  ? 'Saved'
+                  : 'New draft'}
         </span>
       </div>
       {!adminMode && workflow.error && (
@@ -219,7 +281,45 @@ export function ArticleEditor({
           they are available.
         </p>
       )}
-      <form className="cms-form editor-form" onSubmit={submit} aria-busy={busy || assisting}>
+      {!adminMode && article && (
+        <>
+          {history.error && (
+            <div className="cms-feedback is-error" role="alert">
+              <p>Review status is unavailable.</p>
+              <Button type="button" variant="outline" onClick={() => void history.refetch()}>
+                Retry
+              </Button>
+            </div>
+          )}
+          <StaffReviewStatus
+            reviews={history.data?.reviews ?? []}
+            latestInput={history.data?.latestInput}
+            version={version}
+            canResume={!unsaved && !busy && !proposal && !conflict}
+            onResume={openReturned}
+          />
+          <StaffReviewSubmission
+            articleId={article.id}
+            input={pendingReview ? null : proposal}
+            published={proposedUpdate}
+            onBack={() => setProposal(null)}
+            onSubmitted={markSubmitted}
+            onConflict={reviewConflict}
+            onEvidenceChange={setReviewEvidence}
+          />
+        </>
+      )}
+      {(pendingReview || approvedOnCurrentVersion) && (
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Back to article desk
+        </Button>
+      )}
+      <form
+        className={`cms-form editor-form ${styles.editorForm}`}
+        hidden={Boolean(proposal) || pendingReview || approvedOnCurrentVersion}
+        onSubmit={submit}
+        aria-busy={busy || assisting}
+      >
         <fieldset className="editor-fields" disabled={busy || assisting}>
           {(adminMode || policy.autofill) && (
             <div className={styles.assist}>
@@ -469,8 +569,17 @@ export function ArticleEditor({
                 placeholder="/videos/report.mp4 or an approved HTTPS URL"
               />
             </label>
-            <VideoUpload disabled={busy} onReady={(video) => { set('videoUrl', video.url); set('youtubeId', ''); }} />
-            <p className="field-help">A completed upload selects its playback copy for this report and replaces the YouTube source. Save the report to keep that selection.</p>
+            <VideoUpload
+              disabled={busy}
+              onReady={(video) => {
+                set('videoUrl', video.url);
+                set('youtubeId', '');
+              }}
+            />
+            <p className="field-help">
+              A completed upload selects its playback copy for this report and replaces the YouTube
+              source.
+            </p>
             <p className="field-help">
               A YouTube video takes priority, then a direct video, then the photograph. Channel
               imports are managed in Automations.
@@ -487,12 +596,26 @@ export function ArticleEditor({
             </p>
           )}
           <div className="editor-actions">
-            <Button disabled={busy} type="submit">
-              {busy ? 'Saving…' : 'Save article'}
-            </Button>
-            <Button type="submit" name="intent" value="preview" disabled={busy}>
-              Save &amp; preview
-            </Button>
+            {!proposedUpdate && (
+              <>
+                <Button disabled={busy} type="submit" variant={adminMode ? 'default' : 'outline'}>
+                  {busy ? 'Saving…' : adminMode ? 'Save article' : 'Save draft'}
+                </Button>
+                <Button type="submit" name="intent" value="preview" disabled={busy}>
+                  Save &amp; preview
+                </Button>
+              </>
+            )}
+            {!adminMode && article && (
+              <Button
+                type="submit"
+                name="intent"
+                value="review"
+                disabled={busy || !canReview || conflict || (proposedUpdate && !dirty)}
+              >
+                {proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
+              </Button>
+            )}
             {adminMode && onPublish && (
               <Button type="submit" name="intent" value="publish" disabled={busy}>
                 Save &amp; publish
@@ -502,19 +625,28 @@ export function ArticleEditor({
               type="button"
               variant="ghost"
               disabled={busy}
-              onClick={() => (dirty ? setConfirmClose(true) : onCancel())}
+              onClick={() => (unsaved ? setConfirmClose(true) : onCancel())}
             >
               Close editor
             </Button>
           </div>
-          {article?.status === 'PUBLISHED' && (
+          {adminMode && article?.status === 'PUBLISHED' && (
             <p className="field-help">
               Saving updates the published report. Publication controls are on the article desk.
             </p>
           )}
+          {proposedUpdate && (
+            <p className="field-help">
+              Changes go into a review request. Readers see the current report until the
+              administrator approves the update.
+            </p>
+          )}
+          {!adminMode && !article && (
+            <p className="field-help">Save the draft to begin an editorial review request.</p>
+          )}
         </fieldset>
       </form>
-      {conflict && article && (
+      {(conflict || approvedOnCurrentVersion) && article && (
         <ArticleConflict
           id={article.id}
           onReplace={(latest) => {
@@ -522,6 +654,7 @@ export function ArticleEditor({
             setDraft(next);
             setSaved(JSON.stringify(next));
             setVersion(latest.version);
+            setArticleStatus(latest.status);
             setConflict(false);
             setError('');
           }}

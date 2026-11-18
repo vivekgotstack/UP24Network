@@ -26,3 +26,5 @@ ALTER TABLE article_review_request ALTER COLUMN proposed_input SET COMPRESSION l
 CREATE UNIQUE INDEX article_review_pending_idx ON article_review_request(article_id) WHERE state = 'PENDING';
 CREATE INDEX article_review_queue_idx ON article_review_request(state, submitted_at DESC, id DESC);
 CREATE INDEX article_review_staff_history_idx ON article_review_request(article_id, submitter_id, submitted_at DESC, id DESC);
+CREATE INDEX article_review_pending_image_idx ON article_review_request USING hash (btrim(proposed_input->>'image')) WHERE state = 'PENDING';
+CREATE INDEX article_review_pending_video_idx ON article_review_request USING hash (btrim(proposed_input->>'videoUrl')) WHERE state = 'PENDING';

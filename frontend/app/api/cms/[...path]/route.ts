@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 type Context = { params: Promise<{ path: string[] }> };
 const MAX_BODY_BYTES = 512 * 1024;
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+const REVIEW_BATCH = `admin/article-reviews/batches/${UUID}/[0-9]{4}-[0-9]{2}-[0-9]{2}`;
 const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me|workflow)$/, ['GET']],
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
@@ -27,7 +28,10 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/articles/${UUID}/review$`, 'i'), ['GET', 'POST']],
   [/^admin\/article-reviews$/, ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
-  [new RegExp(`^admin/article-reviews/${UUID}/(approve|return)$`, 'i'), ['POST']],
+  [new RegExp(`^admin/article-reviews/${UUID}/return$`, 'i'), ['POST']],
+  [/^admin\/article-reviews\/batches$/, ['GET']],
+  [new RegExp(`^${REVIEW_BATCH}$`, 'i'), ['GET']],
+  [new RegExp(`^${REVIEW_BATCH}/(approve|reward)$`, 'i'), ['POST']],
   [/^admin\/accounts$/, ['GET', 'POST']],
   [/^admin\/accounts\/browse$/, ['GET']],
   [new RegExp(`^admin/accounts/${UUID}$`, 'i'), ['PATCH', 'DELETE']],
@@ -78,9 +82,11 @@ async function proxy(request: NextRequest, context: Context) {
             ? ['page', 'open']
             : path === 'admin/article-reviews'
               ? ['page', 'state']
-              : path === 'admin/media' || path === 'admin/videos'
-                ? ['page', 'size']
-                : [];
+              : path === 'admin/article-reviews/batches'
+                ? ['page']
+                : path === 'admin/media' || path === 'admin/videos'
+                  ? ['page', 'size']
+                  : [];
     for (const [key, value] of request.nextUrl.searchParams) {
       if (
         !allowed.includes(key) ||
@@ -137,7 +143,7 @@ async function proxy(request: NextRequest, context: Context) {
     if (mutation && response.ok) {
       if (
         (path.startsWith('admin/articles') && !path.endsWith('/review')) ||
-        /^admin\/article-reviews\/[^/]+\/approve$/.test(path)
+        (path.startsWith('admin/article-reviews/batches/') && path.endsWith('/approve'))
       ) {
         revalidateTag('articles', { expire: 0 });
       }
