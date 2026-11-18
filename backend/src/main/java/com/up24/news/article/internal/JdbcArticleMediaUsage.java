@@ -13,6 +13,8 @@ class JdbcArticleMediaUsage implements ArticleMediaUsage {
         return Boolean.TRUE.equals(jdbc.queryForObject("""
                 SELECT EXISTS(SELECT 1 FROM article_record WHERE image_hash=? OR video_url=?)
                     OR EXISTS(SELECT 1 FROM article_revision WHERE snapshot->>'image'=? OR snapshot->>'video_url'=?)
-                """,Boolean.class,imageHash,url,url,url));
+                    OR EXISTS(SELECT 1 FROM article_review_request WHERE state='PENDING'
+                        AND (proposed_input->>'image'=? OR proposed_input->>'videoUrl'=?))
+                """,Boolean.class,imageHash,url,url,url,url,url));
     }
 }

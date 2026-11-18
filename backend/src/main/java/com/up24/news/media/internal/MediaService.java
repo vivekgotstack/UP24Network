@@ -69,7 +69,7 @@ class MediaService implements MediaLibrary {
     @Transactional @Override public void remove(String id) {
         media.lockQuota();
         var asset=find(id).orElseThrow(() -> new MediaProblem(MediaProblem.Reason.MISSING,"Image not found."));
-        if (usage.inUse(asset.url())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This image is used by an article or a retained revision. Remove those references first.");
+        if (usage.inUse(asset.url())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This image is used by an article, a retained revision, or a pending review.");
         try { media.delete(id); }
         catch(DataIntegrityViolationException exception) { throw new MediaProblem(MediaProblem.Reason.IN_USE,"This image is in use or being migrated. Try again after active work completes."); }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

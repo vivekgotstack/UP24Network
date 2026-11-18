@@ -1,0 +1,161 @@
+.status {
+  display: grid;
+  gap: 12px;
+  margin-block: 18px 24px;
+  padding: clamp(14px, 3vw, 22px);
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--brand-gold);
+  background: var(--surface);
+}
+
+.statusHeader,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.reviewBadge {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 14px;
+}
+
+.reviewBadge[data-state='PENDING'] {
+  border-color: transparent;
+  color: #4e3800;
+  background: #f8e29d;
+}
+
+.reviewBadge[data-state='APPROVED'] {
+  border-color: transparent;
+  color: #1c4635;
+  background: #d8eee2;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.prose {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.decision {
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--line);
+}
+
+.decision h3,
+.history li strong {
+  font-size: 15px;
+}
+
+.history summary,
+.preview summary {
+  display: list-item;
+  align-content: center;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history ul {
+  display: grid;
+  gap: 12px;
+}
+
+.history li {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 9px;
+}
+
+.history li time {
+  margin-inline-start: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.submission {
+  min-width: 0;
+}
+
+.intro h3 {
+  font: 700 clamp(23px, 4vw, 30px) / 1.25 var(--serif);
+}
+
+.intro p {
+  margin-block-start: 8px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.preview {
+  padding-inline: 13px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.proposalBody {
+  display: grid;
+  max-height: min(42vh, 400px);
+  gap: 12px;
+  overflow-y: auto;
+  padding-block: 10px;
+  overscroll-behavior-y: contain;
+}
+
+.proposalBody :is(h3, h4) {
+  overflow-wrap: anywhere;
+  font: 700 20px / 1.4 var(--serif);
+}
+
+.evidence,
+.checklist {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  border: 1px solid var(--line);
+  padding: 14px;
+}
+
+.evidence legend,
+.checklist legend {
+  padding-inline: 6px;
+  font-weight: 700;
+}
+
+.checklist .check {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  min-height: 44px;
+  align-items: start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.check input[type='checkbox'] {
+  width: 19px;
+  height: 19px;
+  margin-block-start: 2px;
+  accent-color: var(--brand-navy);
+}
+
+.check span span {
+  display: block;
+  margin-block-start: 2px;
+  font-weight: 400;
+}
+
+@media (max-width: 550px) {
+  .actions > button {
+    min-height: 44px;
+    flex: 1 1 100%;
+  }
+}

@@ -93,7 +93,7 @@ class VideoService implements MediaVideos {
             if(video.view().state().equals("PROCESSING")) throw new MediaProblem(MediaProblem.Reason.IN_USE,"Wait for video processing to finish before removing it.");
             if(video.uploadLeaseUntil()!=null && clock.instant().isBefore(video.uploadLeaseUntil())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"Wait for the active upload to stop before removing its reservation.");
             if(video.source().backend().equals("S3") && clock.instant().isBefore(video.expiresAt())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This signed upload reservation is still valid. Remove the unused video after its 15-minute upload window expires.");
-            if(usage.inUse(video.view().url())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This video is used by an article or a retained revision.");
+            if(usage.inUse(video.view().url())) throw new MediaProblem(MediaProblem.Reason.IN_USE,"This video is used by an article, a retained revision, or a pending review.");
             if(video.view().state().equals("DELETING") && video.jobId()!=null) {
                 try { if(!jobs.status(video.jobId()).state().equals("FAILED")) return; }
                 catch(IllegalArgumentException ignored) { }

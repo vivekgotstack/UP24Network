@@ -1,0 +1,161 @@
+.queue {
+  display: grid;
+  gap: 16px;
+  max-inline-size: 72rem;
+  font: 400 16px/1.55 var(--sans);
+}
+.queue > [role='status']:empty {
+  display: none;
+}
+.toolbar,
+.actions,
+.pagination,
+.retry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.toolbar label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.toolbar select,
+.returnForm textarea {
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+.queue button {
+  min-block-size: 44px;
+}
+.submission {
+  display: grid;
+  gap: 12px;
+  min-inline-size: 0;
+  padding: clamp(12px, 3vw, 24px);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 20px;
+}
+.heading > div {
+  flex: 1 1 22rem;
+  min-inline-size: 0;
+}
+.heading h3 {
+  margin-block-end: 4px;
+  font: 700 clamp(19px, 2.2vw, 25px)/1.35 var(--serif);
+}
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+.state {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 13px/1.4 var(--sans);
+}
+.state[data-state='PENDING'] {
+  background: #fff0c1;
+  color: #563c00;
+  border-color: #d8c277;
+}
+.state[data-state='APPROVED'] {
+  background: #e1efe5;
+  color: #245437;
+  border-color: #a9c2ae;
+}
+.summary,
+.evidence p,
+.note,
+.value p {
+  white-space: pre-wrap;
+}
+.note {
+  display: grid;
+  gap: 4px;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--brand-gold);
+}
+.actions button {
+  max-inline-size: 100%;
+  white-space: normal;
+  block-size: auto;
+  line-height: 1.35;
+}
+.returnForm,
+.details {
+  display: grid;
+  gap: 10px;
+  padding: clamp(10px, 2vw, 16px);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.returnForm label,
+.details h4,
+.comparisonField h5 {
+  font-weight: 700;
+}
+.returnForm textarea {
+  inline-size: 100%;
+  resize: vertical;
+}
+.details {
+  gap: 16px;
+}
+.evidence,
+.comparison,
+.comparisonField {
+  display: grid;
+  gap: 6px;
+  min-inline-size: 0;
+}
+.comparisonField {
+  border-block-start: 1px solid var(--line);
+  padding-block: 8px;
+}
+.comparisonValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.value {
+  min-inline-size: 0;
+  padding: 8px;
+  background: var(--surface);
+}
+.value > span {
+  display: block;
+  margin-block-end: 4px;
+  color: var(--muted);
+  font: 600 13px/1.4 var(--sans);
+}
+.longValue {
+  max-block-size: 20rem;
+  overflow: auto;
+}
+@media (max-width: 560px) {
+  .comparisonValues {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .actions button {
+    flex: 1 1 auto;
+  }
+}
