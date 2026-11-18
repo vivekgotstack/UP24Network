@@ -9,7 +9,15 @@ import { useConsent } from '@/lib/consent';
 import { canonicalReelUrl } from '@/lib/instagram';
 import styles from './trending-reels.module.css';
 
-export function InstagramReel({ url, title, cover }: { url: string; title: string; cover: string }) {
+export function InstagramReel({
+  url,
+  title,
+  cover,
+}: {
+  url: string;
+  title: string;
+  cover: string;
+}) {
   const [requested, setRequested] = useState(false);
   const { choice } = useConsent();
   const source = canonicalReelUrl(url);
@@ -30,7 +38,9 @@ export function InstagramReel({ url, title, cover }: { url: string; title: strin
       ) : (
         <div className={styles.preview}>
           {cover && cover !== '/brand/up24-logo.png' && (
-            <div className={styles.viewerCover}><NewsImage src={cover} sizes="(max-width: 540px) 100vw, 520px" /></div>
+            <div className={styles.viewerCover}>
+              <NewsImage src={cover} sizes="(max-width: 540px) 100vw, 520px" />
+            </div>
           )}
           {requested ? (
             <div className={styles.permission}>
@@ -38,13 +48,21 @@ export function InstagramReel({ url, title, cover }: { url: string; title: strin
               <CookiePreferences>वीडियो की अनुमति चुनें</CookiePreferences>
             </div>
           ) : (
-            <Button type="button" onClick={() => setRequested(true)}><Play aria-hidden="true" /> रील चलाएं</Button>
+            <Button type="button" onClick={() => setRequested(true)}>
+              <Play aria-hidden="true" /> रील चलाएं
+            </Button>
           )}
         </div>
       )}
       <figcaption className={styles.viewerActions}>
-        {requested && <Button type="button" variant="ghost" onClick={() => setRequested(false)}>रील बंद करें</Button>}
-        <a href={source} target="_blank" rel="noopener noreferrer">Instagram पर मूल रील देखें</a>
+        {requested && (
+          <Button type="button" variant="ghost" onClick={() => setRequested(false)}>
+            रील बंद करें
+          </Button>
+        )}
+        <a href={source} target="_blank" rel="noopener noreferrer">
+          Instagram पर मूल रील देखें
+        </a>
       </figcaption>
     </figure>
   );

@@ -115,6 +115,16 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 )}
               </section>
             ))}
+            {(document.path === '/cookies' || document.path === '/privacy') && (
+              <section aria-labelledby="instagram-media-heading">
+                <h2 id="instagram-media-heading">Instagram reels</h2>
+                <p>
+                  When you allow external videos and choose to load a reel, your browser connects
+                  directly to Instagram. Instagram may receive your IP address and browser details.
+                  You can withdraw permission through Cookie settings in the footer.
+                </p>
+              </section>
+            )}
             {showContactForm && <ReaderContactForm topic={contactTopic} />}
             <footer className="publication-note">
               <p>

@@ -67,14 +67,14 @@ export function CookiePreferencesProvider({ children }: { children: ReactNode })
             </div>
             <label className={styles.option}>
               <span>
-                <strong>YouTube वीडियो</strong>
+                <strong>बाहरी वीडियो</strong>
                 <span className={styles.explanation}>
-                  अनुमति मिलने पर और वीडियो चलाने का विकल्प चुनने पर YouTube का बाहरी प्लेयर लोड होगा। वह
-                  आपके IP पते और डिवाइस की जानकारी प्राप्त कर सकता है।
+                  अनुमति देकर वीडियो चलाने पर YouTube या Instagram का प्लेयर लोड होगा। उस सेवा को आपका IP
+                  पता और डिवाइस की जानकारी मिल सकती है।
                 </span>
               </span>
               <input
-                aria-label="YouTube वीडियो की अनुमति"
+                aria-label="YouTube और Instagram के वीडियो की अनुमति"
                 type="checkbox"
                 checked={video}
                 onChange={(event) => setVideo(event.target.checked)}
@@ -117,8 +117,8 @@ export function CookieConsent() {
       <div>
         <h2>आपकी गोपनीयता का सम्मान</h2>
         <p>
-          ज़रूरी कुकी सुरक्षित सुविधाएँ चलाती हैं। YouTube जैसे बाहरी वीडियो आपकी अनुमति के बाद ही लोड होते हैं। आप
-          वैकल्पिक सेवाएँ अस्वीकार करके भी खबरें पढ़ सकते हैं। <Link href="/cookies">जानें कैसे</Link>
+          ज़रूरी कुकी सुरक्षित सुविधाएँ चलाती हैं। YouTube और Instagram के वीडियो आपकी अनुमति के बाद ही लोड होते
+          हैं। आप वैकल्पिक सेवाएँ अस्वीकार करके भी खबरें पढ़ सकते हैं। <Link href="/cookies">जानें कैसे</Link>
         </p>
       </div>
       <div className={styles.actions}>

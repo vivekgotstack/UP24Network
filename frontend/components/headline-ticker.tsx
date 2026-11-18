@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Instagram } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import type { Article } from '@/lib/articles';
 import { brand } from '@/lib/brand';
 import { textLanguage } from '@/lib/language';
@@ -38,9 +38,14 @@ export function HeadlineTicker({ articles }: { articles: Article[] }) {
         </div>
       </div>
       {instagram && (
-        <a className="ticker-follow" href={instagram.url} target="_blank" rel="noopener noreferrer"
-          aria-label="Follow UP24Network on Instagram">
-          <Instagram size={15} aria-hidden="true" />
+        <a
+          className="ticker-follow"
+          href={instagram.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Follow UP24Network on Instagram"
+        >
+          <Camera size={15} aria-hidden="true" />
           <span>Follow us</span>
         </a>
       )}

@@ -51,8 +51,12 @@
   color: var(--brand-gold);
 }
 .cover img,
-.viewerCover img { object-fit: contain; }
-.cover :global(.media-placeholder) { display: none; }
+.viewerCover img {
+  object-fit: contain;
+}
+.cover :global(.media-placeholder) {
+  display: none;
+}
 .cardTitle {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -87,7 +91,10 @@
   border: 0;
   background: white;
 }
-.permission { text-align: center; font: 400 15px/1.55 var(--sans); }
+.permission {
+  text-align: center;
+  font: 400 15px/1.55 var(--sans);
+}
 .viewerActions {
   display: flex;
   flex-wrap: wrap;
@@ -96,7 +103,16 @@
   gap: 4px 12px;
 }
 @media (max-width: 700px) {
-  .list { grid-template-columns: 1fr; gap: 5px; }
-  .card { min-height: 54px; padding: 5px 8px; }
-  .cover { flex-basis: 44px; height: 44px; }
+  .list {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .card {
+    min-height: 54px;
+    padding: 5px 8px;
+  }
+  .cover {
+    flex-basis: 44px;
+    height: 44px;
+  }
 }

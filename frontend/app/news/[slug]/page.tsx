@@ -106,38 +106,44 @@ export default async function ArticlePage({ params }: Props) {
                 <p>
                   <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time>
                   <span aria-hidden="true"> · </span>
-                  {reelUrl ? 'Instagram Reel' : article.youtubeId || article.videoUrl
-                    ? 'Video report'
-                    : `${article.readingMinutes} min read`}
+                  {reelUrl
+                    ? 'Instagram Reel'
+                    : article.youtubeId || article.videoUrl
+                      ? 'Video report'
+                      : `${article.readingMinutes} min read`}
                 </p>
               </div>
             </div>
           </header>
-          {reelUrl ? <InstagramReel url={reelUrl} title={article.title} cover={article.image} /> : <figure className="article-figure">
-            <div className="article-image">
-              {article.youtubeId ? (
-                <YouTubeStory
-                  videoId={article.youtubeId}
-                  title={article.title}
-                  thumbnail={article.image}
-                />
-              ) : article.videoUrl ? (
-                <VideoStory
-                  title={article.title}
-                  poster={article.image}
-                  src={article.videoUrl}
-                  large
-                />
-              ) : (
-                <NewsImage
-                  src={article.image}
-                  alt={article.imageAlt}
-                  priority
-                  sizes="(max-width: 1100px) 100vw, 1050px"
-                />
-              )}
-            </div>
-          </figure>}
+          {reelUrl ? (
+            <InstagramReel url={reelUrl} title={article.title} cover={article.image} />
+          ) : (
+            <figure className="article-figure">
+              <div className="article-image">
+                {article.youtubeId ? (
+                  <YouTubeStory
+                    videoId={article.youtubeId}
+                    title={article.title}
+                    thumbnail={article.image}
+                  />
+                ) : article.videoUrl ? (
+                  <VideoStory
+                    title={article.title}
+                    poster={article.image}
+                    src={article.videoUrl}
+                    large
+                  />
+                ) : (
+                  <NewsImage
+                    src={article.image}
+                    alt={article.imageAlt}
+                    priority
+                    sizes="(max-width: 1100px) 100vw, 1050px"
+                  />
+                )}
+              </div>
+            </figure>
+          )}
           <ReadingExperience
             story={{
               slug: article.slug,

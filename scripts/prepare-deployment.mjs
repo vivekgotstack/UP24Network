@@ -58,6 +58,7 @@ const settings={
   'spring.rabbitmq.host':'rabbitmq','spring.rabbitmq.port':'5672','spring.rabbitmq.username':'up24','spring.rabbitmq.password':rabbitPassword,'spring.rabbitmq.virtual-host':'up24',
   'up24.auth.key-store':'file:/run/secrets/jwt-signing.p12','up24.auth.key-store-password':signingPassword,
   'up24.auth.cookie-secure':'true','up24.auth.issuer':site.origin+'/identity',
+  'up24.public-site-url':site.origin,
 };
 for (const [variable,key] of Object.entries({BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key'})) {
   const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;

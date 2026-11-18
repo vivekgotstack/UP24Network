@@ -230,7 +230,16 @@ export const sectionGroups = [
   },
   {
     title: 'खेल और मनोरंजन',
-    slugs: ['sports', 'cricket', 'entertainment', 'bollywood', 'television', 'ott', 'videos', 'trending-reels'],
+    slugs: [
+      'sports',
+      'cricket',
+      'entertainment',
+      'bollywood',
+      'television',
+      'ott',
+      'videos',
+      'trending-reels',
+    ],
   },
   {
     title: 'जीवन और संस्कृति',

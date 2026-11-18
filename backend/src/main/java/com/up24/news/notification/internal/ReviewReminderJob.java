@@ -49,8 +49,9 @@ class ReviewReminderJob implements ReviewReminderDelivery, JobHandler {
         if (notice.recipient() == null || notice.day() == null || notice.contributor() == null
                 || notice.pendingCount() < 1 || notice.reviewLink() == null) throw new PermanentJobFailure();
         String subject = "UP24Network daily editorial review";
-        String body = notice.pendingCount() + " contribution(s) from " + notice.contributor()
-                + " need editorial review as of " + DATE.format(notice.day()) + " (India time).\n\n"
+        boolean single = notice.pendingCount() == 1;
+        String body = notice.pendingCount() + (single ? " contribution from " : " contributions from ") + notice.contributor()
+                + (single ? " needs" : " need") + " editorial review as of " + DATE.format(notice.day()) + " (India time).\n\n"
                 + "Open the private review queue to check the current batch and decide which items to approve.\n"
                 + notice.reviewLink().toASCIIString() + "\n\nYou’ll need to sign in as the administrator.";
         if (preview) {

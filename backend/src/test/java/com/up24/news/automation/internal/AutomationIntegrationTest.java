@@ -1,5 +1,6 @@
 package com.up24.news.automation.internal;
 
+import com.up24.news.article.ArticleReviewNotices;
 import com.up24.news.horoscope.HoroscopeEdition;
 import com.up24.news.horoscope.Horoscopes;
 import com.up24.news.identity.Accounts;
@@ -28,7 +29,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.admin-email=owner@automation.test", "up24.bootstrap.admin-email=", "up24.providers.astrologics.api-key=al_live_integration_placeholder", "up24.providers.weatherbit.api-key=integration-only"})
+@SpringBootTest(properties = {"up24.automation.scheduling-enabled=false", "up24.newsroom.admin-email=owner@automation.test", "up24.bootstrap.admin-email=",
+        "up24.providers.astrologics.api-key=al_live_integration_placeholder", "up24.providers.weatherbit.api-key=integration-only",
+        "up24.public-site-url=https://news.example.test", "up24.providers.brevo.api-key=integration-only", "up24.providers.brevo.sender-email=mail@example.test"})
 @AutoConfigureMockMvc
 @Transactional
 @Import(AutomationIntegrationTest.TestBeans.class)
@@ -42,6 +45,7 @@ class AutomationIntegrationTest {
     @Autowired Accounts accounts;
     @Autowired ControlledSource source;
     @Autowired AirQualityReadings airQuality;
+    @Autowired ArticleReviewNotices reviewNotices;
     private String admin;
     private String subscriber;
 
@@ -126,6 +130,37 @@ class AutomationIntegrationTest {
         var job = service.run("rashifal"); // No network request: the day is already stored.
         assertThat(job.failureCount()).isZero();
         assertThat(job.nextRunAt()).isEqualTo(Instant.parse("2040-01-02T18:35:00Z"));
+    }
+
+    @Test void groupsEligibleReviewNoticesOncePerContributorAfterSixPmIndiaTime() {
+        UUID contributor = UUID.randomUUID();
+        UUID futureContributor = UUID.randomUUID();
+        seedReview(contributor, DAY);
+        seedReview(contributor, DAY);
+        seedReview(futureContributor, DAY.plusDays(1));
+        Instant evening = Instant.parse("2040-01-02T12:30:00Z");
+        var early = new DailyReviewNoticeSource(reviewNotices, Clock.fixed(evening.minusSeconds(1), ZoneOffset.UTC));
+        var due = new DailyReviewNoticeSource(reviewNotices, Clock.fixed(evening, ZoneOffset.UTC));
+        assertThat(early.nextRun(evening.minusSeconds(1), 10)).isEqualTo(evening);
+        assertThat(early.prepare().publish()).isZero();
+        assertThat(due.prepare().publish()).isEqualTo(1);
+        assertThat(due.prepare().publish()).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM article_review_notice WHERE notice_day=? AND submitter_id IN (?,?)",
+                Integer.class, DAY, contributor, futureContributor)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM background_job WHERE dedup_key=? AND lane='MAIL'",
+                Integer.class, "review-reminder:" + contributor + ":" + DAY)).isEqualTo(1);
+    }
+
+    private void seedReview(UUID contributor, LocalDate day) {
+        UUID article = UUID.randomUUID();
+        jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,author) VALUES (?,?,'Article','Summary','News','Editor')",
+                article, "notice-fixture-" + article);
+        jdbc.update("""
+                INSERT INTO article_review_request(id,article_id,article_version,kind,title,submitter_id,submitted_by,
+                    proposed_input,change_summary,verification_notes,review_day)
+                VALUES (?,?,0,'PUBLISH','Article',?,'Contributor','{}','New report prepared for review.',
+                    'Editorial sources and publication rights verified locally.',?)
+                """, UUID.randomUUID(), article, contributor, day);
     }
 
     @Test @Transactional(propagation = Propagation.NOT_SUPPORTED)
