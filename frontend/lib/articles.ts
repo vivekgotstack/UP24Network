@@ -40,7 +40,7 @@ export const getArticles = cache(async (): Promise<Article[]> => {
 });
 
 export const getArticle = cache(async (slug: string): Promise<Article | undefined> => {
-  const response = await request(`/api/articles/${encodeURIComponent(slug)}`);
+  const response = await request(`/api/articles/by-slug/${encodeURIComponent(slug)}`);
   if (response.status === 404) return undefined;
   if (!response.ok) throw new Error('The newsroom is temporarily unavailable.');
   return response.json();

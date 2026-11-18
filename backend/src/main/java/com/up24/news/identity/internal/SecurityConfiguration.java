@@ -62,6 +62,7 @@ class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/media/**","/api/publication/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.HEAD,"/media/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/auth/password/request","/api/auth/password/reset").permitAll()
                 .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/me","/api/auth/workflow","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
@@ -82,7 +83,9 @@ class SecurityConfiguration {
                         .failureHandler((request,response,exception) -> response.sendError(401,"Invalid email or password")))
                 .logout(logout -> logout.disable())
                 .oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> {
-                    if (anonymousTokenPaths.contains(request.getRequestURI().substring(request.getContextPath().length()))) return null;
+                    var path=request.getRequestURI().substring(request.getContextPath().length());
+                    if (anonymousTokenPaths.contains(path)) return null;
+                    if ((request.getMethod().equals("GET") || request.getMethod().equals("HEAD")) && path.startsWith("/media/")) return null;
                     var header=bearer.resolve(request);
                     return header!=null ? header : TokenCookies.read(request,TokenCookies.ACCESS);
                 }).jwt(jwt -> jwt.jwtAuthenticationConverter(principal)))

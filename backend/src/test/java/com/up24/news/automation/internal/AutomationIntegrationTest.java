@@ -135,8 +135,8 @@ class AutomationIntegrationTest {
         assertThat(job.lastResult()).isEqualTo("New worker owns this run");
     }
 
-    @Test void unimplementedProvidersCannotBeEnabled() throws Exception {
+    @Test void unsupportedProviderIsAbsentFromAutomation() throws Exception {
         mvc.perform(patch("/api/admin/automations/health").with(user(admin)).with(verified()).with(csrf()).contentType("application/json")
-                .content("{\"enabled\":true,\"intervalMinutes\":1440}")).andExpect(status().isConflict());
+                .content("{\"enabled\":true,\"intervalMinutes\":1440}")).andExpect(status().isNotFound());
     }
 }

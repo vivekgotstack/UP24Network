@@ -40,8 +40,8 @@ headroom. Encoding is bounded to one media consumer with two codec threads.
 
 Run `node scripts/deployment-doctor.mjs`, then `node scripts/deploy.mjs`.
 Preflight checks the private settings, role separation, provider configuration,
-Compose syntax and Linux Docker engine without printing secrets. It deliberately
-rejects the old temporary admin password. `--config-only` skips Docker execution;
+Compose syntax and Linux Docker engine without printing secrets. Set a production
+admin password of at least 16 characters. `--config-only` skips Docker execution;
 `--structure-only` checks prepared files without provider or Docker verification.
 
 The deploy command builds before replacing application services, waits for
@@ -51,8 +51,8 @@ has a short interruption during replacement; it does not claim zero downtime.
 Verify one admin OTP, publication and video playback using your actual accounts.
 Live provider permissions and certificate/DNS readiness cannot be proved offline.
 
-Admin → Media library controls the 365-day Standard-to-GIR rule and per-image
-exclusions. Transition rules never delete published content. S3 versions, logs,
+Admin → Media library controls 365-day Standard-to-GIR rules for published images
+and video, with per-image exclusions. Transition rules never delete published content. S3 versions, logs,
 private originals and backups are billed separately from tracked library quotas.
 
 ## Back up and recover

@@ -47,8 +47,8 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/videos/${UUID}$`, 'i'), ['GET', 'DELETE']],
   [new RegExp(`^admin/videos/${UUID}/(complete|retry)$`, 'i'), ['POST']],
   [/^admin\/automations$/, ['GET']],
-  [/^admin\/automations\/(youtube|rashifal|health|books|awards)$/, ['PATCH']],
-  [/^admin\/automations\/(youtube|rashifal|health|books|awards)\/run$/, ['POST']],
+  [/^admin\/automations\/(youtube|rashifal)$/, ['PATCH']],
+  [/^admin\/automations\/(youtube|rashifal)\/run$/, ['POST']],
 ];
 function problem(detail: string, status: number, headers?: HeadersInit) {
   const response = NextResponse.json({ detail }, { status, headers });

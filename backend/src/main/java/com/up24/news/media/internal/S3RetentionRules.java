@@ -6,11 +6,12 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Owns one named, prefix-and-tag-scoped rule, preserving other bucket rules. */
+/** Manages only the transition rules for the published image and video prefixes. */
 final class S3RetentionRules {
     static final String RULE_ID="UP24Network-published-media-to-GIR";
-    static LifecycleRule rule(MediaRetention.Policy policy,String prefix) {
-        return LifecycleRule.builder().id(RULE_ID).status(ExpirationStatus.ENABLED)
+    static final String VIDEO_RULE_ID="UP24Network-published-video-to-GIR";
+    private static LifecycleRule rule(String id,MediaRetention.Policy policy,String prefix) {
+        return LifecycleRule.builder().id(id).status(ExpirationStatus.ENABLED)
                 .filter(LifecycleRuleFilter.builder().and(LifecycleRuleAndOperator.builder().prefix(prefix)
                         .tags(Tag.builder().key("up24-retention").value("gir-eligible").build())
                         .objectSizeGreaterThan(131071L).build()).build())
@@ -27,8 +28,11 @@ final class S3RetentionRules {
             if(exception.awsErrorDetails()==null || !"NoSuchLifecycleConfiguration".equals(exception.awsErrorDetails().errorCode())) throw exception;
             existing=List.of();
         }
-        var next=new ArrayList<>(existing.stream().filter(rule -> !RULE_ID.equals(rule.id())).toList());
-        if(policy.enabled()) next.add(rule(policy,settings.prefix()));
+        var next=new ArrayList<>(existing.stream().filter(rule -> !RULE_ID.equals(rule.id()) && !VIDEO_RULE_ID.equals(rule.id())).toList());
+        if(policy.enabled()) {
+            next.add(rule(RULE_ID,policy,settings.prefix()));
+            next.add(rule(VIDEO_RULE_ID,policy,settings.videoPrefix()));
+        }
         if(next.equals(existing)) return;
         if(next.size()>1000) throw new IllegalStateException("The S3 bucket lifecycle rule limit has been reached.");
         if(next.isEmpty()) client.deleteBucketLifecycle(DeleteBucketLifecycleRequest.builder().bucket(settings.bucket()).build());

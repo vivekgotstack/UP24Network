@@ -63,7 +63,11 @@ events and never reach into another module's internal repositories.
 - Schema migrations V16/V17 add recovery records, normalized-account/publication constraints, a single-admin invariant and indexed media/revision references. Expired identity records are removed in bounded scheduled batches. Integration checks now use a separate `up24_test` schema.
 - Discovery: `/sitemap-index.xml` links the static page sitemap and lean article sitemaps of 1,000 reports each, including older reports outside the latest-100 feed. Indexing remains disabled in local preview.
 - Release checkpoint: backend packaging, frontend production build, password-recovery/account checks and targeted recovery UI checks at 320/768 px passed. The local optimized preview is running on ports 3000/8080. The Docker backup script now holds the media catalogue lock across database/file capture; Docker execution remains unverified because Docker is absent locally.
-- Next storage milestone: direct video ingestion/renditions and controlled migration of existing local media. Public historical archiving and private-master retention remain separate: existing CMS `Archive` currently withdraws an article from public access.
+- Production media: the newsroom accepts MP4/MOV sources, keeps originals private and prepares bounded H.264/AAC playback on a durable worker. S3 uploads go directly to the private source prefix. Published playback and images use stable site URLs and separate CloudFront prefixes. The administrator can migrate existing local photos to S3 in batches without changing article links.
+- Public `/archive` lists published reports by month and year. Previous slugs redirect to the current article. **Withdraw** removes a story from public view without treating old stories as expired.
+- RabbitMQ carries job identifiers in production. PostgreSQL holds encrypted payloads, retries and job state. Brevo delivers sign-in and recovery codes. Operations shows configuration presence and job status to verified administrators.
+- Cookie preferences are available on public pages and in the footer. YouTube embeds require an explicit choice and a play action. The cookie policy explains storage and external connections.
+- Deployment preparation, structure and provider preflight, launch, checksummed backup and guarded restore are in [VPS operations](deploy/OPERATIONS.md). The owner supplies provider credentials and domain configuration.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage

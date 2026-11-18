@@ -32,8 +32,7 @@ export async function checkDeployment({providers=true,engine=true}={}) {
   for(const name of ['deploy/postgres/01-roles.sh'])if(readFileSync(join(root,name)).includes(13))errors.push(`${name} has Windows CRLF endings. Restore its required LF endings before deploying.`);
   if(providers) {
     const password=settings['up24.bootstrap.admin-password']??'';
-    if(password.length<12||password.length>64||Buffer.byteLength(password,'utf8')>72)errors.push('Set a valid production ADMIN_PASSWORD.');
-    if(password==='Vivek1224@nigam')errors.push('Replace the previously supplied temporary ADMIN_PASSWORD before production deployment.');
+    if(password.length<16||password.length>64||Buffer.byteLength(password,'utf8')>72)errors.push('Set a production ADMIN_PASSWORD of 16–64 characters and at most 72 UTF-8 bytes.');
     if(!settings['up24.providers.brevo.api-key']||settings['up24.providers.brevo.api-key'].length<20)errors.push('Supply your BREVO_API_KEY so newsroom OTP and account recovery can be delivered.');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings['up24.providers.brevo.sender-email']??''))errors.push('Supply BREVO_SENDER_EMAIL verified in your Brevo account.');
     if(settings['up24.media.storage']!=='s3')errors.push('Set UP24_MEDIA_STORAGE=s3 for the planned production S3 delivery setup.');

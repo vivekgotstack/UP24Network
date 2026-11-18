@@ -48,8 +48,13 @@ class S3VideoObjects implements VideoObjects,AutoCloseable {
         valid(source);
         var request=signer.presignPutObject(PutObjectPresignRequest.builder().signatureDuration(Duration.ofMinutes(15))
                 .putObjectRequest(PutObjectRequest.builder().bucket(source.bucket()).key(source.key()).contentLength(bytes).contentType("video/mp4")
-                        .storageClass(StorageClass.STANDARD).ifNoneMatch("*").build()).build());
-        return new SignedUpload(request.url().toString(),Map.of("content-type","video/mp4","if-none-match","*"));
+                        .ifNoneMatch("*").build()).build());
+        var headers=new LinkedHashMap<String,String>();
+        request.signedHeaders().forEach((name,values)->{
+            // The browser supplies these two headers from the destination and File size.
+            if(!name.equalsIgnoreCase("host") && !name.equalsIgnoreCase("content-length")) headers.put(name,String.join(",",values));
+        });
+        return new SignedUpload(request.url().toString(),Map.copyOf(headers));
     }
     @Override public void receive(UUID id,InputStream input,long expected) { throw new MediaProblem(MediaProblem.Reason.INVALID,"Use the signed direct upload URL for S3 video sources."); }
     @Override public void verifySource(VideoStore.Stored video) throws IOException {

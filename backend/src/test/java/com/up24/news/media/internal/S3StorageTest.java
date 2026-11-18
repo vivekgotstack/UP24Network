@@ -43,13 +43,16 @@ class S3StorageTest {
         var requests=ArgumentCaptor.forClass(PutBucketLifecycleConfigurationRequest.class);
         verify(client).putBucketLifecycleConfiguration(requests.capture());
         var rules=requests.getValue().lifecycleConfiguration().rules();
-        assertThat(rules).contains(unrelated).hasSize(2);
+        assertThat(rules).contains(unrelated).hasSize(3);
         var managed=rules.stream().filter(rule -> rule.id().equals(S3RetentionRules.RULE_ID)).findFirst().orElseThrow();
         assertThat(managed.transitions().getFirst().storageClass()).isEqualTo(TransitionStorageClass.GLACIER_IR);
         assertThat(managed.transitions().getFirst().days()).isEqualTo(365);
         assertThat(managed.filter().and().prefix()).isEqualTo(settings.prefix());
         assertThat(managed.filter().and().objectSizeGreaterThan()).isEqualTo(131071L);
         assertThat(managed.filter().and().tags()).extracting(Tag::value).containsExactly("gir-eligible");
+        var video=rules.stream().filter(rule -> rule.id().equals(S3RetentionRules.VIDEO_RULE_ID)).findFirst().orElseThrow();
+        assertThat(video.filter().and().prefix()).isEqualTo(settings.videoPrefix());
+        assertThat(video.transitions()).isEqualTo(managed.transitions());
         clearInvocations(client);
         when(client.getBucketLifecycleConfiguration(any(GetBucketLifecycleConfigurationRequest.class)))
                 .thenReturn(GetBucketLifecycleConfigurationResponse.builder().rules(rules).build());

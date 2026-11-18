@@ -28,7 +28,7 @@ class ArticleController {
         return articles.published();
     }
 
-    @GetMapping("/{slug}")
+    @GetMapping({"/{slug}","/by-slug/{slug}"})
     ArticleView bySlug(@PathVariable String slug) {
         return articles.findPublished(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));

@@ -38,7 +38,8 @@ class DurableJobsTest {
     private UUID submit() { return jobs.submit(probe.type(),BackgroundJobs.Lane.MAIL,"probe:"+UUID.randomUUID(),Map.of("code","654321"),Instant.now().plusSeconds(300)); }
     @Test void duplicateDispatchDoesNotRepeatCompletedWorkAndPayloadIsErased() {
         var id=submit();
-        assertThat(jdbc.queryForObject("SELECT payload FROM background_job WHERE id=?",byte[].class,id)).doesNotContainSequence("654321".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        var payload=jdbc.queryForObject("SELECT payload FROM background_job WHERE id=?",byte[].class,id);
+        assertThat(new String(payload,java.nio.charset.StandardCharsets.ISO_8859_1)).doesNotContain("654321");
         runner.run(id);runner.run(id);
         assertThat(probe.calls.get()).isEqualTo(1);
         assertThat(jobs.status(id).state()).isEqualTo("SUCCEEDED");
