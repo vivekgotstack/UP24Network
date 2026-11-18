@@ -284,18 +284,29 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 2px;
     min-height: 44px;
-    padding-inline: clamp(8px, 2vw, 16px);
+    padding-inline: 8px;
     border-inline-start: 1px solid var(--line);
     background: var(--surface);
     color: var(--brand-navy);
     font: 600 13px/1.25 var(--sans);
     white-space: nowrap;
   }
-  .ticker-follow:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  .ticker-follow > span {
+    padding-inline: 4px 8px;
+  }
+  .ticker-follow > a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+  }
+  .ticker-follow > a:hover,
+  .ticker-follow > a:focus-visible {
+    background: var(--brand-navy);
+    color: var(--brand-gold);
   }
   .eyebrow {
     color: var(--muted);
@@ -1105,6 +1116,7 @@
   .social-links > a {
     display: flex;
     align-items: center;
+    gap: 10px;
     min-height: 44px;
     padding: 8px 0;
     border-bottom: 1px solid var(--line);
@@ -1989,6 +2001,15 @@
     padding-block: 4px;
   }
   @media (max-width: 540px) {
+    .headline-ticker {
+      flex-wrap: wrap;
+    }
+    .ticker-follow {
+      width: 100%;
+      justify-content: flex-start;
+      border-inline-start: 0;
+      border-top: 1px solid var(--line);
+    }
     .reading-toolbar [data-slot='button'] {
       min-width: 40px;
     }

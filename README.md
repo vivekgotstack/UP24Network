@@ -53,6 +53,9 @@ events and never reach into another module's internal repositories.
 - Expanded reader navigation: 32 sections, nested subject pages, 8 regional hubs and 22 city editions.
 - Compact logo/category header; the sitewide footer pairs the uncropped illustrated
   banner and official logo with verified social channels and grouped navigation.
+- The headline strip and footer now link individually to the official YouTube,
+  Facebook, Instagram and X profiles with accessible brand icons. Next: review
+  the links whenever the publication changes a social account.
 - Article discovery uses bounded database pagination, category/city filters and keyword search instead of filtering the latest 100 reports in the browser.
 - Local preview includes 35 published Hindi stories across the new desks and cities, plus the daily Rashifal; operational data stays separate.
 - Rashifal now uses twelve original zodiac illustrations, picture selectors and a larger reading panel with lucky-number and colour cards.

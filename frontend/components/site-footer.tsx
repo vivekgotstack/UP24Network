@@ -1,6 +1,7 @@
 import { EditionArt } from '@/components/edition-art';
 import { CookiePreferences } from '@/components/cookie-consent';
 import { NewsletterSection } from '@/components/newsletter-section';
+import { SocialIcon } from '@/components/social-icon';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
@@ -25,6 +26,7 @@ export async function SiteFooter() {
           </h2>
           {brand.socials.map((social) => (
             <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
+              <SocialIcon name={social.name} />
               {social.name}
               <span className="sr-only"> (opens in a new tab)</span>
             </a>
