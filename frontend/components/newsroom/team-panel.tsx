@@ -17,8 +17,8 @@ import styles from './team-admin.module.css';
 const roles: Role[] = ['EDITOR', 'REPORTER', 'SUBSCRIBER'];
 const permissions = [
   ['Administrator', 'Owner only. Controls content, employees, sources and site settings.'],
-  ['Editor', 'Creates, reviews, edits and publishes reports.'],
-  ['Reporter', 'Creates and edits their own drafts; an editor publishes them.'],
+  ['Editor', 'Works across the desk and submits new stories and updates for approval.'],
+  ['Reporter', 'Creates drafts and requests publication or updates for their own stories.'],
   ['Subscriber', 'Reader account with no newsroom access.'],
 ];
 

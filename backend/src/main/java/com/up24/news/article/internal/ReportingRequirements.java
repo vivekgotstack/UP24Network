@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.article.ArticleDesk;
 import com.up24.news.identity.WorkflowPolicies;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -7,6 +8,12 @@ import org.springframework.web.server.ResponseStatusException;
 /** Staff reporting requirements, separate from persistence and administrative shortcuts. */
 final class ReportingRequirements {
     private ReportingRequirements() {}
+    static void staff(ArticleDesk.Input input, WorkflowPolicies.Policy policy) {
+        if (input.byline() != null && !input.byline().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only an administrator can override a byline.");
+        }
+        check(input.city(), input.image(), input.imageAlt(), input.videoUrl(), input.youtubeId(), input.sourceNotes(), policy);
+    }
     static void check(String city,String image,String imageAlt,String video,String youtube,String sourceNotes) {
         check(city,image,imageAlt,video,youtube,sourceNotes,null);
     }

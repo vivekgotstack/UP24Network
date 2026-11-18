@@ -57,8 +57,8 @@ function EmployeeWorkflow({
         {account.enabled === false ? ' · Suspended' : ''}
       </p>
       <p>
-        Keep the full reporting checklist or simplify it for this employee. Reporter publication
-        still requires an editor or administrator.
+        Choose which additional checks this employee completes. The administrator reviews every
+        publication request and proposed update to a live story.
       </p>
       {resource.error && (
         <p role="alert" className="inline-error">
@@ -211,8 +211,8 @@ export function WorkflowPanel() {
         <section className="admin-card">
           <h2>Employee controls</h2>
           <p>
-            Admin uses the short publishing workflow. Set individual editorial requirements for each
-            editor and reporter here.
+            Set the reporting requirements for each editor and reporter. Staff submit the finished
+            copy and their verification notes to the review queue.
           </p>
           <div className={styles.selector}>
             <form

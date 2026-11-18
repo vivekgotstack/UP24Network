@@ -32,7 +32,7 @@ events and never reach into another module's internal repositories.
 ### Administration build map
 
 - Private entry: `/admin/sign-in` → password → email code → `/admin`. Reader sign-in now also routes staff to their verified workspace; no public admin navigation is exposed to visitors.
-- Four roles: Admin, Editor, Reporter, Subscriber. Reporters edit their own drafts; editors publish; administration controls all content, accounts, workflows and sources.
+- Four roles are available. Reporters work on their own stories, editors work across the desk, subscribers use reader features, and the administrator controls publication, accounts, workflows, and sources.
 - Admin navigation: articles, trash/archive, media, publication pages, team, employee workflows, automations and site settings. Article history keeps 20 revisions; restoration returns to draft. Deleted imports are suppressed from future fetches.
 - Frontend data: `frontend/lib/session.ts` owns account-scoped TanStack Query hooks; SWR is removed. Public fetches use tagged server caching; successful content changes invalidate those tags.
 - Fonts: Source Serif/Sans sources stay in `frontend/assets/fonts`; the repeatable `npm run fonts:build` pipeline ships content-hashed WOFF2 files and saves 581 KB compared with the former TTF downloads. Unused Geist Mono assets are removed; Hindi Noto fonts remain self-hosted.
@@ -71,6 +71,7 @@ events and never reach into another module's internal repositories.
 - Release verification (18 November 2026): both production builds passed, all 48 backend checks passed, and a clean PostgreSQL test schema applied all 23 migrations. The local browser confirmed OTP, video upload/encoding and ranged delivery, cookie consent and withdrawal, old article redirects, and archive/media/operations pages at 320 and 768 px. Docker startup and real provider delivery require the configured VPS and owner accounts.
 - Reader correspondence: Contact, Corrections, and Complaints accept messages into the admin-only Reader inbox. PostgreSQL handles delivery, throttling, and retention, so this channel works independently of Brevo. Next step: configure the owner’s launch credentials and verify the VPS runbook against the live domain.
 - The compact air quality strip links to `/aqi-india`, with selected city readings across every state and union territory. Set `WEATHERBIT_API_KEY` in the backend environment with a commercial Weatherbit subscription, then enable Air Quality Index under Admin → Automations. The persisted schedule defaults to hourly and stores the latest reading per city. Verify live coverage after adding the owner's key.
+- Staff submit new stories and updates to published stories with a change summary, verification notes, and editorial checks. The administrator can approve a request in one action or return it with feedback from `/admin/reviews`. Approval checks the article version and applies the proposed copy in one transaction. The next small step is to review a staff submission during the publishing rehearsal.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage

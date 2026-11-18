@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, FileText, Users, Settings2, Images, Newspaper, SlidersHorizontal, Trash2, Activity, Inbox } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings2, Images, Newspaper, SlidersHorizontal, Trash2, Activity, Inbox, ClipboardCheck } from 'lucide-react';
 import { useSession } from '@/lib/session';
 import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 const adminPages = [
   { key: 'overview', href: '/admin', label: 'Overview', icon: LayoutDashboard },
   { key: 'articles', href: '/admin/articles', label: 'Articles', icon: FileText },
+  { key: 'reviews', href: '/admin/reviews', label: 'Editorial review', icon: ClipboardCheck },
   { key: 'trash', href: '/admin/trash', label: 'Withdrawn & trash', icon: Trash2 },
   { key: 'media', href: '/admin/media', label: 'Media library', icon: Images },
   { key: 'pages', href: '/admin/pages', label: 'Publication pages', icon: Newspaper },

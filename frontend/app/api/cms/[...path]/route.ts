@@ -24,6 +24,10 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+$`, 'i'), ['GET']],
   [new RegExp(`^admin/articles/${UUID}/revisions/[0-9]+/restore$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
+  [new RegExp(`^admin/articles/${UUID}/review$`, 'i'), ['GET', 'POST']],
+  [/^admin\/article-reviews$/, ['GET']],
+  [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
+  [new RegExp(`^admin/article-reviews/${UUID}/(approve|return)$`, 'i'), ['POST']],
   [/^admin\/accounts$/, ['GET', 'POST']],
   [/^admin\/accounts\/browse$/, ['GET']],
   [new RegExp(`^admin/accounts/${UUID}$`, 'i'), ['PATCH', 'DELETE']],
@@ -72,9 +76,11 @@ async function proxy(request: NextRequest, context: Context) {
           ? ['scope', 'q', 'page', 'size']
           : path === 'admin/publication/inbox'
             ? ['page', 'open']
-            : path === 'admin/media' || path === 'admin/videos'
-              ? ['page', 'size']
-              : [];
+            : path === 'admin/article-reviews'
+              ? ['page', 'state']
+              : path === 'admin/media' || path === 'admin/videos'
+                ? ['page', 'size']
+                : [];
     for (const [key, value] of request.nextUrl.searchParams) {
       if (
         !allowed.includes(key) ||
@@ -129,7 +135,12 @@ async function proxy(request: NextRequest, context: Context) {
       },
     );
     if (mutation && response.ok) {
-      if (path.startsWith('admin/articles')) revalidateTag('articles', { expire: 0 });
+      if (
+        (path.startsWith('admin/articles') && !path.endsWith('/review')) ||
+        /^admin\/article-reviews\/[^/]+\/approve$/.test(path)
+      ) {
+        revalidateTag('articles', { expire: 0 });
+      }
       if (/^admin\/publication\/(settings|pages\/)/.test(path))
         revalidateTag('publication', { expire: 0 });
       if (path.startsWith('admin/automations/aqi')) revalidateTag('air-quality', { expire: 0 });

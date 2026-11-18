@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import java.net.URI;
+import static com.up24.news.article.internal.ArticleFieldPolicy.media;
 import java.sql.*;
 import java.time.Instant;
 import java.util.*;
@@ -83,18 +83,6 @@ class ArticleStore implements ArticleDesk {
         throw new ArticleConflictException();
     }
     private String value(String text) { return text==null?"":text.trim(); }
-    private String media(String input,String kind) {
-        String text=value(input);
-        if(text.isBlank()) return kind.equals("image")?"/brand/up24-logo.png":null;
-        boolean local=(text.matches("^/(images|brand|videos)/[A-Za-z0-9._/-]+$")&&!text.contains(".."))
-                || (kind.equals("image") && text.matches("^/media/[a-f0-9]{64}\\.webp$"))
-                || (kind.equals("video") && text.matches("^/media/videos/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.mp4$"));
-        try {
-            URI uri=URI.create(text);
-            if(local || ("https".equals(uri.getScheme()) && uri.getRawUserInfo()==null && (Set.of("up24network.com","www.up24network.com").contains(uri.getHost()) || (kind.equals("image")&&Set.of("i.ytimg.com","i1.ytimg.com","i2.ytimg.com","i3.ytimg.com","i4.ytimg.com").contains(uri.getHost()))))) return text;
-        } catch (IllegalArgumentException ignored) {}
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Use a local asset or an HTTPS media URL from UP24Network");
-    }
     private String bodyJson(List<String> paragraphs) {
         try { return json.writeValueAsString(paragraphs); }
         catch(java.io.IOException exception) { throw new IllegalArgumentException("Invalid article body"); }
@@ -103,8 +91,7 @@ class ArticleStore implements ArticleDesk {
         if (id!=null && input.version()==null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"The saved article version is required");
         UUID articleId=id==null?UUID.randomUUID():id;
-        String slug=input.slug().trim().toLowerCase(Locale.ROOT);
-        if(!slug.matches("[\\p{L}\\p{N}\\p{M}_-]+")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Use letters, numbers and hyphens in the slug");
+        String slug=ArticleFieldPolicy.slug(input.slug());
         String paragraphs=bodyJson(Arrays.stream(input.body().split("\\n\\s*\\n")).map(String::trim).filter(p->!p.isBlank()).toList());
         String image=media(input.image(),"image"),video=media(input.videoUrl(),"video");
         try {
