@@ -63,7 +63,11 @@ const settings={
   'up24.auth.cookie-secure':'true','up24.auth.issuer':site.origin+'/identity',
   'up24.public-site-url':site.origin,
 };
-for (const [variable,key] of Object.entries({BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key'})) {
+for (const [variable,key] of Object.entries({
+  BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',
+  ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',
+  WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key',SPORTMONKS_CRICKET_API_TOKEN:'up24.providers.sportmonks.cricket-api-token',
+})) {
   const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;
 }
 for (const [variable,key] of Object.entries({NEWSLETTER_LIST_ID:'up24.newsletter.list-id',NEWSLETTER_DOI_TEMPLATE_ID:'up24.newsletter.doi-template-id'})) {

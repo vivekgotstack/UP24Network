@@ -67,8 +67,8 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/videos/${UUID}$`, 'i'), ['GET', 'DELETE']],
   [new RegExp(`^admin/videos/${UUID}/(complete|retry)$`, 'i'), ['POST']],
   [/^admin\/automations$/, ['GET']],
-  [/^admin\/automations\/(youtube|rashifal|aqi|review-notices)$/, ['PATCH']],
-  [/^admin\/automations\/(youtube|rashifal|aqi|review-notices)\/run$/, ['POST']],
+  [/^admin\/automations\/(youtube|rashifal|aqi|cricket|review-notices)$/, ['PATCH']],
+  [/^admin\/automations\/(youtube|rashifal|aqi|cricket|review-notices)\/run$/, ['POST']],
 ];
 function problem(detail: string, status: number, headers?: HeadersInit) {
   const response = NextResponse.json({ detail }, { status, headers });
@@ -184,6 +184,7 @@ async function proxy(request: NextRequest, context: Context) {
       if (/^admin\/publication\/(settings|pages\/)/.test(path))
         revalidateTag('publication', { expire: 0 });
       if (path.startsWith('admin/automations/aqi')) revalidateTag('air-quality', { expire: 0 });
+      if (path.startsWith('admin/automations/cricket')) revalidateTag('cricket-scores', { expire: 0 });
     }
     const result = new NextResponse(response.body, { status: response.status });
     result.headers.set('cache-control', 'private, no-store');

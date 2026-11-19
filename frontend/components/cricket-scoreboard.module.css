@@ -1,0 +1,82 @@
+.scoreboard {
+  margin-block: 24px;
+  padding: clamp(14px, 2.2vw, 24px);
+  border: 1px solid var(--line);
+  border-block-start: 3px solid var(--brand-gold);
+  background: var(--surface-wash);
+}
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 20px;
+}
+.heading h2 {
+  color: var(--ink);
+  font: 700 clamp(21px, 2.2vw, 28px)/1.45 var(--serif);
+}
+.heading a {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.updated,
+.empty,
+.note,
+.status {
+  color: var(--muted);
+  font: 400 13px/1.55 var(--sans);
+}
+.empty {
+  margin-block-start: 8px;
+}
+.matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 10px;
+  margin-block-start: 12px;
+}
+.match {
+  min-inline-size: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.status,
+.live {
+  margin-block-end: 5px;
+  font-weight: 600;
+}
+.live {
+  color: var(--warning-ink);
+  font: 700 13px/1.55 var(--sans);
+}
+.live::before {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 2px;
+  content: '';
+}
+.team {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-block: 3px;
+  font: 500 14px/1.5 var(--sans);
+}
+.team span {
+  max-inline-size: 12ch;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  margin-block-start: 6px;
+}

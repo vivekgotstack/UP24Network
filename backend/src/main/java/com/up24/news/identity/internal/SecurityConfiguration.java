@@ -72,7 +72,7 @@ class SecurityConfiguration {
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/media/**", "/api/publication/**")
                         .permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/air-quality").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/air-quality", "/api/cricket/scores").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.HEAD, "/media/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/password/request",
                                 "/api/auth/password/reset")

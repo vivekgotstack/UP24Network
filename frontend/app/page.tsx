@@ -14,6 +14,7 @@ import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
 import { RashifalSection } from '@/components/rashifal-section';
 import { AirQualityStrip } from '@/components/air-quality-strip';
+import { CricketScoreboard } from '@/components/cricket-scoreboard';
 import { TrendingReels } from '@/components/trending-reels';
 import { trendingReelsCategory } from '@/lib/instagram';
 import { getPublicationSettings } from '@/lib/publication-api';
@@ -103,6 +104,9 @@ export default async function Home({
         )}
         <Suspense fallback={null}>
           <AirQualityStrip />
+        </Suspense>
+        <Suspense fallback={null}>
+          <CricketScoreboard locale={locale} />
         </Suspense>
         <Suspense fallback={null}>
           <TrendingReels />

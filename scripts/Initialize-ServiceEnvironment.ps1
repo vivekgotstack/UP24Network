@@ -15,6 +15,7 @@ $defaults = [ordered]@{
     ASTROLOGICS_API_KEY = ''
     YOUTUBE_API_KEY = ''
     WEATHERBIT_API_KEY = ''
+    SPORTMONKS_CRICKET_API_TOKEN = ''
     UP24_JOBS_TRANSPORT = 'local'
     JOB_ENCRYPTION_SECRET = ''
     RABBITMQ_HOST = '127.0.0.1'

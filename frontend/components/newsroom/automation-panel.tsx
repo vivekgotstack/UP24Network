@@ -92,6 +92,12 @@ export function AutomationPanel({ jobs, busy, onSettings, onRun }: Props) {
                 </p>
               </div>
             )}
+            {job.key === 'cricket' && !job.configured && (
+              <p className="cms-muted">
+                Set <code>SPORTMONKS_CRICKET_API_TOKEN</code> in <code>backend/.env</code>, then
+                restart the backend or redeploy. Enable the job and select Run now to fetch scores.
+              </p>
+            )}
             <p role="status">{job.lastResult}</p>
             <div className="cms-job-meta">
               <span>Last run: {time(job.lastRunAt)}</span>
