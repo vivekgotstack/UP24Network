@@ -1,5 +1,5 @@
 import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, chmodSync,openSync,closeSync,unlinkSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
@@ -50,6 +50,19 @@ export function writePrivate(file,value,{containerReadable=true}={}) {
   // to the operator; each service receives its own readable file mount.
   if(process.platform!=='win32') chmodSync(temporary,containerReadable?0o444:0o600);
   renameSync(temporary,file);
+}
+export function prepareRedisCache(settings, previousPassword = settings['spring.data.redis.password']) {
+  const password = previousPassword ?? randomBytes(32).toString('hex');
+  if (!/^[0-9a-f]{64}$/i.test(password)) throw new Error('Invalid Redis cache password in deployment configuration.');
+  Object.assign(settings, {
+    'up24.cache.redis-feed-enabled': 'true',
+    'spring.data.redis.host': 'redis',
+    'spring.data.redis.password': password,
+  });
+  writePrivate(join(deploymentDirectory, 'redis.conf'), [
+    'bind 0.0.0.0', 'protected-mode yes', `requirepass ${password}`,
+    'save ""', 'appendonly no', 'maxmemory 32mb', 'maxmemory-policy volatile-lru',
+  ].join('\n') + '\n');
 }
 export async function checksum(file) {
   const hash=createHash('sha256');for await(const chunk of createReadStream(file)) hash.update(chunk);return hash.digest('hex');

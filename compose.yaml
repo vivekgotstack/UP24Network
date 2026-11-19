@@ -1,6 +1,25 @@
 name: up24network
 
 services:
+  redis:
+    image: redis:8.4.8-alpine
+    user: redis
+    command: [redis-server, /run/secrets/redis.conf]
+    restart: unless-stopped
+    secrets: [redis.conf]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    networks: [internal]
+    mem_limit: 128m
+    pids_limit: 40
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$(sed -n "s/^requirepass //p" /run/secrets/redis.conf)" redis-cli ping | grep -qx PONG']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: { driver: json-file, options: { max-size: 10m, max-file: '3' } }
+
   rabbitmq:
     image: rabbitmq:4.4.0-alpine
     hostname: up24-rabbitmq
@@ -75,7 +94,10 @@ services:
     read_only: true
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
-    depends_on: { db: { condition: service_healthy }, rabbitmq: { condition: service_healthy } }
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_started, required: false }
     stop_grace_period: 40s
     mem_limit: 1536m
     pids_limit: 150
@@ -154,3 +176,4 @@ secrets:
   backend.properties: { file: './.local/deployment/backend.properties' }
   jwt-signing.p12: { file: './.local/deployment/jwt-signing.p12' }
   rabbitmq.conf: { file: './.local/deployment/rabbitmq.conf' }
+  redis.conf: { file: './.local/deployment/redis.conf' }

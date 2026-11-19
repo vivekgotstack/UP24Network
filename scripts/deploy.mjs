@@ -10,7 +10,7 @@ try {
   await compose(['up','-d','--wait','--wait-timeout','180','db']);
   // Recreate services with file-backed secrets so atomically replaced config
   // files are mounted afresh. PostgreSQL data and its container are preserved.
-  for(const service of ['rabbitmq','backend','frontend','proxy'])
+  for(const service of ['redis','rabbitmq','backend','frontend','proxy'])
     await compose(['up','-d','--no-deps','--force-recreate','--wait','--wait-timeout','180',service]);
   const site=properties(join(deploymentDirectory,'deployment.env')).SITE_URL;
   let available=false;

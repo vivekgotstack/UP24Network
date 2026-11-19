@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { root,deploymentDirectory as directory,properties,propertyText,privateDirectory,writePrivate,deploymentLock } from './lib/deployment.mjs';
+import { root,deploymentDirectory as directory,properties,propertyText,privateDirectory,writePrivate,deploymentLock,prepareRedisCache } from './lib/deployment.mjs';
 
 const release=deploymentLock();
 try {
@@ -21,8 +21,6 @@ const secret = (name, bytes=24) => {
 };
 const previousPublic=properties(join(directory,'deployment.env'));
 const frontendProduction=properties(join(root,'frontend/.env.production'));
-if(frontendProduction.NEWS_API_URL && frontendProduction.NEWS_API_URL!=='http://backend:8080')
-  throw new Error('Docker uses http://backend:8080 for NEWS_API_URL in frontend/.env.production.');
 const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? 'https://www.up24network.com';
 const site=new URL(requestedSite);
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port)
@@ -85,6 +83,12 @@ for(const [variable,key] of Object.entries(mediaKeys)) {
   const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key];
   if(value!==undefined) settings[key]=value;
 }
+const frontendCdn = frontendProduction.MEDIA_CDN_URL?.replace(/\/$/, '');
+const backendCdn = settings['up24.media.s3.cdn-url']?.replace(/\/$/, '');
+if (frontendCdn && backendCdn && frontendCdn !== backendCdn)
+  throw new Error('MEDIA_CDN_URL in frontend/.env.production must match UP24_MEDIA_CDN_URL in backend/.env.');
+if (frontendCdn) settings['up24.media.s3.cdn-url'] = frontendCdn;
+prepareRedisCache(settings, existing['spring.data.redis.password']);
 writePrivate(join(directory,'backend.properties'),propertyText(settings));
 writePrivate(join(directory,'rabbitmq.conf'),[
   'default_user = up24',`default_pass = ${rabbitPassword}`,'default_vhost = up24','default_user_tags.administrator = false',

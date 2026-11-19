@@ -1,7 +1,7 @@
 import { existsSync,readFileSync,readdirSync,cpSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join,resolve } from 'node:path';
-import { root,deploymentDirectory,compose,argument,deploymentLock,privateDirectory,writePrivate } from './lib/deployment.mjs';
+import { root,deploymentDirectory,compose,argument,deploymentLock,privateDirectory,writePrivate,properties,propertyText,prepareRedisCache } from './lib/deployment.mjs';
 import { verifyRecovery,pauseWriters } from './lib/recovery.mjs';
 
 const requested=argument('from');
@@ -23,9 +23,13 @@ try {
   }
   privateDirectory(deploymentDirectory);
   for(const name of readdirSync(join(source,'deployment')))writePrivate(join(deploymentDirectory,name),readFileSync(join(source,'deployment',name)));
+  const backendConfig=join(deploymentDirectory,'backend.properties');
+  const settings=properties(backendConfig);
+  prepareRedisCache(settings);
+  writePrivate(backendConfig,propertyText(settings));
   await compose(['config','--quiet'],{capture:true});
   await compose(['build','backend']);
-  await compose(['up','-d','--force-recreate','--wait','--wait-timeout','180','db','rabbitmq']);
+  await compose(['up','-d','--force-recreate','--wait','--wait-timeout','180','db','rabbitmq','redis']);
   const version=await compose(['exec','-T','db','psql','-X','-At','--username=postgres','--dbname=up24network','-c','SHOW server_version_num'],{capture:true});
   if(Math.floor(Number(version.stdout.trim())/10000)!==manifest.postgresMajor)throw new Error('Restore using the PostgreSQL major version recorded by the recovery point before performing a separate database-version upgrade.');
   // Validate every tar header before extraction. Only regular files/directories

@@ -1,7 +1,7 @@
 # VPS operations
 
 The production stack runs PostgreSQL 17, RabbitMQ 4.4.0, Spring Boot with FFmpeg,
-Next.js and Caddy. Only Caddy publishes ports 80/443. Database, broker and backend
+Next.js, Redis and Caddy. Only Caddy publishes ports 80/443. Database, broker and backend
 ports stay private. RabbitMQ uses persistent queues on one VPS; PostgreSQL's
 encrypted job outbox remains the recovery source if broker messages are lost.
 
@@ -14,10 +14,15 @@ sender/API key, AWS credentials, S3 bucket, CloudFront media origin and producti
 administrator password. Rashifal and YouTube API keys enable their corresponding
 source adapters. Never put these keys in frontend environment variables.
 
-Edit `frontend/.env.production` for the public site origin, search indexing, and
-Android certificate fingerprints. The file is ignored by Git. The preparation
+Edit `frontend/.env.production` for the public site origin, media CDN origin,
+search indexing, and Android certificate fingerprints. The file is ignored by Git. The preparation
 command reads it when building the Docker deployment configuration. The backend
 address and trusted proxy settings are set by Compose on the private network.
+
+The preparation command also generates the private Redis password. Redis caches
+the public article feed for 30 seconds and uses memory only. Publishing clears
+the cached feed after the database commit. Spring serves the feed from PostgreSQL
+when Redis is unavailable.
 
 `./scripts/Configure-MediaStorage.ps1` accepts the real `-Bucket`, `-CdnUrl` and
 `-SiteUrl`, plus optional `-AccountId`/`-DistributionId`. It saves public origins,

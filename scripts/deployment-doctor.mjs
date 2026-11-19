@@ -5,7 +5,7 @@ import { root,deploymentDirectory,properties,compose,docker } from './lib/deploy
 
 export async function checkDeployment({providers=true,engine=true}={}) {
   const errors=[],notes=[];
-  const required=['backend.properties','deployment.env','postgres-password','application-db-password','migration-db-password','rabbitmq-password','job-encryption-secret','rabbitmq.conf','jwt-signing.p12'];
+  const required=['backend.properties','deployment.env','postgres-password','application-db-password','migration-db-password','rabbitmq-password','job-encryption-secret','rabbitmq.conf','redis.conf','jwt-signing.p12'];
   for(const name of required)if(!existsSync(join(deploymentDirectory,name)))errors.push(`Missing private deployment file: ${name}. Run prepare-deployment.mjs.`);
   if(errors.length)return {errors,notes};
   const settings=properties(join(deploymentDirectory,'backend.properties')),publicConfig=properties(join(deploymentDirectory,'deployment.env'));
@@ -15,6 +15,10 @@ export async function checkDeployment({providers=true,engine=true}={}) {
   if(settings['spring.datasource.password']!==secret('application-db-password')||settings['spring.flyway.password']!==secret('migration-db-password'))errors.push('Database role secrets and backend configuration do not match.');
   if(settings['up24.jobs.encryption-secret']!==secret('job-encryption-secret'))errors.push('The persisted background-job encryption key does not match backend configuration.');
   const rabbit=properties(join(deploymentDirectory,'rabbitmq.conf'));
+  const redisPassword=settings['spring.data.redis.password']??'';
+  const redisConfig=readFileSync(join(deploymentDirectory,'redis.conf'),'utf8').split(/\r?\n/);
+  if(!/^[0-9a-f]{64}$/i.test(redisPassword)||!redisConfig.includes('requirepass '+redisPassword)||settings['spring.data.redis.host']!=='redis'||settings['up24.cache.redis-feed-enabled']!=='true')
+    errors.push('The Redis cache configuration does not match the backend. Run prepare-deployment.mjs.');
   if(rabbit.default_pass!==secret('rabbitmq-password')||settings['spring.rabbitmq.password']!==secret('rabbitmq-password'))errors.push('RabbitMQ broker and backend credentials do not match.');
   if(settings['up24.jobs.transport']!=='rabbitmq'||settings['spring.rabbitmq.host']!=='rabbitmq'||settings['spring.rabbitmq.virtual-host']!=='up24')errors.push('Production jobs must use the private RabbitMQ service and up24 vhost.');
   if(settings['up24.auth.cookie-secure']!=='true')errors.push('Secure authentication cookies must be enabled for production.');
