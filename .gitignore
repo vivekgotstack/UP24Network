@@ -1,6 +1,7 @@
 # Secrets and local configuration
 .env
 .env.*
+frontend/.env.production
 !.env.example
 *.pem
 *.key

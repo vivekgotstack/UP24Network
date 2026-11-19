@@ -14,6 +14,11 @@ sender/API key, AWS credentials, S3 bucket, CloudFront media origin and producti
 administrator password. Rashifal and YouTube API keys enable their corresponding
 source adapters. Never put these keys in frontend environment variables.
 
+Edit `frontend/.env.production` for the public site origin, search indexing, and
+Android certificate fingerprints. The file is ignored by Git. The preparation
+command reads it when building the Docker deployment configuration. The backend
+address and trusted proxy settings are set by Compose on the private network.
+
 `./scripts/Configure-MediaStorage.ps1` accepts the real `-Bucket`, `-CdnUrl` and
 `-SiteUrl`, plus optional `-AccountId`/`-DistributionId`. It saves public origins,
 preserves credential fields and generates scoped IAM, exact-origin CORS and
