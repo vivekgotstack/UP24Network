@@ -18,12 +18,11 @@ class EditorialController {
     record Publication(@NotNull @PositiveOrZero Long version,@NotNull Boolean published,@NotNull Boolean breaking) {}
     private final ArticleDesk desk;
     private final Access access;
-    private final WorkflowPolicies workflows;
     private final ArticleReviewService reviews;
     private final ArticleContinuationService continuations;
-    EditorialController(ArticleDesk desk,Access access,WorkflowPolicies workflows,ArticleReviewService reviews,
+    EditorialController(ArticleDesk desk,Access access,ArticleReviewService reviews,
                         ArticleContinuationService continuations) {
-        this.desk=desk; this.access=access; this.workflows=workflows; this.reviews=reviews; this.continuations=continuations;
+        this.desk=desk; this.access=access; this.reviews=reviews; this.continuations=continuations;
     }
     @GetMapping List<ArticleDesk.Managed> list() {
         var actor=access.current();
@@ -31,7 +30,7 @@ class EditorialController {
     }
     @PostMapping ArticleDesk.Managed create(@Valid @RequestBody ArticleDesk.Input input) {
         var actor=access.current();
-        if (actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.staff(input,workflows.get(actor.id()));
+        if (actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.draft(input);
         return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?"UP24Network Editorial Team":actor.displayName());
     }
     @PostMapping("/{id}/continuations") @ResponseStatus(HttpStatus.CREATED)

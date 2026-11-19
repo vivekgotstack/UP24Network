@@ -54,7 +54,7 @@ class ArticleReviewService {
                     "Published stories can only be changed through editorial review.");
         }
         requireNoPending(id);
-        ReportingRequirements.staff(input, workflows.get(actor.id()));
+        ReportingRequirements.draft(input);
         return articles.save(id, input, actor.id(), actor.displayName());
     }
 
@@ -73,12 +73,13 @@ class ArticleReviewService {
         if (proposed.version() != null && proposed.version().longValue() != article.version()) {
             throw conflict("The proposal is based on a different article version.");
         }
-        ReportingRequirements.staff(proposed, workflows.get(actor.id()));
         String reel = ArticleFieldPolicy.verifyProposal(proposed);
+        var kind = article.status().equals("DRAFT") ? Kind.PUBLISH : Kind.UPDATE;
+        ReportingRequirements.submission(proposed, workflows.get(actor.id()), kind == Kind.UPDATE);
         var snapshot = new ArticleDesk.Input(proposed.title(), proposed.slug(), proposed.summary(), proposed.category(),
                 proposed.city(), reel==null?trimMedia(proposed.image()):null, reel==null?proposed.imageAlt():"", trimMedia(proposed.videoUrl()), proposed.youtubeId(),
-                proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel, proposed.english());
-        var kind = article.status().equals("DRAFT") ? Kind.PUBLISH : Kind.UPDATE;
+                proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel, proposed.english(),
+                ArticleFieldPolicy.tags(proposed.tags()), ArticleFieldPolicy.mediaCredit(proposed.mediaCredit()));
         var review = requests.add(id, snapshot, kind, actor, summary, notes, daily.openDay(actor.id()));
         lifecycle.record(id, "SUBMIT_REVIEW", actor.id(), article.version());
         return review;

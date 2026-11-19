@@ -26,11 +26,22 @@ final class ArticleRows {
                     row.getString("image_alt"),row.getString("video_url"),paragraphs,false,row.getString("youtube_id"),
                     row.getBoolean("breaking"),row.getString("source_url"),row.getString("reel_url"),
                     Math.max(1,row.getInt("edition_number")),row.getObject("continuation_root_id",UUID.class),
-                    row.getString("continuation_of_slug"), english, row.getString("updated_byline"));
+                    row.getString("continuation_of_slug"), english, row.getString("updated_byline"),
+                    tags(row), row.getString("media_credit"));
             return new ArticleDesk.Managed(row.getObject("id",UUID.class),row.getObject("author_id",UUID.class),
                     row.getString("status"),row.getBoolean("manual_override"),row.getLong("version"),view,
                     body?row.getString("source_notes"):"",row.getString("region"));
         } catch(java.io.IOException exception) { throw new SQLException("Invalid stored article",exception); }
+    }
+
+    private static List<String> tags(ResultSet row) throws SQLException {
+        var tags = row.getArray("tags");
+        if (tags == null) return List.of();
+        try {
+            return List.of((String[]) tags.getArray());
+        } finally {
+            tags.free();
+        }
     }
 
     private static ArticleView.English english(ResultSet row, ObjectMapper json, boolean body) throws SQLException, java.io.IOException {

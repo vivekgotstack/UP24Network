@@ -24,4 +24,16 @@ class JdbcArticleIndex implements ArticleIndex {
                 ORDER BY published_at,id LIMIT ? OFFSET ?
                 """,(row,index)->new Entry(row.getString("slug"),row.getTimestamp("updated_at").toInstant()),PAGE_SIZE,(long)(page-1)*PAGE_SIZE);
     }
+
+    @Cacheable(cacheNames = "article-discovery", key = "'news-sitemap'", condition = "@articleCacheInvalidation.readable()")
+    @Override public List<RecentNews> recentNews() {
+        // Google accepts 1,000 news items per sitemap. All published stories also remain in the archive sitemap.
+        return jdbc.query("""
+                SELECT slug, title, published_at FROM article_record
+                WHERE status = 'PUBLISHED' AND published_at <= CURRENT_TIMESTAMP
+                  AND published_at >= CURRENT_TIMESTAMP - INTERVAL '48 hours'
+                ORDER BY published_at DESC, id DESC LIMIT ?
+                """, (row, index) -> new RecentNews(row.getString("slug"), row.getString("title"),
+                row.getTimestamp("published_at").toInstant()), PAGE_SIZE);
+    }
 }

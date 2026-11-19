@@ -70,6 +70,8 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
                         author=r.snapshot->>'author',image=r.snapshot->>'image',image_alt=COALESCE(r.snapshot->>'image_alt',''),
                         video_url=r.snapshot->>'video_url',youtube_id=r.snapshot->>'youtube_id',reel_url=r.snapshot->>'reel_url',paragraphs=r.snapshot->'paragraphs',
                         english_content=NULLIF(r.snapshot->'english_content','null'::jsonb),
+                        tags=COALESCE((jsonb_populate_record(NULL::article_record,r.snapshot)).tags,'{}'::text[]),
+                        media_credit=r.snapshot->>'media_credit',
                         source_notes=COALESCE(r.snapshot->>'source_notes',''),region=COALESCE(r.snapshot->>'region',''),
                         status='DRAFT',breaking=FALSE,manual_override=TRUE,edited_by=?,version=a.version+1,updated_at=CURRENT_TIMESTAMP,
                         updated_byline=r.snapshot->>'updated_byline'

@@ -930,6 +930,10 @@
   .article-body > p {
     margin-bottom: 25px;
   }
+  .article-body > .article-subheading {
+    margin-block: 1.4em 0.45em;
+    font: 700 1.18em/1.5 var(--serif);
+  }
   .article-body p:lang(hi) {
     line-height: 2.1;
   }
@@ -942,6 +946,22 @@
     font: 600 13px/1.8 var(--sans);
     text-decoration: underline;
     text-underline-offset: 4px;
+  }
+  .article-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+    font: 600 13px/1.45 var(--sans);
+    color: var(--muted);
+  }
+  .article-topics li {
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
   }
   .article-end {
     display: flex;

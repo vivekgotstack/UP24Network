@@ -8,6 +8,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,11 +105,30 @@ class ArticleStore implements ArticleDesk {
         String reel=ArticleFieldPolicy.reel(input);
         String image=media(reel==null?input.image():null,"image"),video=media(input.videoUrl(),"video");
         String imageAlt=reel==null?value(input.imageAlt()):"";
+        var tags = new SqlArrayValue("text", ArticleFieldPolicy.tags(input.tags()).toArray());
+        String mediaCredit = ArticleFieldPolicy.mediaCredit(input.mediaCredit());
         try {
-            if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,reel_url,paragraphs,english_content,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,TRUE,?,?,?)",
-                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,imageAlt,video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,english,value(input.sourceNotes()),value(input.region()),actor);
-            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,english_content=CASE WHEN ? THEN ?::jsonb ELSE english_content END,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP,updated_byline=NULL WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
-                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,imageAlt,video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,input.english()!=null,english,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
+            if(id==null) jdbc.update("""
+                    INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,
+                        video_url,youtube_id,reel_url,paragraphs,english_content,manual_override,source_notes,region,
+                        tags,media_credit,edited_by)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,TRUE,?,?,?,NULLIF(?,''),?)
+                    """, articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),
+                    value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,imageAlt,video,
+                    value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,english,
+                    value(input.sourceNotes()),value(input.region()),tags,mediaCredit,actor);
+            else if(jdbc.update("""
+                    UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,
+                        video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,
+                        english_content=CASE WHEN ? THEN ?::jsonb ELSE english_content END,
+                        source_notes=?,region=?,tags=COALESCE(?::text[],tags),media_credit=NULLIF(COALESCE(?,media_credit),''),
+                        author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,
+                        updated_at=CURRENT_TIMESTAMP,updated_byline=NULL
+                    WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')
+                    """, slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,
+                    imageAlt,video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,
+                    input.english()!=null,english,value(input.sourceNotes()),value(input.region()),
+                    input.tags()==null?null:tags,mediaCredit,value(input.byline()),value(input.byline()),actor,id,input.version())==0)
                 concurrentChange(id);
         } catch(DuplicateKeyException exception) { throw new ResponseStatusException(HttpStatus.CONFLICT,"That article slug is already in use"); }
         if (actor!=null) lifecycle.record(articleId,id==null?"CREATE_DRAFT":"EDIT_ARTICLE",actor,id==null?0:input.version()+1);
@@ -153,10 +173,10 @@ class ArticleStore implements ArticleDesk {
              AND earlier.status='PUBLISHED' AND earlier.published_at<=CURRENT_TIMESTAMP) AS continuation_of_slug
         """;
     static final String FULL_COLUMNS = "article_record.*, " + CONTINUATION_SLUG;
-    static final String SEARCH_TEXT = "lower(concat_ws(' ',title,summary,city,category,english_content->>'title',english_content->>'summary'))";
+    static final String SEARCH_TEXT = "lower(concat_ws(' ',title,summary,city,category,english_content->>'title',english_content->>'summary',array_to_string(tags,' ')))";
     static final String SUMMARY_COLUMNS = "id,author_id,status,manual_override,version,slug,title,summary,category,city,author,"
             + "published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region,"
-            + "edition_number,continuation_root_id,updated_byline,english_content->>'title' AS english_title,"
+            + "edition_number,continuation_root_id,updated_byline,tags,media_credit,english_content->>'title' AS english_title,"
             + "english_content->>'summary' AS english_summary,english_content->>'imageAlt' AS english_image_alt, "
             + CONTINUATION_SLUG;
 }

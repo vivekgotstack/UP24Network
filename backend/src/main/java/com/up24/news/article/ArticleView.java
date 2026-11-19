@@ -27,8 +27,14 @@ public record ArticleView(
         UUID continuationRootId,
         String continuationOfSlug,
         English english,
-        String updatedBy
+        String updatedBy,
+        List<String> tags,
+        String mediaCredit
 ) {
+    public ArticleView {
+        tags = tags == null ? List.of() : List.copyOf(tags);
+    }
+
     /** Feed projections include the translated headline and summary with an empty paragraph list. */
     public record English(String title, String summary, List<String> paragraphs, String imageAlt) {}
 
@@ -38,7 +44,7 @@ public record ArticleView(
                        String reelUrl, int editionNumber, UUID continuationRootId, String continuationOfSlug) {
         this(slug, title, summary, category, city, author, publishedAt, readingMinutes, image, imageAlt, videoUrl,
                 paragraphs, demo, youtubeId, breaking, sourceUrl, reelUrl, editionNumber, continuationRootId,
-                continuationOfSlug, null, null);
+                continuationOfSlug, null, null, List.of(), null);
     }
     public ArticleView(String slug, String title, String summary, String category, String city, String author,
                        Instant publishedAt, int readingMinutes, String image, String imageAlt, String videoUrl,

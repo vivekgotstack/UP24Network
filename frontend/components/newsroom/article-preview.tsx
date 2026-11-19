@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArticleProse } from '@/components/article-prose';
 import { NewsImage } from '@/components/news-image';
 import { EditorialVideoPreview } from '@/components/newsroom/editorial-video-preview';
 import { textLanguage } from '@/lib/language';
@@ -50,11 +51,7 @@ export function ArticlePreview({
           }
         />
         <div className="article-body">
-          {row.article.paragraphs.map((paragraph, index) => (
-            <p key={index} lang={textLanguage(paragraph)}>
-              {paragraph}
-            </p>
-          ))}
+          <ArticleProse paragraphs={row.article.paragraphs} heading="h3" />
         </div>
         {row.article.english && (
           <details className="reporting-notes" lang="en">
@@ -62,9 +59,7 @@ export function ArticlePreview({
             <div className="article-body">
               <h3>{row.article.english.title}</h3>
               <p className="article-deck">{row.article.english.summary}</p>
-              {row.article.english.paragraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              <ArticleProse paragraphs={row.article.english.paragraphs} heading="h4" />
             </div>
           </details>
         )}

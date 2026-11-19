@@ -11,7 +11,7 @@ import { allowedMedia, toDraft, type Draft, type EnglishArticleDraft } from '@/l
 import { useNewsroomResource } from '@/lib/session';
 import styles from './editorial-review-queue.module.css';
 
-const fields: { key: Exclude<keyof Draft, 'english'>; label: string }[] = [
+const fields: { key: Exclude<keyof Draft, 'english' | 'topicLines'>; label: string }[] = [
   { key: 'title', label: 'Headline' },
   { key: 'slug', label: 'Article address' },
   { key: 'summary', label: 'Summary' },
@@ -24,6 +24,7 @@ const fields: { key: Exclude<keyof Draft, 'english'>; label: string }[] = [
   { key: 'videoUrl', label: 'Video address' },
   { key: 'youtubeId', label: 'YouTube video ID' },
   { key: 'reelUrl', label: 'Instagram Reel address' },
+  { key: 'mediaCredit', label: 'Public media credit' },
   { key: 'sourceNotes', label: 'Private source notes' },
 ];
 const englishFields: { key: keyof EnglishArticleDraft; label: string }[] = [
@@ -40,11 +41,24 @@ function ReviewComparison({ detail }: { detail: ReviewDetail }) {
       : null;
   const values = fields.flatMap(({ key, label }) => {
     const before = current?.[key]?.trim() ?? '';
-    const after = detail.input[key]?.trim() ?? '';
+    const after = detail.input[key]?.trim() ?? (key === 'mediaCredit' ? before : '');
     return before === after ? [] : [{ key, label, before, after, long: key === 'body' }];
   });
+  const beforeTopics = current?.topicLines.replaceAll('\n', ' · ') ?? '';
+  const afterTopics = detail.input.tags?.join(' · ') ?? beforeTopics;
   const changes = [
     ...values,
+    ...(beforeTopics === afterTopics
+      ? []
+      : [
+          {
+            key: 'tags',
+            label: 'Topic tags',
+            before: beforeTopics,
+            after: afterTopics,
+            long: false,
+          },
+        ]),
     ...englishFields.flatMap(({ key, label }) => {
       const before = current?.english[key].trim() ?? '';
       const after = detail.input.english ? (detail.input.english[key]?.trim() ?? '') : before;

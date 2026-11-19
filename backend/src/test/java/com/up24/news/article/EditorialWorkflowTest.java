@@ -37,6 +37,16 @@ class EditorialWorkflowTest {
     private Accounts.Account reporter;
     private Accounts.Account owner;
     private static final String PASSWORD = "Local-editorial-test-2026!";
+    private static final String STANDFIRST = "लखनऊ के निवासियों ने स्थानीय परिवहन में हुए बदलावों पर अपनी राय दी।";
+    private static final String REPORT = """
+            नगर निगम की बैठक में मंगलवार को स्थानीय बसों की समय सारिणी पर चर्चा हुई। विभाग ने सुबह और शाम की सेवाओं के लिए यात्रियों से सुझाव माँगे। समिति ने कहा कि अगली बैठक में उपलब्ध आँकड़े सार्वजनिक किए जाएंगे।
+
+            स्थानीय निवासियों ने बताया कि मुख्य मार्ग पर पहली बस के समय में बदलाव की आवश्यकता है। विद्यालय जाने वाले बच्चों और कामकाजी यात्रियों ने अपने अनुभव साझा किए। परिवहन विभाग ने उन मार्गों की सूची जारी की है जिन पर सर्वेक्षण होगा।
+
+            रिपोर्टिंग टीम ने बस अड्डे पर तैनात कर्मचारियों से प्रस्तावित समय की पुष्टि की और बैठक का कार्यवृत्त देखा। योजना पर अंतिम निर्णय अभी बाकी है। विभाग ने कहा कि यात्री अगले सप्ताह तक आधिकारिक वेबसाइट पर अपने सुझाव दर्ज कर सकते हैं।
+            """;
+    private static final List<String> TOPICS = List.of("Local transit", "नगर बस सेवा");
+    private static final String PHOTO_CREDIT = "UP24Network photo desk";
 
     @BeforeEach void accounts() {
         String key = UUID.randomUUID().toString();
@@ -49,15 +59,17 @@ class EditorialWorkflowTest {
         return com.up24.news.support.VerifiedLogin.verified(accounts.find(email).orElseThrow(),jdbc,java.time.Instant.now());
     }
     private ArticleDesk.Input input(String slug, String title, Long version) {
-        return new ArticleDesk.Input(title,slug,"परीक्षण का सारांश।","Uttar Pradesh","Lucknow",
-                "/images/newsroom.jpg","UP24Network newsroom",null,null,"परीक्षण रिपोर्ट का पाठ।",version,"Local test reporting notes","uttar-pradesh");
+        return new ArticleDesk.Input(title,slug,STANDFIRST,"Uttar Pradesh","Lucknow",
+                "/images/newsroom.jpg","UP24Network newsroom",null,null,REPORT,version,
+                "Checked the published council minutes and interviewed a bus dispatcher.","uttar-pradesh",null,null,null,TOPICS,PHOTO_CREDIT);
     }
 
     private ArticleDesk.Input reel(String slug, String url, Long version) {
         return new ArticleDesk.Input("Instagram report", slug, "A reel submitted by the editorial desk.",
                 ArticleDesk.TRENDING_REELS, "Lucknow", null, null, null, null,
-                "Editorial context for the linked reel.", version, "Original Instagram link verified.",
-                "uttar-pradesh", null, url);
+                "The verified leading creator documented the village fair and shared its schedule with visitors.",
+                version, "Original Instagram link verified.", "uttar-pradesh", null, url, null,
+                List.of("Local fairs", "Instagram"), "Original Instagram creator");
     }
 
     private String reviewBody(long version, ArticleDesk.Input input, boolean rightsVerified) throws Exception {
@@ -99,20 +111,26 @@ class EditorialWorkflowTest {
     @Test void englishTranslationPublishesThroughReviewAndSurvivesALegacyEdit() throws Exception {
         String slug = "translated-report-" + UUID.randomUUID();
         var draft = desk.save(null, input(slug, "स्थानीय समाचार", null), editor.id(), editor.displayName());
-        var proposal = new ArticleDesk.Input("स्थानीय समाचार", slug, "परीक्षण का सारांश।", "Uttar Pradesh", "Lucknow",
-                "/images/newsroom.jpg", "UP24Network newsroom", null, null, "परीक्षण रिपोर्ट का पाठ।", draft.version(),
-                "Local test reporting notes", "uttar-pradesh", null, null,
-                new ArticleDesk.EnglishInput("Local report", "A translated summary.", "First paragraph.\n\nSecond paragraph.", null));
+        var proposal = new ArticleDesk.Input("स्थानीय समाचार", slug, STANDFIRST, "Uttar Pradesh", "Lucknow",
+                "/images/newsroom.jpg", "UP24Network newsroom", null, null, REPORT, draft.version(),
+                "Checked the council minutes and interviewed a dispatcher.", "uttar-pradesh", null, null,
+                new ArticleDesk.EnglishInput("Local report", "A translated summary.", "First paragraph.\n\nSecond paragraph.", null),
+                List.of("Local transit", "local transit", "नगर बस सेवा"), PHOTO_CREDIT);
         UUID review = submit(draft, editor, proposal);
         mvc.perform(get("/api/articles/" + slug)).andExpect(status().isNotFound());
         approve(review, editor).andExpect(status().isOk());
         var published = desk.find(draft.id()).orElseThrow();
-        desk.save(draft.id(), input(slug, "स्थानीय समाचार", published.version()), owner.id(), owner.displayName());
+        var legacyEdit = new ArticleDesk.Input(proposal.title(),slug,STANDFIRST,proposal.category(),proposal.city(),
+                proposal.image(),proposal.imageAlt(),null,null,REPORT,published.version(),proposal.sourceNotes(),proposal.region());
+        desk.save(draft.id(), legacyEdit, owner.id(), owner.displayName());
         mvc.perform(get("/api/articles/" + slug)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("स्थानीय समाचार"))
                 .andExpect(jsonPath("$.english.title").value("Local report"))
-                .andExpect(jsonPath("$.english.paragraphs[1]").value("Second paragraph."));
-        mvc.perform(get("/api/articles/browse").param("q", "translated summary"))
+                .andExpect(jsonPath("$.english.paragraphs[1]").value("Second paragraph."))
+                .andExpect(jsonPath("$.tags.length()").value(2))
+                .andExpect(jsonPath("$.mediaCredit").value(PHOTO_CREDIT))
+                .andExpect(jsonPath("$.sourceNotes").doesNotExist());
+        mvc.perform(get("/api/articles/browse").param("q", "translated summary नगर बस सेवा"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].english.title").value("Local report"));
     }
 

@@ -12,6 +12,7 @@ class ArticleIndexController {
     private final ArticleIndex index;
     ArticleIndexController(ArticleIndex index) { this.index=index; }
     @GetMapping ArticleIndex.Manifest manifest() { return index.manifest(); }
+    @GetMapping("/recent-news") List<ArticleIndex.RecentNews> recentNews() { return index.recentNews(); }
     @GetMapping("/{page}") List<ArticleIndex.Entry> page(@PathVariable int page) {
         if(page<1 || page>index.manifest().pages()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Sitemap page not found.");
         return index.page(page);

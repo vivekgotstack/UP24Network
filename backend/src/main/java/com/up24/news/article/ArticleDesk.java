@@ -20,7 +20,15 @@ public interface ArticleDesk {
                  @Size(max=80) @Pattern(regexp="^$|[a-z]+(?:-[a-z]+)*") String region,
                  @Size(max=100) String byline,
                  @Size(max=2048) String reelUrl,
-                 @Valid EnglishInput english) {
+                 @Valid EnglishInput english,
+                 @Size(max=8) List<@NotBlank @Size(max=60) String> tags,
+                 @Size(max=240) String mediaCredit) {
+        public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
+                     String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region,
+                     String byline,String reelUrl,EnglishInput english) {
+            this(title,slug,summary,category,city,image,imageAlt,videoUrl,youtubeId,body,version,sourceNotes,
+                    region,byline,reelUrl,english,null,null);
+        }
         public Input(String title,String slug,String summary,String category,String city,String image,String imageAlt,
                      String videoUrl,String youtubeId,String body,Long version,String sourceNotes,String region,
                      String byline,String reelUrl) {

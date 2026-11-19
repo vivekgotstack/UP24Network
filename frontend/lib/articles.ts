@@ -14,6 +14,8 @@ export type Article = {
   readingMinutes: number;
   image: string;
   imageAlt: string;
+  mediaCredit?: string | null;
+  tags?: string[];
   videoUrl: string | null;
   paragraphs: string[];
   demo: boolean;

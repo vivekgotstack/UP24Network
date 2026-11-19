@@ -41,11 +41,15 @@ export type Draft = {
   english: EnglishArticleDraft;
   sourceNotes: string;
   byline: string;
+  mediaCredit: string;
+  topicLines: string;
 };
-export type SaveArticle = Omit<Draft, 'reelUrl' | 'english'> & {
+export type SaveArticle = Omit<Draft, 'reelUrl' | 'english' | 'mediaCredit' | 'topicLines'> & {
   version: number | null;
   reelUrl?: string | null;
   english?: EnglishArticleDraft | null;
+  mediaCredit?: string;
+  tags?: string[];
 };
 export const emptyDraft: Draft = {
   title: '',
@@ -63,6 +67,8 @@ export const emptyDraft: Draft = {
   english: emptyEnglishDraft,
   sourceNotes: '',
   byline: '',
+  mediaCredit: '',
+  topicLines: '',
 };
 export function toDraft(row?: ManagedArticle | null): Draft {
   return row
@@ -89,6 +95,8 @@ export function toDraft(row?: ManagedArticle | null): Draft {
           : emptyEnglishDraft,
         sourceNotes: row.sourceNotes ?? '',
         byline: row.article.author,
+        mediaCredit: row.article.mediaCredit ?? '',
+        topicLines: (row.article.tags ?? []).join('\n'),
       }
     : { ...emptyDraft };
 }

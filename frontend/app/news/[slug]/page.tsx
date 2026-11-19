@@ -11,6 +11,7 @@ import { YouTubeStory } from '@/components/youtube-story';
 import { InstagramReel } from '@/components/instagram-reel';
 import { ReadingExperience } from '@/components/reading-experience';
 import { ArticleViewEvent } from '@/components/article-view-event';
+import { ArticleProse } from '@/components/article-prose';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { newest } from '@/lib/news';
@@ -31,19 +32,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   ]);
   if (!original) return { title: copy(locale, 'खबर नहीं मिली', 'Report not found') };
   const article = localizeArticle(original, locale);
+  const indexable = process.env.SITE_INDEXABLE === 'true' && !article.demo;
   return {
     title: article.title,
     description: article.summary,
     alternates: { canonical: `/news/${article.slug}` },
+    robots: indexable
+      ? { index: true, follow: true, 'max-image-preview': 'large' }
+      : { index: false, follow: false },
     openGraph: {
       type: 'article',
       title: article.title,
       description: article.summary,
       url: `/news/${article.slug}`,
+      siteName: 'UP24Network',
+      locale: textLanguage(article.title) === 'hi' ? 'hi_IN' : 'en_IN',
       images: [{ url: article.image, alt: article.imageAlt }],
       publishedTime: article.publishedAt,
       authors: [article.author],
       section: article.category,
+      tags: article.tags,
     },
   };
 }
@@ -75,6 +83,11 @@ export default async function ArticlePage({ params }: Props) {
     )
     .slice(0, 3);
   const origin = process.env.SITE_URL ?? 'http://127.0.0.1:3000';
+  const mediaCredit = article.mediaCredit?.trim();
+  const imageUrl = article.image.startsWith('/brand/')
+    ? undefined
+    : new URL(article.image, origin).href;
+  const tags = article.tags ?? [];
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -82,7 +95,12 @@ export default async function ArticlePage({ params }: Props) {
     inLanguage: textLanguage(article.title),
     description: article.summary,
     datePublished: article.publishedAt,
-    image: new URL(article.image, origin).href,
+    image:
+      imageUrl && mediaCredit && !reelUrl && !article.videoUrl && !article.youtubeId
+        ? { '@type': 'ImageObject', url: imageUrl, creditText: mediaCredit }
+        : imageUrl,
+    articleSection: article.category,
+    keywords: tags.length ? tags : undefined,
     mainEntityOfPage: new URL(`/news/${article.slug}`, origin).href,
     author: { '@type': isDeskByline ? 'Organization' : 'Person', name: article.author },
     publisher: {
@@ -160,10 +178,10 @@ export default async function ArticlePage({ params }: Props) {
               </div>
             </div>
           </header>
-          {reelUrl ? (
-            <InstagramReel url={reelUrl} title={article.title} locale={locale} />
-          ) : (
-            <figure className="article-figure">
+          <figure className="article-figure">
+            {reelUrl ? (
+              <InstagramReel url={reelUrl} title={article.title} locale={locale} />
+            ) : (
               <div className="article-image">
                 {article.youtubeId ? (
                   <YouTubeStory
@@ -187,8 +205,14 @@ export default async function ArticlePage({ params }: Props) {
                   />
                 )}
               </div>
-            </figure>
-          )}
+            )}
+            {mediaCredit && (
+              <figcaption>
+                {copy(locale, 'मीडिया श्रेय', 'Media credit')} ·{' '}
+                <span lang={textLanguage(mediaCredit)}>{mediaCredit}</span>
+              </figcaption>
+            )}
+          </figure>
           <ReadingExperience
             locale={locale}
             story={{
@@ -207,11 +231,7 @@ export default async function ArticlePage({ params }: Props) {
                 )}
               </p>
             )}
-            {article.paragraphs.map((paragraph, index) => (
-              <p key={index} lang={textLanguage(paragraph)}>
-                {paragraph}
-              </p>
-            ))}
+            <ArticleProse paragraphs={article.paragraphs} />
             {article.youtubeId && (
               <p className="article-source">
                 <a
@@ -222,6 +242,18 @@ export default async function ArticlePage({ params }: Props) {
                   {copy(locale, 'YouTube पर देखें', 'Watch on YouTube')}
                 </a>
               </p>
+            )}
+            {tags.length > 0 && (
+              <ul
+                className="article-topics"
+                aria-label={copy(locale, 'खबर के विषय', 'Article topics')}
+              >
+                {tags.map((tag) => (
+                  <li key={tag} lang={textLanguage(tag)}>
+                    {tag}
+                  </li>
+                ))}
+              </ul>
             )}
             <div className="article-end">
               <span aria-hidden="true" />

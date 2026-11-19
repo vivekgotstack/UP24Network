@@ -8,15 +8,14 @@ import {
   EditorialSectionPicker,
 } from '@/components/newsroom/editorial-picker';
 import { ContinueStoryButton } from '@/components/newsroom/continue-story-button';
-import { EditorialVideoPreview } from '@/components/newsroom/editorial-video-preview';
+import { ArticleMediaFields } from '@/components/newsroom/article-media-fields';
 import {
   StaffReviewStatus,
   StaffReviewSubmission,
 } from '@/components/newsroom/staff-article-review';
 import { cms, CmsError } from '@/lib/cms';
 import { useSession, useNewsroomResource } from '@/lib/session';
-import { MediaUpload } from '@/components/newsroom/media-upload';
-import { VideoUpload } from '@/components/newsroom/video-upload';
+import { openingSummary, reportTopics, reportWordCount } from '@/lib/newsroom/report-format';
 import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
 import { articleReviews, type Review, type ReviewHistory } from '@/lib/newsroom/reviews';
 import { canonicalReelUrl, trendingReelsCategory } from '@/lib/instagram';
@@ -89,6 +88,12 @@ export function ArticleEditor({
   const unsaved = dirty || reviewEvidence;
   const proposedUpdate = !adminMode && articleStatus === 'PUBLISHED';
   const reelArticle = draft.category === trendingReelsCategory;
+  const topics = reportTopics(draft.topicLines);
+  const wordCount = reportWordCount(draft.body);
+  const minimumWords = reelArticle ? 12 : proposedUpdate ? 25 : 120;
+  const articleSlug =
+    draft.slug.trim() || (adminMode && version === null ? slugify(draft.title) : '');
+  const autoSummary = adminMode ? openingSummary(draft.body) : '';
   const approvedOnCurrentVersion =
     latest?.state === 'APPROVED' && latest.articleVersion === version;
   const canReview =
@@ -137,22 +142,23 @@ export function ArticleEditor({
       ...current,
       title: value,
       slug:
-        helpersAllowed && (current.slug === slugify(current.title) || !current.slug)
+        helpersAllowed &&
+        version === null &&
+        (current.slug === slugify(current.title) || !current.slug)
           ? slugify(value)
           : current.slug,
     }));
   }
-  function validated() {
+  function validated(forReview: boolean): SaveArticle {
     const reelUrl = reelArticle ? canonicalReelUrl(draft.reelUrl) : null;
     if (reelArticle && !reelUrl)
       throw new Error(
         'Enter a public Instagram Reel link such as https://www.instagram.com/reel/ABC123/.',
       );
-    if (requireDateline && !draft.city.trim())
-      throw new Error('Add a location or dateline before saving.');
-    if (requireSources && !draft.sourceNotes.trim())
-      throw new Error('Add your reporting sources before saving.');
+    if (forReview && requireDateline && !draft.city.trim())
+      throw new Error('Add a location or dateline before sending this report for review.');
     if (
+      forReview &&
       requireMedia &&
       !reelUrl &&
       !draft.videoUrl &&
@@ -161,27 +167,53 @@ export function ArticleEditor({
     )
       throw new Error('Choose a photograph or video for this report.');
     if (
-      !adminMode &&
+      forReview &&
       !reelArticle &&
       draft.image &&
       !draft.image.startsWith('/brand/') &&
       !draft.imageAlt.trim()
     )
       throw new Error('Add a description for the photograph.');
-    if (!draft.slug.trim() || !/^[\p{L}\p{N}\p{M}_-]+$/u.test(draft.slug))
+    if (!articleSlug || !/^[\p{L}\p{N}\p{M}_-]+$/u.test(articleSlug))
       throw new Error('Use letters, numbers and hyphens for the article slug.');
+    const summary = draft.summary.trim() || autoSummary;
+    if (!summary) throw new Error('Add an article summary.');
+    if (topics.length > 8 || topics.some((tag) => tag.length > 60))
+      throw new Error('Use up to eight topic tags of 60 characters each.');
+    if (forReview) {
+      if (summary.length < 30) throw new Error('Write a summary of at least 30 characters.');
+      if (wordCount < minimumWords)
+        throw new Error(`Add reporting context so this submission reaches ${minimumWords} words.`);
+      if (topics.length < 2) throw new Error('Add at least two distinct topic tags.');
+      if (requireSources && draft.sourceNotes.trim().length < 25)
+        throw new Error('Write at least 25 characters of source and verification notes.');
+      if (
+        (reelUrl ||
+          draft.youtubeId.trim() ||
+          draft.videoUrl.trim() ||
+          (draft.image && !draft.image.startsWith('/brand/'))) &&
+        draft.mediaCredit.trim().length < 2
+      ) {
+        throw new Error('Credit the creator or source of the report media.');
+      }
+    }
     if (!reelArticle && (!allowedMedia(draft.image) || !allowedMedia(draft.videoUrl, false)))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
-    const { title, summary, body } = draft.english;
+    const { title, summary: englishSummary, body } = draft.english;
     if (
       Object.values(draft.english).some((field) => field.trim()) &&
-      (!title.trim() || !summary.trim() || !body.trim())
+      (!title.trim() || !englishSummary.trim() || !body.trim())
     ) {
       throw new Error('Complete the English headline, summary, and report together.');
     }
+    const { topicLines: _topicLines, ...fields } = draft;
     return {
-      ...draft,
+      ...fields,
       version,
+      slug: articleSlug,
+      summary,
+      tags: topics,
+      mediaCredit: draft.mediaCredit.trim(),
       byline: adminMode ? draft.byline : '',
       reelUrl,
       image: reelArticle ? '' : draft.image,
@@ -196,8 +228,9 @@ export function ArticleEditor({
     try {
       const submitter = (event.nativeEvent as SubmitEvent).submitter;
       const intent = submitter instanceof HTMLButtonElement ? submitter.value : '';
-      const input = validated();
-      if (intent === 'review' || proposedUpdate) {
+      const forReview = intent === 'review' || proposedUpdate;
+      const input = validated(forReview);
+      if (forReview) {
         if (canReview && !conflict && (!proposedUpdate || dirty)) setProposal(input);
         return;
       }
@@ -229,9 +262,11 @@ export function ArticleEditor({
     }
   }
   function openReturned(input: SaveArticle) {
-    const { version: _version, ...returnedDraft } = input;
+    const { version: _version, tags, mediaCredit, ...returnedDraft } = input;
     setDraft((current) => ({
       ...returnedDraft,
+      topicLines: tags ? tags.join('\n') : current.topicLines,
+      mediaCredit: mediaCredit ?? current.mediaCredit,
       reelUrl: returnedDraft.reelUrl ?? '',
       english: returnedDraft.english
         ? {
@@ -300,14 +335,19 @@ export function ArticleEditor({
       setAssisting(false);
     }
   }
-  const wordCount = draft.body.trim().split(/\s+/u).filter(Boolean).length;
   return (
     <section className="article-editor">
       <div className="cms-section-heading">
         <div>
           <p className="eyebrow">{article ? 'ARTICLE WORKSPACE' : 'NEW REPORT'}</p>
           <h2>
-            {proposedUpdate ? 'Propose an update' : article ? 'Edit article' : 'Create a draft'}
+            {proposedUpdate
+              ? 'Propose an update'
+              : article
+                ? 'Edit article'
+                : adminMode
+                  ? 'Write a report'
+                  : 'Create a draft'}
           </h2>
           {article && <p className="field-help">Story version {article.editionNumber ?? 1}</p>}
         </div>
@@ -369,22 +409,6 @@ export function ArticleEditor({
         aria-busy={busy || assisting}
       >
         <fieldset className="editor-fields" disabled={busy || assisting}>
-          {(adminMode || policy.autofill) && (
-            <div className={styles.assist}>
-              <label className={styles.autofill}>
-                <input
-                  type="checkbox"
-                  checked={helpersEnabled}
-                  onChange={(event) => setHelpersEnabled(event.target.checked)}
-                />
-                Use draft helpers
-              </label>
-              <p className={styles.hint}>
-                Suggest the article address and reuse source metadata without overwriting your
-                writing.
-              </p>
-            </div>
-          )}
           <label>
             Headline
             <input
@@ -397,315 +421,256 @@ export function ArticleEditor({
             />
           </label>
           <label>
-            Article address
-            <input
-              name="slug"
-              required
-              maxLength={500}
-              value={draft.slug}
-              onChange={(event) => set('slug', event.target.value)}
-            />
-            <span className="field-help">/news/{draft.slug || 'article-slug'}</span>
-            {helpersAllowed && (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => set('slug', slugify(draft.title))}
-              >
-                Use headline for address
-              </Button>
-            )}
-          </label>
-          {adminMode && (
-            <label>
-              Public byline
-              <input
-                name="byline"
-                maxLength={100}
-                value={draft.byline}
-                onChange={(event) => set('byline', event.target.value)}
-                placeholder="UP24Network Editorial Team"
-              />
-              <span className="field-help">
-                Set the name readers see on this report. Leave blank to keep the current byline, or
-                use the publication default for a new report.
-              </span>
-            </label>
-          )}
-          <div className="cms-form-row">
-            <EditorialSectionPicker
-              value={draft.category}
-              choose={(value) => set('category', value)}
-            />
-            <EditorialCityPicker
-              value={draft.city}
-              required={requireDateline}
-              custom={adminMode}
-              choose={(city, region) => {
-                touched.current = true;
-                setDraft((current) => ({ ...current, city, region: region ?? current.region }));
-              }}
-            />
-          </div>
-          <label>
-            Regional edition
-            <select
-              name="region"
-              value={draft.region}
-              onChange={(event) => set('region', event.target.value)}
-            >
-              <option value="">National / international / unassigned</option>
-              {regions.map((region) => (
-                <option key={region.slug} value={region.slug}>
-                  {region.title}
-                </option>
-              ))}
-            </select>
-            <span className="cms-field-hint">
-              Select an edition even when reporting from a town outside the city directory.
-            </span>
-          </label>
-          <label>
-            {reelArticle ? 'Reel introduction' : 'Summary'}
-            <textarea
-              name="summary"
-              required
-              maxLength={2000}
-              rows={3}
-              value={draft.summary}
-              onChange={(event) => set('summary', event.target.value)}
-              placeholder={
-                reelArticle
-                  ? 'Introduce the Reel, credit its creator, and explain why it matters.'
-                  : undefined
-              }
-            />
-            {helpersAllowed && (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={!draft.body.trim()}
-                onClick={() =>
-                  set(
-                    'summary',
-                    draft.body
-                      .trim()
-                      .split(/\n\s*\n/)[0]
-                      .replace(/\s+/g, ' ')
-                      .slice(0, 350),
-                  )
-                }
-              >
-                Use opening paragraph as summary
-              </Button>
-            )}
-          </label>
-          <details className="reporting-notes" open={adminMode ? undefined : true}>
-            <summary>
-              Reporting sources & verification{requireSources ? ' · Required' : ' · Optional'}
-            </summary>
-            <label>
-              Private source notes
-              <textarea
-                name="sourceNotes"
-                rows={4}
-                maxLength={10000}
-                required={requireSources}
-                value={draft.sourceNotes}
-                onChange={(event) => set('sourceNotes', event.target.value)}
-                placeholder="Record the source, how the facts were checked, and any response received."
-              />
-              <span className="field-help">
-                For the editorial team. These notes are never shown in the public article.
-              </span>
-            </label>
-          </details>
-          <label>
             {reelArticle ? 'Editorial context' : 'Report'}
             <textarea
               name="body"
               className="body-editor"
               required
-              rows={12}
+              rows={adminMode ? 9 : 12}
               maxLength={100000}
               value={draft.body}
               onChange={(event) => set('body', event.target.value)}
               placeholder={
                 reelArticle
-                  ? 'Credit the creator and explain the context readers should know.'
-                  : 'Write the report. Leave a blank line between paragraphs.'
+                  ? 'Explain what the Reel shows and the context readers should know.'
+                  : 'Open with the news. Leave a blank line between paragraphs.'
               }
             />
             <span className="field-help">
-              {wordCount} words · Separate paragraphs with a blank line.
+              {wordCount.toLocaleString('en-IN')} words
+              {!adminMode &&
+                !reelArticle &&
+                !proposedUpdate &&
+                ' · Aim for about 1,200 words on in-depth reports.'}
+              {!reelArticle && ' · For a subheading, start its own paragraph with ## and a space.'}
             </span>
           </label>
-          <details className="reporting-notes" lang="en">
-            <summary>English translation</summary>
-            <p className="field-help">
-              Add a reviewed translation for the English edition. Include a headline, summary, and
-              full report.
-            </p>
-            <label>
-              English headline
-              <input
-                name="englishTitle"
-                maxLength={500}
-                value={draft.english.title}
-                onChange={(event) => setEnglish('title', event.target.value)}
-              />
-            </label>
-            <label>
-              English summary
-              <textarea
-                name="englishSummary"
-                rows={3}
-                maxLength={2000}
-                value={draft.english.summary}
-                onChange={(event) => setEnglish('summary', event.target.value)}
-              />
-            </label>
-            <label>
-              English report
-              <textarea
-                name="englishBody"
-                rows={10}
-                maxLength={100000}
-                value={draft.english.body}
-                onChange={(event) => setEnglish('body', event.target.value)}
-              />
-            </label>
-            <label>
-              English photograph description
-              <input
-                name="englishImageAlt"
-                maxLength={500}
-                value={draft.english.imageAlt}
-                onChange={(event) => setEnglish('imageAlt', event.target.value)}
-              />
-            </label>
-            {Object.values(draft.english).some(Boolean) && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  touched.current = true;
-                  setDraft((current) => ({ ...current, english: emptyEnglishDraft }));
-                }}
-              >
-                Clear English translation
-              </Button>
-            )}
-          </details>
-          <fieldset className="media-fields">
-            <legend>{reelArticle ? 'Instagram link' : 'Photograph & video'}</legend>
-            {reelArticle && (
+          <ArticleMediaFields
+            draft={draft}
+            reelArticle={reelArticle}
+            adminMode={adminMode}
+            busy={busy || assisting}
+            assisting={assisting}
+            helpersAllowed={helpersAllowed}
+            requireMediaCredit={!adminMode}
+            set={set}
+            onVideoDetails={() => void fetchVideoDetails()}
+          />
+          <details
+            className={styles.articleDetails}
+            open={adminMode ? undefined : true}
+            onInvalidCapture={(event) => {
+              event.currentTarget.open = true;
+            }}
+          >
+            <summary>
+              {adminMode ? 'Article details & search' : 'Reporting details & search'}
+            </summary>
+            <div className={styles.articleDetailFields}>
+              {!adminMode && policy.autofill && (
+                <label className={styles.autofill}>
+                  <input
+                    type="checkbox"
+                    checked={helpersEnabled}
+                    onChange={(event) => setHelpersEnabled(event.target.checked)}
+                  />
+                  Use draft helpers
+                </label>
+              )}
               <label>
-                Public Instagram Reel link
+                Article address
                 <input
-                  name="reelUrl"
-                  type="url"
-                  required
-                  maxLength={2000}
-                  value={draft.reelUrl}
-                  onChange={(event) => set('reelUrl', event.target.value)}
-                  placeholder="https://www.instagram.com/reel/ABC123/"
+                  name="slug"
+                  required={!adminMode || version !== null}
+                  maxLength={500}
+                  value={draft.slug}
+                  onChange={(event) => set('slug', event.target.value)}
                 />
-                <span className="field-help">
-                  Paste the original Reel’s share link. Readers open it on Instagram.
-                </span>
-              </label>
-            )}
-            {!reelArticle && (
-              <>
-                <MediaUpload
-                  disabled={busy || assisting}
-                  onUploaded={(asset) => set('image', asset.url)}
-                />
-                <label>
-                  Photograph
-                  <input
-                    name="image"
-                    maxLength={2000}
-                    value={draft.image}
-                    onChange={(event) => set('image', event.target.value)}
-                    placeholder="/images/report.jpg or an approved HTTPS URL"
-                  />
-                </label>
-                <label>
-                  Image description
-                  <input
-                    name="imageAlt"
-                    maxLength={500}
-                    value={draft.imageAlt}
-                    onChange={(event) => set('imageAlt', event.target.value)}
-                    placeholder="Describe what the photograph shows"
-                  />
-                </label>
-              </>
-            )}
-            {!reelArticle && (
-              <>
-                <label>
-                  YouTube video
-                  <input
-                    name="youtubeId"
-                    maxLength={2000}
-                    value={draft.youtubeId}
-                    onChange={(event) => set('youtubeId', event.target.value)}
-                    placeholder="Video link or 11-character ID"
-                  />
-                </label>
-                {helpersAllowed && (
-                  <div className={styles.assist}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={!draft.youtubeId.trim() || assisting}
-                      onClick={() => void fetchVideoDetails()}
-                    >
-                      {assisting ? 'Fetching video details…' : 'Fetch video details'}
-                    </Button>
-                  </div>
+                <span className="field-help">/news/{articleSlug || 'article-slug'}</span>
+                {helpersAllowed && version === null && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => set('slug', slugify(draft.title))}
+                  >
+                    Use headline for address
+                  </Button>
                 )}
+              </label>
+              {adminMode && (
                 <label>
-                  Direct video source
+                  Public byline
                   <input
-                    name="videoUrl"
-                    maxLength={2000}
-                    value={draft.videoUrl}
-                    onChange={(event) => set('videoUrl', event.target.value)}
-                    placeholder="/videos/report.mp4 or an approved HTTPS URL"
+                    name="byline"
+                    maxLength={100}
+                    value={draft.byline}
+                    onChange={(event) => set('byline', event.target.value)}
+                    placeholder="UP24Network Editorial Team"
                   />
+                  <span className="field-help">
+                    Set the name readers see on this report. Leave blank to keep the current byline,
+                    or use the publication default for a new report.
+                  </span>
                 </label>
-                <VideoUpload
-                  disabled={busy}
-                  onReady={(video) => {
-                    set('videoUrl', video.url);
-                    set('youtubeId', '');
+              )}
+              <div className="cms-form-row">
+                <EditorialSectionPicker
+                  value={draft.category}
+                  choose={(value) => set('category', value)}
+                />
+                <EditorialCityPicker
+                  value={draft.city}
+                  required={false}
+                  custom={adminMode}
+                  choose={(city, region) => {
+                    touched.current = true;
+                    setDraft((current) => ({ ...current, city, region: region ?? current.region }));
                   }}
                 />
+              </div>
+              <label>
+                Regional edition
+                <select
+                  name="region"
+                  value={draft.region}
+                  onChange={(event) => set('region', event.target.value)}
+                >
+                  <option value="">National / international / unassigned</option>
+                  {regions.map((region) => (
+                    <option key={region.slug} value={region.slug}>
+                      {region.title}
+                    </option>
+                  ))}
+                </select>
+                <span className="cms-field-hint">
+                  Select an edition even when reporting from a town outside the city directory.
+                </span>
+              </label>
+              <label>
+                {reelArticle ? 'Reel introduction' : 'Summary for readers and search'}
+                <textarea
+                  name="summary"
+                  required={!adminMode}
+                  maxLength={2000}
+                  rows={3}
+                  value={draft.summary}
+                  onChange={(event) => set('summary', event.target.value)}
+                  placeholder={
+                    reelArticle
+                      ? 'Introduce the Reel, credit its creator, and explain why it matters.'
+                      : adminMode
+                        ? 'Uses the opening paragraph when left blank.'
+                        : undefined
+                  }
+                />
+                <span className="field-help">
+                  {adminMode
+                    ? 'Override the opening when the story needs a different summary.'
+                    : 'Write a standalone summary of the main facts. At least 30 characters for review.'}
+                </span>
+                {helpersAllowed && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!draft.body.trim()}
+                    onClick={() => set('summary', openingSummary(draft.body))}
+                  >
+                    Use opening paragraph as summary
+                  </Button>
+                )}
+              </label>
+              <label>
+                Topic tags
+                <textarea
+                  name="topicLines"
+                  rows={3}
+                  maxLength={500}
+                  value={draft.topicLines}
+                  onChange={(event) => set('topicLines', event.target.value)}
+                  placeholder={'लखनऊ\nमेट्रो विस्तार'}
+                />
+                <span className="field-help">
+                  {topics.length}/8 added · One per line. Use specific people, places, or topics.
+                  {!adminMode && ' At least two for review.'}
+                </span>
+              </label>
+              <label>
+                Private sources & verification
+                <textarea
+                  name="sourceNotes"
+                  rows={4}
+                  maxLength={10000}
+                  value={draft.sourceNotes}
+                  onChange={(event) => set('sourceNotes', event.target.value)}
+                  placeholder="Record the source, how the facts were checked, and any response received."
+                />
+                <span className="field-help">
+                  Include source references, the facts they support, and any response you sought.
+                  {requireSources && ' At least 25 characters for review.'}
+                </span>
+              </label>
+              <details className="reporting-notes" lang="en">
+                <summary>English translation</summary>
                 <p className="field-help">
-                  A completed upload selects its playback copy for this report and replaces the
-                  YouTube source.
+                  Add a reviewed translation for the English edition. Include a headline, summary,
+                  and full report.
                 </p>
-                <p className="field-help">
-                  A YouTube video takes priority, then a direct video, then the photograph. Channel
-                  imports are managed in Automations.
-                </p>
-              </>
-            )}
-            <EditorialVideoPreview
-              title={draft.title.trim() || 'Video preview'}
-              image={draft.image}
-              reel={reelArticle ? draft.reelUrl : null}
-              youtube={reelArticle ? null : draft.youtubeId}
-              direct={reelArticle ? null : draft.videoUrl}
-            />
-          </fieldset>
+                <label>
+                  English headline
+                  <input
+                    name="englishTitle"
+                    maxLength={500}
+                    value={draft.english.title}
+                    onChange={(event) => setEnglish('title', event.target.value)}
+                  />
+                </label>
+                <label>
+                  English summary
+                  <textarea
+                    name="englishSummary"
+                    rows={3}
+                    maxLength={2000}
+                    value={draft.english.summary}
+                    onChange={(event) => setEnglish('summary', event.target.value)}
+                  />
+                </label>
+                <label>
+                  English report
+                  <textarea
+                    name="englishBody"
+                    rows={10}
+                    maxLength={100000}
+                    value={draft.english.body}
+                    onChange={(event) => setEnglish('body', event.target.value)}
+                  />
+                </label>
+                <label>
+                  English photograph description
+                  <input
+                    name="englishImageAlt"
+                    maxLength={500}
+                    value={draft.english.imageAlt}
+                    onChange={(event) => setEnglish('imageAlt', event.target.value)}
+                  />
+                </label>
+                {Object.values(draft.english).some(Boolean) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      touched.current = true;
+                      setDraft((current) => ({ ...current, english: emptyEnglishDraft }));
+                    }}
+                  >
+                    Clear English translation
+                  </Button>
+                )}
+              </details>
+            </div>
+          </details>
           {error && (
             <p className="inline-error" role="alert">
               {error}
@@ -719,10 +684,25 @@ export function ArticleEditor({
           <div className="editor-actions">
             {!proposedUpdate && (
               <>
-                <Button disabled={busy} type="submit" variant={adminMode ? 'default' : 'outline'}>
+                <Button
+                  disabled={busy}
+                  type="submit"
+                  variant={adminMode && articleStatus === 'PUBLISHED' ? 'default' : 'outline'}
+                >
                   {busy ? 'Saving…' : articleStatus === 'PUBLISHED' ? 'Save changes' : 'Save draft'}
                 </Button>
-                <Button type="submit" name="intent" value="preview" disabled={busy}>
+                {adminMode && onPublish && articleStatus !== 'PUBLISHED' && (
+                  <Button type="submit" name="intent" value="publish" disabled={busy}>
+                    Save and publish
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  name="intent"
+                  value="preview"
+                  variant="outline"
+                  disabled={busy}
+                >
                   Save &amp; preview
                 </Button>
               </>
@@ -735,11 +715,6 @@ export function ArticleEditor({
                 disabled={busy || !canReview || conflict || (proposedUpdate && !dirty)}
               >
                 {proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
-              </Button>
-            )}
-            {adminMode && onPublish && articleStatus !== 'PUBLISHED' && (
-              <Button type="submit" name="intent" value="publish" disabled={busy}>
-                Save and publish
               </Button>
             )}
             {article?.status === 'PUBLISHED' && session.data && (

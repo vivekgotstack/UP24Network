@@ -6,7 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.text.Normalizer;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -15,6 +17,7 @@ import java.util.stream.Stream;
 
 final class ArticleFieldPolicy {
     private static final Pattern INSTAGRAM_REEL_PATH = Pattern.compile("/reel/([A-Za-z0-9_-]{1,64})/?");
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
     private ArticleFieldPolicy() {}
 
     static String slug(String input) {
@@ -54,6 +57,34 @@ final class ArticleFieldPolicy {
 
     static List<String> paragraphs(String body) {
         return Arrays.stream(body.split("\\n\\s*\\n")).map(String::strip).filter(text -> !text.isBlank()).toList();
+    }
+
+    static List<String> tags(List<String> input) {
+        if (input == null) return List.of();
+        var tags = new LinkedHashMap<String, String>();
+        for (String label : input) {
+            if (label == null || label.codePoints().anyMatch(Character::isISOControl)) rejectTag();
+            String tag = WHITESPACE.matcher(Normalizer.normalize(label, Normalizer.Form.NFKC)).replaceAll(" ").strip();
+            if (tag.length() > 60 || tag.codePoints().noneMatch(Character::isLetterOrDigit)) rejectTag();
+            tags.putIfAbsent(tag.toLowerCase(Locale.ROOT), tag);
+        }
+        if (tags.size() > 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Add no more than eight topic tags.");
+        }
+        return List.copyOf(tags.values());
+    }
+
+    static String mediaCredit(String input) {
+        if (input == null) return null;
+        String credit = input.strip();
+        if (credit.length() > 240 || credit.codePoints().anyMatch(Character::isISOControl)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use a single line of up to 240 characters for the media credit.");
+        }
+        return credit;
+    }
+
+    private static void rejectTag() {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Each topic tag must contain letters or numbers and be at most 60 characters.");
     }
 
     static String reel(ArticleDesk.Input input) {

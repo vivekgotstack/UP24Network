@@ -1,0 +1,58 @@
+.fields {
+  min-width: 0;
+}
+
+.details {
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.details > summary {
+  min-height: 34px;
+  padding-block: 6px;
+  cursor: pointer;
+  font: 600 14px/1.4 var(--sans);
+}
+
+.controls {
+  min-width: 0;
+  display: grid;
+  gap: 17px;
+  padding-block: 10px 4px;
+}
+
+.detailsButton {
+  justify-self: start;
+}
+
+.photograph {
+  width: min(100%, 32rem);
+  margin: 0;
+}
+
+.photograph > div {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--line);
+  background: var(--surface-control);
+}
+
+.photograph img {
+  object-fit: contain;
+}
+
+.photograph figcaption {
+  padding-block: 5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .details > summary {
+    min-height: 44px;
+    padding-block: 12px;
+  }
+}
