@@ -27,71 +27,104 @@ import java.util.Set;
 @Configuration
 @EnableMethodSecurity
 class SecurityConfiguration {
-    @Bean PasswordEncoder passwordEncoder() {
+    @Bean
+    PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-    @Bean AuthenticationProvider authenticationProvider(UserDetailsService users,
+
+    @Bean
+    AuthenticationProvider authenticationProvider(UserDetailsService users,
             UserDetailsPasswordService passwords, PasswordEncoder encoder) {
         var provider = new DaoAuthenticationProvider(users);
         provider.setPasswordEncoder(encoder);
         provider.setUserDetailsPasswordService(passwords);
         return provider;
     }
-    @Bean SecurityFilterChain security(HttpSecurity http, LoginSessions sessions, TokenCookies cookies,
+
+    @Bean
+    SecurityFilterChain security(HttpSecurity http, LoginSessions sessions, TokenCookies cookies,
             Accounts accounts, PasswordLoginRateLimitFilter passwordLoginRateLimitFilter,
             @Value("${up24.auth.cookie-secure}") boolean secure) throws Exception {
-        var csrf=new CookieCsrfTokenRepository();
+        var csrf = new CookieCsrfTokenRepository();
         csrf.setHeaderName("X-CSRF-TOKEN");
         csrf.setCookieCustomizer(cookie -> cookie.httpOnly(true).secure(secure).sameSite("Strict").path("/"));
-        var bearer=new DefaultBearerTokenResolver();
-        var principal=new JwtAuthenticationConverter();
+        var bearer = new DefaultBearerTokenResolver();
+        var principal = new JwtAuthenticationConverter();
         principal.setPrincipalClaimName("email");
-        var anonymousTokenPaths=Set.of("/api/auth/login","/api/auth/register","/api/auth/csrf","/api/auth/refresh","/api/auth/logout","/api/auth/password/request","/api/auth/password/reset","/api/publication/contact","/api/publication/newsletter");
+        var anonymousTokenPaths = Set.of("/api/auth/login", "/api/auth/register", "/api/auth/csrf", "/api/auth/refresh",
+                "/api/auth/logout", "/api/auth/password/request", "/api/auth/password/reset",
+                "/api/publication/contact", "/api/publication/newsletter");
         return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 .requestCache(cache -> cache.disable())
-                .addFilterBefore(passwordLoginRateLimitFilter,UsernamePasswordAuthenticationFilter.class)
-                .csrf(config -> config.csrfTokenRepository(csrf).withObjectPostProcessor(new ObjectPostProcessor<CsrfFilter>() {
-                    @Override public <O extends CsrfFilter> O postProcess(O filter) {
-                        // Resource Server normally exempts bearer requests. Our browser bearer is
-                        // carried by a cookie, so every unsafe request still requires CSRF proof.
-                        filter.setRequireCsrfProtectionMatcher(CsrfFilter.DEFAULT_CSRF_MATCHER);
-                        return filter;
-                    }
-                }))
-                .authorizeHttpRequests(auth -> auth
-                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET,"/media/**","/api/publication/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/air-quality").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.HEAD,"/media/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/auth/password/request","/api/auth/password/reset").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/publication/contact","/api/publication/newsletter").permitAll()
-                .requestMatchers("/api/articles/**","/api/horoscope/today","/actuator/health","/api/auth/csrf","/api/auth/register","/api/auth/login","/api/auth/refresh","/api/auth/logout").permitAll()
-                .requestMatchers("/api/auth/me","/api/auth/workflow","/api/auth/logout-all","/api/auth/newsroom/**","/api/admin/**").authenticated().anyRequest().denyAll())
-                .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login").usernameParameter("email")
-                        .successHandler((request,response,authentication) -> {
-                            var account=accounts.find(authentication.getName());
-                            if(account.isEmpty()) { response.sendError(401,"Invalid email or password"); return; }
-                            // A new password login supersedes this browser's previous refresh session.
-                            sessions.logout(TokenCookies.read(request,TokenCookies.REFRESH));
-                            if(!(authentication.getPrincipal() instanceof AccountUserDetails.Principal user)) {
-                                response.sendError(401,"Invalid email or password"); return;
+                .addFilterBefore(passwordLoginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .csrf(config -> config.csrfTokenRepository(csrf)
+                        .withObjectPostProcessor(new ObjectPostProcessor<CsrfFilter>() {
+                            @Override
+                            public <O extends CsrfFilter> O postProcess(O filter) {
+                                // Resource Server normally exempts bearer requests. Our browser bearer is
+                                // carried by a cookie, so every unsafe request still requires CSRF proof.
+                                filter.setRequireCsrfProtectionMatcher(CsrfFilter.DEFAULT_CSRF_MATCHER);
+                                return filter;
                             }
-                            try { cookies.write(response,sessions.start(account.get(),user.version())); }
-                            catch(LoginSessions.LoginUnavailable exception) { response.sendError(401,"Invalid email or password"); return; }
+                        }))
+                .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/media/**", "/api/publication/**")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/air-quality").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.HEAD, "/media/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/password/request",
+                                "/api/auth/password/reset")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/publication/contact",
+                                "/api/publication/newsletter")
+                        .permitAll()
+                        .requestMatchers("/api/articles/**", "/api/horoscope/today", "/actuator/health",
+                                "/api/auth/csrf", "/api/auth/register", "/api/auth/login", "/api/auth/refresh",
+                                "/api/auth/logout")
+                        .permitAll()
+                        .requestMatchers("/api/auth/me", "/api/auth/workflow", "/api/auth/logout-all",
+                                "/api/auth/newsroom/**", "/api/admin/**")
+                        .authenticated().anyRequest().denyAll())
+                .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login")
+                        .usernameParameter("email")
+                        .successHandler((request, response, authentication) -> {
+                            var account = accounts.find(authentication.getName());
+                            if (account.isEmpty()) {
+                                response.sendError(401, "Invalid email or password");
+                                return;
+                            }
+                            // A new password login supersedes this browser's previous refresh session.
+                            sessions.logout(TokenCookies.read(request, TokenCookies.REFRESH));
+                            if (!(authentication.getPrincipal() instanceof AccountUserDetails.Principal user)) {
+                                response.sendError(401, "Invalid email or password");
+                                return;
+                            }
+                            try {
+                                cookies.write(response, sessions.start(account.get(), user.version()));
+                            } catch (LoginSessions.LoginUnavailable exception) {
+                                response.sendError(401, "Invalid email or password");
+                                return;
+                            }
                             response.setContentType("application/json");
                             response.getWriter().write("{\"authenticated\":true}");
                         })
-                        .failureHandler((request,response,exception) -> response.sendError(401,"Invalid email or password")))
+                        .failureHandler(
+                                (request, response, exception) -> response.sendError(401, "Invalid email or password")))
                 .logout(logout -> logout.disable())
                 .oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> {
-                    var path=request.getRequestURI().substring(request.getContextPath().length());
-                    if (anonymousTokenPaths.contains(path)) return null;
-                    if ((request.getMethod().equals("GET") || request.getMethod().equals("HEAD")) && path.startsWith("/media/")) return null;
-                    var header=bearer.resolve(request);
-                    return header!=null ? header : TokenCookies.read(request,TokenCookies.ACCESS);
+                    var path = request.getRequestURI().substring(request.getContextPath().length());
+                    if (anonymousTokenPaths.contains(path))
+                        return null;
+                    if ((request.getMethod().equals("GET") || request.getMethod().equals("HEAD"))
+                            && path.startsWith("/media/"))
+                        return null;
+                    var header = bearer.resolve(request);
+                    return header != null ? header : TokenCookies.read(request, TokenCookies.ACCESS);
                 }).jwt(jwt -> jwt.jwtAuthenticationConverter(principal)))
-                .exceptionHandling(errors -> errors.authenticationEntryPoint((request,response,exception) -> response.sendError(401)))
+                .exceptionHandling(errors -> errors
+                        .authenticationEntryPoint((request, response, exception) -> response.sendError(401)))
                 .build();
     }
 }
