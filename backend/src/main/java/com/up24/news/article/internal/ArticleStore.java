@@ -23,8 +23,9 @@ class ArticleStore implements ArticleDesk {
     private final ObjectMapper json;
     private final ApplicationEventPublisher events;
     private final ArticleLifecycleStore lifecycle;
-    ArticleStore(JdbcTemplate jdbc,ObjectMapper json,ApplicationEventPublisher events,ArticleLifecycleStore lifecycle) {
-        this.jdbc=jdbc; this.json=json; this.events=events; this.lifecycle=lifecycle;
+    private final SharedArticleFeedCache sharedFeed;
+    ArticleStore(JdbcTemplate jdbc,ObjectMapper json,ApplicationEventPublisher events,ArticleLifecycleStore lifecycle,SharedArticleFeedCache sharedFeed) {
+        this.jdbc=jdbc; this.json=json; this.events=events; this.lifecycle=lifecycle; this.sharedFeed=sharedFeed;
     }
     private Managed map(ResultSet row,int index) throws SQLException {
         return ArticleRows.full(row,json);
@@ -37,6 +38,9 @@ class ArticleStore implements ArticleDesk {
     @Override public Optional<Managed> find(UUID id) { return jdbc.query("SELECT "+FULL_COLUMNS+" FROM article_record WHERE id=?",this::map,id).stream().findFirst(); }
     @Cacheable(cacheNames="article-feed",condition="@articleCacheInvalidation.readable()")
     @Override public List<ArticleView> published() {
+        return ArticleCacheInvalidation.canReadCache() ? sharedFeed.read(this::loadFeed) : loadFeed();
+    }
+    private List<ArticleView> loadFeed() {
         return jdbc.query("SELECT "+SUMMARY_COLUMNS+" FROM article_record WHERE status='PUBLISHED' AND published_at<=CURRENT_TIMESTAMP ORDER BY published_at DESC LIMIT 100",(row,index)->ArticleRows.summary(row))
                 .stream().map(Managed::article).toList();
     }

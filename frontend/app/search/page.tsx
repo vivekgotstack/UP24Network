@@ -4,6 +4,7 @@ import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
+import { SearchCategoryPicker } from '@/components/search-category-picker';
 import { getArticlePage } from '@/lib/articles';
 import { newsSections, sectionCategories, sectionTitle } from '@/lib/sections';
 import { reportCount } from '@/lib/coverage-labels';
@@ -52,17 +53,13 @@ export default async function SearchPage({
             defaultValue={query}
             maxLength={120}
           />
-          <label className="sr-only" htmlFor="search-category">
-            {copy(locale, 'समाचार विभाग', 'News section')}
-          </label>
-          <select id="search-category" name="category" defaultValue={category}>
-            <option value="">{copy(locale, 'सभी विभाग', 'All sections')}</option>
-            {newsSections.map((s) => (
-              <option key={s.slug} value={s.name}>
-                {sectionTitle(s.name, locale)}
-              </option>
-            ))}
-          </select>
+          <SearchCategoryPicker
+            key={category}
+            category={category}
+            label={copy(locale, 'समाचार विभाग', 'News section')}
+            allLabel={copy(locale, 'सभी विभाग', 'All sections')}
+            options={newsSections.map(({ name }) => ({ value: name, label: sectionTitle(name, locale) }))}
+          />
           <Button type="submit">{copy(locale, 'खोजें', 'Search')}</Button>
         </form>
         <p className="search-result-note" role="status">

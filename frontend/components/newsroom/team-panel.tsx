@@ -107,30 +107,6 @@ function AccountRow({
           </select>
         </label>
         <Button
-          variant="outline"
-          disabled={blocked}
-          onClick={() => {
-            resetEditor();
-            setEditing((value) => !value);
-          }}
-        >
-          Edit account
-        </Button>
-        <Button
-          variant="outline"
-          disabled={blocked || account.id === currentUser.id}
-          onClick={() => setConfirmation('revoke')}
-        >
-          End logins
-        </Button>
-        <Button
-          variant="destructive"
-          disabled={blocked || active || protectedAccount}
-          onClick={() => setConfirmation('delete')}
-        >
-          Delete account
-        </Button>
-        <Button
           size="sm"
           variant="outline"
           disabled={blocked}
