@@ -36,7 +36,8 @@ class JdbcPublicationRepository implements PublicationRepository {
             try {
                 var input=json.readValue(row.getString("content"),SettingsInput.class);
                 return new Settings(input.tagline(),input.announcementEnabled(),input.announcement(),input.footerDescription(),
-                        input.showRashifal(),input.showVideo(),row.getLong("version"),row.getTimestamp("updated_at").toInstant());
+                        input.showRashifal(),input.showVideo(),!Boolean.FALSE.equals(input.showCricketScores()),
+                        row.getLong("version"),row.getTimestamp("updated_at").toInstant());
             } catch (JsonProcessingException exception) { throw new SQLException("Invalid stored publication settings",exception); }
         });
     }
@@ -51,7 +52,7 @@ class JdbcPublicationRepository implements PublicationRepository {
                 (row,index) -> new PageLink("/"+row.getString("slug"),row.getString("label")));
     }
     @Override public boolean updateSettings(SettingsInput input, Instant now) {
-        return jdbc.update("UPDATE publication_settings SET content=?::jsonb,version=version+1,updated_at=? WHERE id=1 AND version=?",
+        return jdbc.update("UPDATE publication_settings SET content=content || ?::jsonb,version=version+1,updated_at=? WHERE id=1 AND version=?",
                 content(input),Timestamp.from(now),input.version())==1;
     }
     @Override public boolean updatePage(String slug, DocumentInput input, Instant now) {
