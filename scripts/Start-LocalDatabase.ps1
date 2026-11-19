@@ -18,10 +18,10 @@ if (-not (Test-Path -LiteralPath $configurationPath)) {
         'spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/up24network'
         'spring.datasource.username=up24'
         ('spring.datasource.password=' + $databasePassword)
-        'up24.bootstrap.admin-email=vivekni1224@gmail.com'
+        'up24.bootstrap.admin-email=admin@example.invalid'
         ('up24.bootstrap.admin-password=' + $adminPassword)
     )
-    Write-Up24Utf8File -Path (Join-Path $localRoot 'admin-login.txt') -Lines @('Local development only', 'Email: vivekni1224@gmail.com', ('Password: ' + $adminPassword))
+    Write-Up24Utf8File -Path (Join-Path $localRoot 'admin-login.txt') -Lines @('Local development only', 'Email: admin@example.invalid', ('Password: ' + $adminPassword))
 }
 $configuration = Get-Content -Raw -LiteralPath $configurationPath | ConvertFrom-StringData
 $databasePassword = $configuration['spring.datasource.password']
@@ -57,9 +57,9 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Could not create the up24network database.' }
     }
 } finally { $env:PGPASSWORD = $previousPassword }
-$configuration['up24.newsroom.admin-email'] = 'vivekni1224@gmail.com'
+$configuration['up24.newsroom.admin-email'] = 'admin@example.invalid'
 $configuration.Remove('up24.newsroom.owner-email')
-$configuration['up24.bootstrap.admin-email'] = 'vivekni1224@gmail.com'
+$configuration['up24.bootstrap.admin-email'] = 'admin@example.invalid'
 if (-not $configuration['up24.newsroom.otp-secret']) {
     $configuration['up24.newsroom.otp-secret'] = New-Up24LocalSecret -ByteCount 32
 }

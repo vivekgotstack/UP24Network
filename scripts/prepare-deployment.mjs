@@ -27,7 +27,9 @@ if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash 
   throw new Error('Use a public HTTPS origin without a path or custom port, e.g. --site=https://www.up24network.com');
 const adminEmail=process.env.ADMIN_EMAIL ?? environment.ADMIN_EMAIL;
 const adminPassword=process.env.ADMIN_PASSWORD ?? environment.ADMIN_PASSWORD;
-if (!adminEmail || !adminPassword) throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD in backend/.env first.');
+if (!adminEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail) || /\.invalid$/i.test(adminEmail))
+  throw new Error('Set a real ADMIN_EMAIL in backend/.env first.');
+if (!adminPassword) throw new Error('Set ADMIN_PASSWORD in backend/.env first.');
 if(adminPassword.length<12 || adminPassword.length>64 || Buffer.byteLength(adminPassword,'utf8')>72)
   throw new Error('ADMIN_PASSWORD must use 12-64 characters and at most 72 UTF-8 bytes.');
 secret('postgres-password');

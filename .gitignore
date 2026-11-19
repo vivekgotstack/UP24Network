@@ -1,12 +1,12 @@
 # Secrets and local configuration
 .env
 .env.*
-frontend/.env.production
-!.env.example
 *.pem
 *.key
 *.p12
 *.pfx
+*.jks
+*.keystore
 
 # Java and Maven
 target/
@@ -21,17 +21,16 @@ out/
 # Editor and operating system files
 .idea/
 *.iml
-**/.vscode/*
-!.vscode/launch.json
-!.vscode/tasks.json
-!backend/.vscode/launch.json
-!backend/.vscode/tasks.json
+.vscode/
 .DS_Store
 Thumbs.db
 *.log
 .local/
 
-# Agent navigation notes and temporary implementation helpers
+# Local agent instructions and working notes
+AGENTS.md
+.agents/
+.codex/
 .worknotes/
 
 # Android tooling state and generated distribution artifacts

@@ -10,7 +10,7 @@ if (-not (Test-Path -LiteralPath $environmentPath)) {
     Write-Up24Utf8File -Path $environmentPath -Lines @(
         '# Private backend configuration. Spring .properties syntax: keep values unquoted.'
         '# Set ADMIN_PASSWORD yourself, then restart the backend. Use 12-64 characters.'
-        'ADMIN_EMAIL=vivekni1224@gmail.com'
+        'ADMIN_EMAIL=admin@example.invalid'
         ('ADMIN_PASSWORD=' + $password)
         ''
         '# Bind these values to the identity module. Edit the two settings above.'

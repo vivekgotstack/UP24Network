@@ -1,5 +1,9 @@
 .git
 .worknotes
+**/AGENTS.md
+**/.agents
+**/.codex
+**/.vscode
 **/.local
 **/.env
 **/.env.*
@@ -8,7 +12,6 @@
 android
 deploy
 scripts
-docs
 **/target
 **/*.log
 **/*.p12
