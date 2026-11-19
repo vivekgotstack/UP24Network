@@ -32,7 +32,13 @@ export function AuthPanel({
     try {
       if (signup) {
         if (new TextEncoder().encode(password).length > 72)
-          throw new Error(copy(locale, 'पासवर्ड अधिकतम 72 UTF-8 बाइट का रखें।', 'Use a password of at most 72 UTF-8 bytes.'));
+          throw new Error(
+            copy(
+              locale,
+              'पासवर्ड अधिकतम 72 UTF-8 बाइट का रखें।',
+              'Use a password of at most 72 UTF-8 bytes.',
+            ),
+          );
         await cms('auth/register', 'POST', {
           email,
           password,
@@ -56,13 +62,25 @@ export function AuthPanel({
   return (
     <section className="auth-layout">
       <div className="auth-brand-panel">
-        <Link href="/" className="brand-badge" aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}>
+        <Link
+          href="/"
+          className="brand-badge"
+          aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}
+        >
           <BrandLogo eager />
         </Link>
-        <h1>{editorial ? copy(locale, 'संपादकीय कक्ष', 'Newsroom') : copy(locale, 'खबरों से जुड़े रहें', 'Stay connected')}</h1>
+        <h1>
+          {editorial
+            ? copy(locale, 'संपादकीय कक्ष', 'Newsroom')
+            : copy(locale, 'खबरों से जुड़े रहें', 'Stay connected')}
+        </h1>
         <p>
           {editorial
-            ? copy(locale, 'रिपोर्टिंग, संपादन और प्रकाशन का कार्यक्षेत्र।', 'Your reporting, editing and publishing workspace.')
+            ? copy(
+                locale,
+                'रिपोर्टिंग, संपादन और प्रकाशन का कार्यक्षेत्र।',
+                'Your reporting, editing and publishing workspace.',
+              )
             : copy(locale, 'अपना खाता खोलें और खबरें पढ़ें।', 'Sign in to manage your account.')}
         </p>
         <a href="/" className="text-link">
@@ -71,13 +89,25 @@ export function AuthPanel({
       </div>
       <div className="auth-form-panel">
         <LockKeyhole size={22} aria-hidden="true" />
-        <h2>{signup ? copy(locale, 'खाता बनाएँ', 'Create an account') : copy(locale, 'लॉगिन', 'Sign in')}</h2>
+        <h2>
+          {signup
+            ? copy(locale, 'खाता बनाएँ', 'Create an account')
+            : copy(locale, 'लॉगिन', 'Sign in')}
+        </h2>
         <p>
           {editorial
-            ? copy(locale, 'प्रशासक का दिया खाता इस्तेमाल करें।', 'Use the account provided by your administrator.')
+            ? copy(
+                locale,
+                'प्रशासक का दिया खाता इस्तेमाल करें।',
+                'Use the account provided by your administrator.',
+              )
             : signup
               ? copy(locale, 'मुफ़्त पाठक खाता बनाएँ।', 'Create a free subscriber account.')
-              : copy(locale, 'अपने UP24Network खाते में लॉगिन करें।', 'Sign in to your UP24Network account.')}
+              : copy(
+                  locale,
+                  'अपने UP24Network खाते में लॉगिन करें।',
+                  'Sign in to your UP24Network account.',
+                )}
         </p>
         <form onSubmit={submit} className="cms-form">
           {signup && (
@@ -103,7 +133,11 @@ export function AuthPanel({
               />
               <button
                 type="button"
-                aria-label={visible ? copy(locale, 'पासवर्ड छिपाएँ', 'Hide password') : copy(locale, 'पासवर्ड दिखाएँ', 'Show password')}
+                aria-label={
+                  visible
+                    ? copy(locale, 'पासवर्ड छिपाएँ', 'Hide password')
+                    : copy(locale, 'पासवर्ड दिखाएँ', 'Show password')
+                }
                 aria-pressed={visible}
                 onClick={() => setVisible((value) => !value)}
               >
@@ -113,7 +147,11 @@ export function AuthPanel({
           </label>
           {signup && (
             <p className="field-help">
-              {copy(locale, 'कम से कम 12 अक्षर रखें। पाठक खाते से संपादकीय पहुँच नहीं मिलती।', 'Use at least 12 characters. Subscriber accounts do not have editorial access.')}
+              {copy(
+                locale,
+                'कम से कम 12 अक्षर रखें। पाठक खाते से संपादकीय पहुँच नहीं मिलती।',
+                'Use at least 12 characters. Subscriber accounts do not have editorial access.',
+              )}
             </p>
           )}
           {error && (
@@ -122,13 +160,23 @@ export function AuthPanel({
             </p>
           )}
           <Button disabled={busy} type="submit" className="auth-submit">
-            {busy ? copy(locale, 'प्रतीक्षा करें…', 'Please wait…') : signup ? copy(locale, 'खाता बनाएँ', 'Create account') : copy(locale, 'लॉगिन', 'Sign in')}
+            {busy
+              ? copy(locale, 'प्रतीक्षा करें…', 'Please wait…')
+              : signup
+                ? copy(locale, 'खाता बनाएँ', 'Create account')
+                : copy(locale, 'लॉगिन', 'Sign in')}
           </Button>
         </form>
-        {!signup && <Link className="text-button" href="/account/recover">{copy(locale, 'पासवर्ड भूल गए?', 'Forgot your password?')}</Link>}
+        {!signup && (
+          <Link className="text-button" href="/account/recover">
+            {copy(locale, 'पासवर्ड भूल गए?', 'Forgot your password?')}
+          </Link>
+        )}
         {!editorial && (
           <Link className="text-button" href={signup ? '/account/sign-in' : '/account/register'}>
-            {signup ? copy(locale, 'मौजूदा खाते में लॉगिन', 'Already registered? Sign in') : copy(locale, 'नया खाता बनाएँ', 'New here? Create an account')}
+            {signup
+              ? copy(locale, 'मौजूदा खाते में लॉगिन', 'Already registered? Sign in')
+              : copy(locale, 'नया खाता बनाएँ', 'New here? Create an account')}
           </Link>
         )}
         <p className="auth-help">

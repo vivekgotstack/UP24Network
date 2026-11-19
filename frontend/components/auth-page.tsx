@@ -54,7 +54,12 @@ export function AuthPage({
           signInPath={workspace === 'admin' ? '/admin/sign-in' : '/newsroom/sign-in'}
         />
       ) : (
-        <AuthPanel editorial={editorial} signup={signup} locale={locale} onAuthenticated={authenticated} />
+        <AuthPanel
+          editorial={editorial}
+          signup={signup}
+          locale={locale}
+          onAuthenticated={authenticated}
+        />
       )}
     </main>
   );

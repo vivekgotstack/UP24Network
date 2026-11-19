@@ -265,8 +265,16 @@ class EditorialWorkflowTest {
         var actual = desk.find(article.id()).orElseThrow().article();
         assertThat(actual.publishedAt()).isEqualTo(article.article().publishedAt());
         assertThat(actual.breaking()).isTrue();
-        mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Corrected headline"));
+        mvc.perform(get("/api/articles/"+slug)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Corrected headline"))
+                .andExpect(jsonPath("$.updatedBy").value(editor.displayName()));
         mvc.perform(get("/api/articles/"+proposal.slug())).andExpect(status().isOk());
+        var activity = "/api/admin/articles/"+article.id()+"/activity";
+        mvc.perform(get(activity).with(user(editor.email())).with(verified(editor.email())))
+                .andExpect(status().isForbidden());
+        mvc.perform(get(activity).with(user(owner.email())).with(verified(owner.email())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.action == 'SUBMIT_REVIEW')].actor.name").value(org.hamcrest.Matchers.hasItem(editor.displayName())));
     }
 
     @Test void removedContributorCannotBeApprovedAndCanReceiveAPrivateReturnDecision() throws Exception {

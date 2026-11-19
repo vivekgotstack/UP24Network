@@ -33,7 +33,11 @@ export default async function Home({
   if (typeof filters.category === 'string' && newsSections.some((s) => s.name === filters.category))
     redirect(sectionHref(filters.category));
   if (filters.view === 'latest') redirect('/latest');
-  const [reports, settings, locale] = await Promise.all([getArticles(), getPublicationSettings(), getReaderLocale()]);
+  const [reports, settings, locale] = await Promise.all([
+    getArticles(),
+    getPublicationSettings(),
+    getReaderLocale(),
+  ]);
   const articles = newest(reports.filter(({ category }) => category !== trendingReelsCategory));
   const lead =
     articles.find((a) => a.breaking && Date.now() - Date.parse(a.publishedAt) < 86400000) ??
@@ -63,7 +67,12 @@ export default async function Home({
           </div>
           <div className="edition-date">
             <span className="edition-stamp">UP24Network</span>
-            <time dateTime={new Intl.DateTimeFormat('sv-SE', { dateStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date())}>
+            <time
+              dateTime={new Intl.DateTimeFormat('sv-SE', {
+                dateStyle: 'short',
+                timeZone: 'Asia/Kolkata',
+              }).format(new Date())}
+            >
               {date}
             </time>
           </div>

@@ -14,7 +14,8 @@ export async function EmptyState({
 }) {
   const locale = await getReaderLocale();
   const heading = title ?? copy(locale, 'अभी कोई खबर उपलब्ध नहीं है।', 'No reports available.');
-  const detail = description ?? copy(locale, 'नई खबरें यहाँ दिखाई देंगी।', 'New reports will appear here.');
+  const detail =
+    description ?? copy(locale, 'नई खबरें यहाँ दिखाई देंगी।', 'New reports will appear here.');
   return (
     <section className="empty-state">
       <span className="empty-mark" aria-hidden="true" />

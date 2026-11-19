@@ -25,7 +25,10 @@ type Props = { params: Promise<{ slug: string }> };
 const deskBylines = new Set(['UP24Network Editorial Team', 'UP24Network Desk']);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const [original, locale] = await Promise.all([getArticle((await params).slug), getReaderLocale()]);
+  const [original, locale] = await Promise.all([
+    getArticle((await params).slug),
+    getReaderLocale(),
+  ]);
   if (!original) return { title: copy(locale, 'खबर नहीं मिली', 'Report not found') };
   const article = localizeArticle(original, locale);
   return {
@@ -47,7 +50,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ArticlePage({ params }: Props) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const slug = (await params).slug;
-  const [original, all, locale] = await Promise.all([getArticle(slug), getArticles(), getReaderLocale()]);
+  const [original, all, locale] = await Promise.all([
+    getArticle(slug),
+    getArticles(),
+    getReaderLocale(),
+  ]);
   if (!original) notFound();
   const article = localizeArticle(original, locale);
   if (article.slug !== slug) permanentRedirect(`/news/${encodeURIComponent(article.slug)}`);
@@ -56,7 +63,10 @@ export default async function ArticlePage({ params }: Props) {
   const isDeskByline = deskBylines.has(byline);
   const otherReports = newest(all).filter((report) => report.slug !== slug);
   const authorReports = byline
-    ? otherReports.filter((report) => report.author.trim() === byline).slice(0, 2).map((report) => localizeArticle(report, locale))
+    ? otherReports
+        .filter((report) => report.author.trim() === byline)
+        .slice(0, 2)
+        .map((report) => localizeArticle(report, locale))
     : [];
   const related = otherReports
     .filter((report) => !authorReports.some((authorReport) => authorReport.slug === report.slug))
@@ -88,16 +98,19 @@ export default async function ArticlePage({ params }: Props) {
         <nav className="breadcrumbs" aria-label={copy(locale, 'पृष्ठ का क्रम', 'Breadcrumb')}>
           <Link href="/">{copy(locale, 'मुख्य पृष्ठ', 'Home')}</Link>
           <span aria-hidden="true">/</span>
-          <Link href={sectionHref(article.category)}>
-            {sectionTitle(article.category, locale)}
-          </Link>
+          <Link href={sectionHref(article.category)}>{sectionTitle(article.category, locale)}</Link>
         </nav>
         <article>
           {!article.demo && <ArticleViewEvent key={article.slug} slug={article.slug} />}
           <header className="article-heading">
             <p className="eyebrow">
               {sectionTitle(article.category, locale)}
-              {article.city && <> / <span lang={textLanguage(article.city)}>{article.city}</span></>}
+              {article.city && (
+                <>
+                  {' '}
+                  / <span lang={textLanguage(article.city)}>{article.city}</span>
+                </>
+              )}
             </p>
             <h1 lang={textLanguage(article.title)}>{article.title}</h1>
             <p className="article-deck" lang={textLanguage(article.summary)}>
@@ -111,14 +124,26 @@ export default async function ArticlePage({ params }: Props) {
                 <strong lang={textLanguage(byline)}>
                   <Link href="#about-the-author">{byline}</Link>
                 </strong>
+                {article.updatedBy && (
+                  <p>
+                    {copy(locale, 'अपडेट', 'Updated by')}{' '}
+                    <span lang={textLanguage(article.updatedBy)}>{article.updatedBy}</span>
+                  </p>
+                )}
                 <p>
-                  <time dateTime={article.publishedAt}>{articleDate(article.publishedAt, locale)}</time>
+                  <time dateTime={article.publishedAt}>
+                    {articleDate(article.publishedAt, locale)}
+                  </time>
                   <span aria-hidden="true"> · </span>
                   {reelUrl
                     ? copy(locale, 'Instagram रील', 'Instagram Reel')
                     : article.youtubeId || article.videoUrl
                       ? copy(locale, 'वीडियो रिपोर्ट', 'Video report')
-                      : copy(locale, `${article.readingMinutes} मिनट`, `${article.readingMinutes} min read`)}
+                      : copy(
+                          locale,
+                          `${article.readingMinutes} मिनट`,
+                          `${article.readingMinutes} min read`,
+                        )}
                 </p>
                 <p>
                   {copy(locale, 'संस्करण', 'Version')} {article.editionNumber ?? 1}
@@ -175,7 +200,11 @@ export default async function ArticlePage({ params }: Props) {
           >
             {article.demo && (
               <p className="sample-note">
-                {copy(locale, 'यह स्थानीय परीक्षण के लिए नमूना सामग्री है।', 'Sample content for local preview.')}
+                {copy(
+                  locale,
+                  'यह स्थानीय परीक्षण के लिए नमूना सामग्री है।',
+                  'Sample content for local preview.',
+                )}
               </p>
             )}
             {article.paragraphs.map((paragraph, index) => (
@@ -196,7 +225,9 @@ export default async function ArticlePage({ params }: Props) {
             )}
             <div className="article-end">
               <span aria-hidden="true" />
-              <Link href={sectionHref(article.category)}>{copy(locale, 'इस विभाग की खबरें', 'More in this section')}</Link>
+              <Link href={sectionHref(article.category)}>
+                {copy(locale, 'इस विभाग की खबरें', 'More in this section')}
+              </Link>
             </div>
           </ReadingExperience>
           <section
@@ -208,8 +239,14 @@ export default async function ArticlePage({ params }: Props) {
             <h3 lang={textLanguage(byline)}>{byline}</h3>
             {isDeskByline && (
               <p>
-                {copy(locale, 'UP24Network का संपादकीय दल उत्तर प्रदेश, देश और दुनिया की खबरें प्रस्तुत करता है।', 'UP24Network’s editorial desk covers Uttar Pradesh, national affairs, and international news.')}{' '}
-                <Link href="/editorial-policy">{copy(locale, 'संपादकीय मानक', 'Editorial standards')}</Link>
+                {copy(
+                  locale,
+                  'UP24Network का संपादकीय दल उत्तर प्रदेश, देश और दुनिया की खबरें प्रस्तुत करता है।',
+                  'UP24Network’s editorial desk covers Uttar Pradesh, national affairs, and international news.',
+                )}{' '}
+                <Link href="/editorial-policy">
+                  {copy(locale, 'संपादकीय मानक', 'Editorial standards')}
+                </Link>
               </p>
             )}
             {authorReports.length > 0 ? (
@@ -227,7 +264,9 @@ export default async function ArticlePage({ params }: Props) {
               </ul>
             ) : !isDeskByline ? (
               <p>
-                <Link href={sectionHref(article.category)}>{sectionTitle(article.category, locale)}</Link>
+                <Link href={sectionHref(article.category)}>
+                  {sectionTitle(article.category, locale)}
+                </Link>
               </p>
             ) : null}
           </section>

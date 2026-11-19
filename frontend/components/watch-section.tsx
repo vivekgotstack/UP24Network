@@ -9,16 +9,17 @@ import { localizeArticle } from '@/lib/article-locale';
 
 export async function WatchSection({ articles }: { articles: Article[] }) {
   const locale = await getReaderLocale();
-  const videos = newest(articles).filter(hasVideo).slice(0, 3).map((article) => localizeArticle(article, locale));
+  const videos = newest(articles)
+    .filter(hasVideo)
+    .slice(0, 3)
+    .map((article) => localizeArticle(article, locale));
   if (!videos.length) return null;
   const [lead, ...rest] = videos;
   return (
     <section className="watch-section" id="watch" aria-labelledby="watch-title">
       <div className="watch-heading">
         <div>
-          <h2 id="watch-title">
-            {copy(locale, 'वीडियो खबरें', 'Video reports')}
-          </h2>
+          <h2 id="watch-title">{copy(locale, 'वीडियो खबरें', 'Video reports')}</h2>
         </div>
         <Link href="/watch" className="text-link">
           {copy(locale, 'सभी वीडियो', 'All videos')}

@@ -10,7 +10,13 @@ import { getReaderLocale } from '@/lib/reader-locale';
 import { copy } from '@/lib/locale';
 import { localizeArticle } from '@/lib/article-locale';
 
-export async function StoryCard({ article: input, lead = false }: { article: Article; lead?: boolean }) {
+export async function StoryCard({
+  article: input,
+  lead = false,
+}: {
+  article: Article;
+  lead?: boolean;
+}) {
   const locale = await getReaderLocale();
   const article = localizeArticle(input, locale);
   return (
@@ -31,10 +37,10 @@ export async function StoryCard({ article: input, lead = false }: { article: Art
       </div>
       <div className="story-copy">
         <p className="story-category">
-          <Link href={sectionHref(article.category)}>
-            {sectionTitle(article.category, locale)}
-          </Link>
-          {article.breaking && <span className="breaking-label">{copy(locale, 'ब्रेकिंग', 'Breaking')}</span>}
+          <Link href={sectionHref(article.category)}>{sectionTitle(article.category, locale)}</Link>
+          {article.breaking && (
+            <span className="breaking-label">{copy(locale, 'ब्रेकिंग', 'Breaking')}</span>
+          )}
         </p>
         <h2 lang={textLanguage(article.title)}>
           <Link href={`/news/${article.slug}`}>{article.title}</Link>
@@ -49,7 +55,11 @@ export async function StoryCard({ article: input, lead = false }: { article: Art
           <span>
             {article.youtubeId || article.videoUrl
               ? copy(locale, 'वीडियो रिपोर्ट', 'Video report')
-              : copy(locale, `${article.readingMinutes} मिनट`, `${article.readingMinutes} min read`)}
+              : copy(
+                  locale,
+                  `${article.readingMinutes} मिनट`,
+                  `${article.readingMinutes} min read`,
+                )}
           </span>
         </div>
       </div>

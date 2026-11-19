@@ -35,7 +35,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body id="top">
         <Providers>
-          <AppFrame locale={locale} footer={<SiteFooter />}>{children}</AppFrame>
+          <AppFrame locale={locale} footer={<SiteFooter />}>
+            {children}
+          </AppFrame>
           <PwaInstall locale={locale} />
         </Providers>
       </body>

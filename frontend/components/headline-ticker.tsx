@@ -13,14 +13,15 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
     (article) =>
       article.breaking && Date.now() - new Date(article.publishedAt).getTime() < 86400000,
   );
-  const headlines = (recentBreaking.length ? recentBreaking : articles).slice(0, 6).map((article) => localizeArticle(article, locale));
+  const headlines = (recentBreaking.length ? recentBreaking : articles)
+    .slice(0, 6)
+    .map((article) => localizeArticle(article, locale));
   if (!headlines.length) return null;
   return (
-    <section
-      className="headline-ticker"
-      aria-label={copy(locale, 'मुख्य खबरें', 'Headlines')}
-    >
-      <strong>{recentBreaking.length ? copy(locale, 'ब्रेकिंग', 'Breaking') : copy(locale, 'ताज़ा', 'Latest')}</strong>
+    <section className="headline-ticker" aria-label={copy(locale, 'मुख्य खबरें', 'Headlines')}>
+      <strong>
+        {recentBreaking.length ? copy(locale, 'ब्रेकिंग', 'Breaking') : copy(locale, 'ताज़ा', 'Latest')}
+      </strong>
       <div className="ticker-window">
         <div className="ticker-track">
           {[0, 1].map((copy) => (
@@ -39,7 +40,10 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
           ))}
         </div>
       </div>
-      <nav className="ticker-follow" aria-label={copy(locale, 'UP24Network को फ़ॉलो करें', 'Follow UP24Network')}>
+      <nav
+        className="ticker-follow"
+        aria-label={copy(locale, 'UP24Network को फ़ॉलो करें', 'Follow UP24Network')}
+      >
         <span>{copy(locale, 'फ़ॉलो करें', 'Follow us')}</span>
         {brand.socials.map((social) => (
           <a
@@ -47,7 +51,11 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
             href={social.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={copy(locale, `${social.name} पर UP24Network को फ़ॉलो करें`, `Follow UP24Network on ${social.name}`)}
+            aria-label={copy(
+              locale,
+              `${social.name} पर UP24Network को फ़ॉलो करें`,
+              `Follow UP24Network on ${social.name}`,
+            )}
             title={social.name}
           >
             <SocialIcon name={social.name} />

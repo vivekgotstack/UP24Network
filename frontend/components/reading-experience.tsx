@@ -6,7 +6,15 @@ import { Button } from '@/components/ui/button';
 import { useSavedStories, type SavedStory } from '@/lib/saved-stories';
 import { copy, type SiteLocale } from '@/lib/locale';
 
-export function ReadingExperience({ story, children, locale = 'hi' }: { story: SavedStory; children: ReactNode; locale?: SiteLocale }) {
+export function ReadingExperience({
+  story,
+  children,
+  locale = 'hi',
+}: {
+  story: SavedStory;
+  children: ReactNode;
+  locale?: SiteLocale;
+}) {
   const [scale, setScale] = useState(1);
   const [notice, setNotice] = useState('');
   const { stories, toggle } = useSavedStories();
@@ -21,12 +29,17 @@ export function ReadingExperience({ story, children, locale = 'hi' }: { story: S
       }
     } catch (error) {
       if (!(error instanceof Error && error.name === 'AbortError'))
-        setNotice(copy(locale, `खबर का लिंक कॉपी करें। ${data.url}`, `Copy the article link. ${data.url}`));
+        setNotice(
+          copy(locale, `खबर का लिंक कॉपी करें। ${data.url}`, `Copy the article link. ${data.url}`),
+        );
     }
   }
   return (
     <div className="reading-experience" style={{ '--reading-scale': scale } as CSSProperties}>
-      <div className="reading-toolbar" aria-label={copy(locale, 'पढ़ने के विकल्प', 'Article reading tools')}>
+      <div
+        className="reading-toolbar"
+        aria-label={copy(locale, 'पढ़ने के विकल्प', 'Article reading tools')}
+      >
         <div className="reading-size">
           <Button
             variant="ghost"
@@ -55,9 +68,15 @@ export function ReadingExperience({ story, children, locale = 'hi' }: { story: S
             onClick={() => {
               try {
                 toggle(story);
-                setNotice(saved ? copy(locale, 'खबर सूची से हटा दी गई।', 'Removed from your reading list.') : copy(locale, 'खबर सहेज ली गई।', 'Saved on this browser.'));
+                setNotice(
+                  saved
+                    ? copy(locale, 'खबर सूची से हटा दी गई।', 'Removed from your reading list.')
+                    : copy(locale, 'खबर सहेज ली गई।', 'Saved on this browser.'),
+                );
               } catch {
-                setNotice(copy(locale, 'खबर सहेजी नहीं जा सकी।', 'Your browser could not save this article.'));
+                setNotice(
+                  copy(locale, 'खबर सहेजी नहीं जा सकी।', 'Your browser could not save this article.'),
+                );
               }
             }}
           >

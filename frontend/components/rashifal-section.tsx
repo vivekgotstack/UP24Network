@@ -14,7 +14,9 @@ export async function RashifalSection({
   if (!edition)
     return showEmpty ? (
       <section className="empty-state">
-        <h2>{copy(locale, 'आज का राशिफल अभी उपलब्ध नहीं है।', 'Today’s horoscope is unavailable.')}</h2>
+        <h2>
+          {copy(locale, 'आज का राशिफल अभी उपलब्ध नहीं है।', 'Today’s horoscope is unavailable.')}
+        </h2>
         <p>{copy(locale, 'नया संस्करण यहाँ दिखाई देगा।', 'The new edition will appear here.')}</p>
       </section>
     ) : null;

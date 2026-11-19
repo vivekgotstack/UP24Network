@@ -87,10 +87,9 @@ function ProposedMedia({ detail }: { detail: ReviewDetail }) {
   const [failedVideo, setFailedVideo] = useState(false);
   const { title, image, imageAlt, videoUrl, youtubeId } = detail.input;
   const reelUrl = canonicalReelUrl(detail.input.reelUrl);
-  const photo =
-    image && allowedMedia(image) && (!reelUrl || !image.startsWith('/brand/')) ? image : '';
-  const video = videoUrl && allowedMedia(videoUrl, false) ? videoUrl : '';
-  const youtube = youtubeId && /^[A-Za-z0-9_-]{11}$/.test(youtubeId) ? youtubeId : '';
+  const photo = !reelUrl && image && allowedMedia(image) ? image : '';
+  const video = !reelUrl && videoUrl && allowedMedia(videoUrl, false) ? videoUrl : '';
+  const youtube = !reelUrl && youtubeId && /^[A-Za-z0-9_-]{11}$/.test(youtubeId) ? youtubeId : '';
   if (!photo && !video && !youtube && !reelUrl) return null;
   return (
     <section className={styles.proposalMedia} aria-labelledby={`media-${detail.id}`}>

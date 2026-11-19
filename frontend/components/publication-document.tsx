@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
 import type { PublicationDocument as Document } from '@/lib/publication';
-import { getPublicationPage, getPublicationNavigation, publicationEdition } from '@/lib/publication-api';
+import {
+  getPublicationPage,
+  getPublicationNavigation,
+  publicationEdition,
+} from '@/lib/publication-api';
 import { copy, publicationLabel } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 import { CookiePreferences } from '@/components/cookie-consent';
@@ -26,14 +30,19 @@ export async function PublicationDocument({ document: initial }: { document: Doc
     <>
       <SiteHeader compact />
       <main id="main-content" className="publication-page" lang={locale}>
-        <nav className="publication-breadcrumb" aria-label={copy(locale, 'पृष्ठ का रास्ता', 'Breadcrumb')}>
+        <nav
+          className="publication-breadcrumb"
+          aria-label={copy(locale, 'पृष्ठ का रास्ता', 'Breadcrumb')}
+        >
           <Link href="/">UP24Network</Link>
           <span aria-hidden="true">/</span>
           <span lang={contentLocale}>{document.label}</span>
         </nav>
         <header className="publication-heading">
           <h1 lang={contentLocale}>{document.title}</h1>
-          <p className="publication-intro" lang={contentLocale}>{document.intro}</p>
+          <p className="publication-intro" lang={contentLocale}>
+            {document.intro}
+          </p>
           {persisted?.updatedAt && (
             <p className="publication-date">
               {copy(locale, 'अपडेट', 'Updated')}{' '}
@@ -49,7 +58,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
         <div className="publication-layout">
           <aside className="publication-sidebar">
             <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
-              <p className="eyebrow">{copy(locale, 'जानकारी और नीतियाँ', 'Information & policies')}</p>
+              <p className="eyebrow">
+                {copy(locale, 'जानकारी और नीतियाँ', 'Information & policies')}
+              </p>
               {publicationNavigation.map(({ path, label }) => (
                 <Link
                   key={path}
@@ -60,19 +71,29 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 </Link>
               ))}
             </nav>
-            <nav className="publication-contents" aria-label={copy(locale, 'इस पृष्ठ पर', 'On this page')}>
+            <nav
+              className="publication-contents"
+              aria-label={copy(locale, 'इस पृष्ठ पर', 'On this page')}
+            >
               <p className="eyebrow">{copy(locale, 'इस पृष्ठ पर', 'On this page')}</p>
               {document.sections.map((section) => (
                 <a key={section.id} href={`#${section.id}`} lang={contentLocale}>
                   {section.title}
                 </a>
               ))}
-              {showContactForm && <a href="#reader-contact">{copy(locale, 'संदेश भेजें', 'Send a message')}</a>}
+              {showContactForm && (
+                <a href="#reader-contact">{copy(locale, 'संदेश भेजें', 'Send a message')}</a>
+              )}
             </nav>
           </aside>
           <article className="publication-copy" aria-label={document.title}>
             {document.sections.map((section) => (
-              <section id={section.id} key={section.id} aria-labelledby={`heading-${section.id}`} lang={contentLocale}>
+              <section
+                id={section.id}
+                key={section.id}
+                aria-labelledby={`heading-${section.id}`}
+                lang={contentLocale}
+              >
                 <h2 id={`heading-${section.id}`}>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
@@ -95,7 +116,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 )}
                 {document.path === '/cookies' && section.id === 'choice' && (
                   <div className="publication-related">
-                    <CookiePreferences>{copy(locale, 'कुकी पसंद बदलें', 'Change cookie settings')}</CookiePreferences>
+                    <CookiePreferences>
+                      {copy(locale, 'कुकी पसंद बदलें', 'Change cookie settings')}
+                    </CookiePreferences>
                   </div>
                 )}
                 {document.path === '/contact' && section.id === 'channels' && (
@@ -109,7 +132,11 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                       >
                         <strong>{social.name}</strong>
                         <span>
-                          UP24Network<span className="sr-only"> · {copy(locale, 'नए टैब में खुलेगा', 'Opens in a new tab')}</span>
+                          UP24Network
+                          <span className="sr-only">
+                            {' '}
+                            · {copy(locale, 'नए टैब में खुलेगा', 'Opens in a new tab')}
+                          </span>
                         </span>
                       </a>
                     ))}
@@ -119,7 +146,9 @@ export async function PublicationDocument({ document: initial }: { document: Doc
             ))}
             {(document.path === '/cookies' || document.path === '/privacy') && (
               <section aria-labelledby="instagram-media-heading">
-                <h2 id="instagram-media-heading">{copy(locale, 'Instagram रील्स', 'Instagram reels')}</h2>
+                <h2 id="instagram-media-heading">
+                  {copy(locale, 'Instagram रील्स', 'Instagram reels')}
+                </h2>
                 <p>
                   {copy(
                     locale,
@@ -131,17 +160,30 @@ export async function PublicationDocument({ document: initial }: { document: Doc
             )}
             {document.path === '/privacy' && (
               <section aria-labelledby="reader-view-counts-heading">
-                <h2 id="reader-view-counts-heading">{copy(locale, 'लेख कितनी बार खुले', 'Article view counts')}</h2>
+                <h2 id="reader-view-counts-heading">
+                  {copy(locale, 'लेख कितनी बार खुले', 'Article view counts')}
+                </h2>
                 <p>
-                  {copy(locale, 'हम देखते हैं कि कौन-सी सार्वजनिक रिपोर्ट कितनी बार खुलती है। मौजूदा लॉगिन स्थिति से कर्मचारियों के व्यू अलग रखे जाते हैं। कुल संख्या में पाठक का नाम, खाता पहचान या पढ़ने का इतिहास नहीं होता।', 'We count public article views to understand which reports readers open. We use the current sign-in status to exclude staff views. The resulting totals contain no reader names, account identifiers, or browsing histories.')}
+                  {copy(
+                    locale,
+                    'हम देखते हैं कि कौन-सी सार्वजनिक रिपोर्ट कितनी बार खुलती है। मौजूदा लॉगिन स्थिति से कर्मचारियों के व्यू अलग रखे जाते हैं। कुल संख्या में पाठक का नाम, खाता पहचान या पढ़ने का इतिहास नहीं होता।',
+                    'We count public article views to understand which reports readers open. We use the current sign-in status to exclude staff views. The resulting totals contain no reader names, account identifiers, or browsing histories.',
+                  )}
                 </p>
               </section>
             )}
             {showContactForm && <ReaderContactForm topic={contactTopic} locale={locale} />}
             <footer className="publication-note">
               <p>
-                {copy(locale, 'इस नीति या किसी रिपोर्ट के बारे में प्रश्न हो तो', 'For a question about this policy or a published report,')}{' '}
-                <Link href="/contact">{copy(locale, 'UP24Network से संपर्क करें', 'contact UP24Network')}</Link>{copy(locale, '।', '.')}
+                {copy(
+                  locale,
+                  'इस नीति या किसी रिपोर्ट के बारे में प्रश्न हो तो',
+                  'For a question about this policy or a published report,',
+                )}{' '}
+                <Link href="/contact">
+                  {copy(locale, 'UP24Network से संपर्क करें', 'contact UP24Network')}
+                </Link>
+                {copy(locale, '।', '.')}
               </p>
             </footer>
           </article>

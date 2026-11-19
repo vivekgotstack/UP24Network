@@ -3,16 +3,19 @@
 import { useState } from 'react';
 import type { AirQualityCity } from '@/lib/air-quality-api';
 import { AirQualityReading, aqiBands } from '@/components/air-quality-reading';
+import { copy, type SiteLocale } from '@/lib/locale';
 import styles from './air-quality.module.css';
 
 export function AirQualityCityPicker({
   cities,
   initialCity,
   asOf,
+  locale,
 }: {
   cities: AirQualityCity[];
   initialCity: string;
   asOf: number;
+  locale: SiteLocale;
 }) {
   const [selected, setSelected] = useState(initialCity);
   const city = cities.find((entry) => entry.key === selected) ?? cities[0];
@@ -25,10 +28,10 @@ export function AirQualityCityPicker({
   return (
     <div className={styles.picker}>
       <label className={styles.field}>
-        शहर चुनें
+        {copy(locale, 'शहर चुनें', 'Choose city')}
         <select value={city.key} onChange={(event) => setSelected(event.target.value)}>
           {[...groups]
-            .sort(([a], [b]) => a.localeCompare(b, 'hi'))
+            .sort(([a], [b]) => a.localeCompare(b, locale))
             .map(([state, entries]) => (
               <optgroup key={state} label={state}>
                 {entries.map((entry) => (
@@ -45,14 +48,15 @@ export function AirQualityCityPicker({
           <h2>{city.city}</h2>
           <p>{city.state}</p>
         </div>
-        <AirQualityReading city={city} asOf={asOf} />
+        <AirQualityReading city={city} asOf={asOf} locale={locale} />
       </div>
       <details className={styles.legend}>
-        <summary>AQI का पैमाना</summary>
+        <summary>{copy(locale, 'AQI का पैमाना', 'AQI scale')}</summary>
         <ul>
           {aqiBands.map((band) => (
             <li key={band.range}>
-              <span className={`${styles.range} ${band.color}`}>{band.range}</span> {band.label}
+              <span className={`${styles.range} ${band.color}`}>{band.range}</span>{' '}
+              {copy(locale, band.label, band.english)}
             </li>
           ))}
         </ul>

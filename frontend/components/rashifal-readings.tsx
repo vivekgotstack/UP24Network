@@ -37,7 +37,9 @@ export function RashifalReadings({
         <div>
           <h2 id="rashifal-title">{copy(locale, 'आज का राशिफल', 'Today’s horoscope')}</h2>
           {!compact && (
-            <p className="rashifal-intro">{copy(locale, 'अपनी राशि चुनें।', 'Choose your zodiac sign.')}</p>
+            <p className="rashifal-intro">
+              {copy(locale, 'अपनी राशि चुनें।', 'Choose your zodiac sign.')}
+            </p>
           )}
         </div>
         <div className="rashifal-date">
@@ -51,10 +53,16 @@ export function RashifalReadings({
               key={sign.sign}
               className="rashi-sign"
               value={sign.sign}
-              aria-label={copy(locale, `${sign.name} राशिफल`, `${zodiacFor(sign.sign)?.englishName ?? sign.name} horoscope`)}
+              aria-label={copy(
+                locale,
+                `${sign.name} राशिफल`,
+                `${zodiacFor(sign.sign)?.englishName ?? sign.name} horoscope`,
+              )}
             >
               <ZodiacArt sign={sign.sign} />
-              <span className="rashi-sign-name">{copy(locale, sign.name, zodiacFor(sign.sign)?.englishName ?? sign.name)}</span>
+              <span className="rashi-sign-name">
+                {copy(locale, sign.name, zodiacFor(sign.sign)?.englishName ?? sign.name)}
+              </span>
               {!compact && locale === 'hi' && (
                 <span className="rashi-sign-english" lang="en" aria-hidden="true">
                   {zodiacFor(sign.sign)?.englishName}
@@ -82,9 +90,17 @@ export function RashifalReadings({
               )}
               <div className="rashi-copy">
                 <header>
-                  <h3>{copy(locale, `${sign.name} राशिफल`, zodiacFor(sign.sign)?.englishName ?? sign.name)}</h3>
+                  <h3>
+                    {copy(
+                      locale,
+                      `${sign.name} राशिफल`,
+                      zodiacFor(sign.sign)?.englishName ?? sign.name,
+                    )}
+                  </h3>
                 </header>
-                <p className="rashi-text" lang="hi">{sign.reading}</p>
+                <p className="rashi-text" lang="hi">
+                  {sign.reading}
+                </p>
                 <dl className="rashi-details">
                   <div>
                     <dt>{copy(locale, 'शुभ अंक', 'Lucky number')}</dt>
@@ -115,7 +131,11 @@ export function RashifalReadings({
         </Link>
       )}
       <p className="rashi-note">
-        {copy(locale, 'ज्योतिष परंपरा पर आधारित सामान्य मार्गदर्शन।', 'General guidance from astrological tradition.')}
+        {copy(
+          locale,
+          'ज्योतिष परंपरा पर आधारित सामान्य मार्गदर्शन।',
+          'General guidance from astrological tradition.',
+        )}
       </p>
     </section>
   );

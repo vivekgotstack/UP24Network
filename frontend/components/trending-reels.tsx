@@ -43,8 +43,12 @@ export async function TrendingReels() {
                   {reel.summary}
                 </span>
                 <span className={styles.credit}>
-                  {copy(locale, 'चयन', 'Curated by')}{' '}
-                  <span lang={textLanguage(reel.author)}>{reel.author}</span>
+                  {reel.updatedBy
+                    ? copy(locale, 'अपडेट', 'Updated by')
+                    : copy(locale, 'चयनकर्ता', 'Curated by')}{' '}
+                  <span lang={textLanguage(reel.updatedBy ?? reel.author)}>
+                    {reel.updatedBy ?? reel.author}
+                  </span>
                 </span>
               </span>
             </Link>

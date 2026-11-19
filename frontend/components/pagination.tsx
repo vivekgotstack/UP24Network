@@ -2,7 +2,15 @@ import Link from 'next/link';
 import { copy } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 
-export async function Pagination({ page, pages, base }: { page: number; pages: number; base: string }) {
+export async function Pagination({
+  page,
+  pages,
+  base,
+}: {
+  page: number;
+  pages: number;
+  base: string;
+}) {
   if (pages <= 1) return null;
   const locale = await getReaderLocale();
   const previous = copy(locale, 'पिछला', 'Previous');
@@ -15,9 +23,7 @@ export async function Pagination({ page, pages, base }: { page: number; pages: n
       ) : (
         <span aria-disabled="true">{previous}</span>
       )}
-      <span>
-        {copy(locale, `पृष्ठ ${page} / ${pages}`, `Page ${page} of ${pages}`)}
-      </span>
+      <span>{copy(locale, `पृष्ठ ${page} / ${pages}`, `Page ${page} of ${pages}`)}</span>
       {page < pages ? (
         <Link href={href(page + 1)}>{next}</Link>
       ) : (

@@ -81,7 +81,10 @@ export const getNewsletterAvailability = cache(async (): Promise<boolean> => {
   return false;
 });
 export async function publicationMetadata(fallback: PublicationDocument): Promise<Metadata> {
-  const [persisted, locale] = await Promise.all([getPublicationPage(fallback.path), getReaderLocale()]);
+  const [persisted, locale] = await Promise.all([
+    getPublicationPage(fallback.path),
+    getReaderLocale(),
+  ]);
   const { document } = publicationEdition(fallback, persisted, locale);
   return {
     title: document.title,
@@ -90,7 +93,11 @@ export async function publicationMetadata(fallback: PublicationDocument): Promis
   };
 }
 
-export function publicationEdition(fallback: PublicationDocument, persisted: EditablePublicationDocument | undefined, locale: SiteLocale) {
+export function publicationEdition(
+  fallback: PublicationDocument,
+  persisted: EditablePublicationDocument | undefined,
+  locale: SiteLocale,
+) {
   if (locale === 'hi' && (!persisted || persisted.version === 0)) {
     const translated = hindiPublication(fallback);
     if (translated) return { document: translated, contentLocale: 'hi' as const };

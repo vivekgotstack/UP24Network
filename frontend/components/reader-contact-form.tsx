@@ -16,11 +16,19 @@ const hindiTopics: Record<CorrespondenceTopic, string> = {
   ADVERTISING: 'विज्ञापन संबंधी प्रश्न',
 };
 
-export function ReaderContactForm({ topic, locale }: { topic?: CorrespondenceTopic; locale: SiteLocale }) {
+export function ReaderContactForm({
+  topic,
+  locale,
+}: {
+  topic?: CorrespondenceTopic;
+  locale: SiteLocale;
+}) {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
-  const heading = topic ? copy(locale, hindiTopics[topic], correspondenceTopics[topic]) : copy(locale, 'संदेश भेजें', 'Send us a message');
+  const heading = topic
+    ? copy(locale, hindiTopics[topic], correspondenceTopics[topic])
+    : copy(locale, 'संदेश भेजें', 'Send us a message');
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,8 +52,16 @@ export function ReaderContactForm({ topic, locale }: { topic?: CorrespondenceTop
         reason instanceof CmsError && reason.status === 429
           ? copy(locale, 'कृपया कुछ देर बाद दोबारा कोशिश करें।', 'Try again in a little while.')
           : reason instanceof CmsError && reason.status === 400
-            ? copy(locale, 'सभी ज़रूरी जानकारी और ईमेल पता जाँचें।', 'Check that each field is complete and your email address is valid.')
-            : copy(locale, 'संदेश नहीं भेजा जा सका। दोबारा कोशिश करें।', 'Your message could not be sent. Please try again.'),
+            ? copy(
+                locale,
+                'सभी ज़रूरी जानकारी और ईमेल पता जाँचें।',
+                'Check that each field is complete and your email address is valid.',
+              )
+            : copy(
+                locale,
+                'संदेश नहीं भेजा जा सका। दोबारा कोशिश करें।',
+                'Your message could not be sent. Please try again.',
+              ),
       );
     } finally {
       setSubmitting(false);
@@ -94,17 +110,37 @@ export function ReaderContactForm({ topic, locale }: { topic?: CorrespondenceTop
             />
           </label>
           <p id="contact-message-help">
-            {copy(locale, 'किसी खबर से जुड़ा संदेश हो तो उसका लिंक दें। पासवर्ड और संवेदनशील दस्तावेज़ न भेजें।', 'Include the article URL if your message concerns a story. Leave out passwords and sensitive documents.')}
+            {copy(
+              locale,
+              'किसी खबर से जुड़ा संदेश हो तो उसका लिंक दें। पासवर्ड और संवेदनशील दस्तावेज़ न भेजें।',
+              'Include the article URL if your message concerns a story. Leave out passwords and sensitive documents.',
+            )}
           </p>
           <p>
-            {copy(locale, 'हम आपकी जानकारी का उपयोग समीक्षा और जवाब के लिए करते हैं।', 'We use your details to review and respond.')}{' '}
+            {copy(
+              locale,
+              'हम आपकी जानकारी का उपयोग समीक्षा और जवाब के लिए करते हैं।',
+              'We use your details to review and respond.',
+            )}{' '}
             <Link href="/privacy">{copy(locale, 'गोपनीयता नीति', 'Privacy policy')}</Link>
           </p>
           <Button type="submit" size="lg">
-            {submitting ? copy(locale, 'भेज रहे हैं…', 'Sending…') : copy(locale, 'संदेश भेजें', 'Send message')}
+            {submitting
+              ? copy(locale, 'भेज रहे हैं…', 'Sending…')
+              : copy(locale, 'संदेश भेजें', 'Send message')}
           </Button>
         </fieldset>
-        <div role="status">{sent && <p>{copy(locale, 'UP24Network को आपका संदेश मिला।', 'Your message was received by UP24Network.')}</p>}</div>
+        <div role="status">
+          {sent && (
+            <p>
+              {copy(
+                locale,
+                'UP24Network को आपका संदेश मिला।',
+                'Your message was received by UP24Network.',
+              )}
+            </p>
+          )}
+        </div>
         {error && (
           <p className="inline-error" role="alert">
             {error}
