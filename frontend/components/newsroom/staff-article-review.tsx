@@ -220,9 +220,7 @@ export function StaffEditorialSubmission({
       setConfirmed({ factsVerified: false, rightsVerified: false, standardsVerified: false });
       onEvidenceChange(false);
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : 'The report could not be submitted.',
-      );
+      setError(reason instanceof Error ? reason.message : 'The report could not be submitted.');
       onConflict(reason);
     } finally {
       setBusy(false);
@@ -234,8 +232,12 @@ export function StaffEditorialSubmission({
       <header className={styles.intro}>
         <h3 ref={heading} tabIndex={-1}>
           {editorPublication
-            ? published ? 'Confirm and publish corrections' : 'Confirm and publish report'
-            : published ? 'Submit a proposed update' : 'Request publication'}
+            ? published
+              ? 'Confirm and publish corrections'
+              : 'Confirm and publish report'
+            : published
+              ? 'Submit a proposed update'
+              : 'Request publication'}
         </h3>
         <p>
           {editorPublication
@@ -256,7 +258,9 @@ export function StaffEditorialSubmission({
         </div>
       </details>
       <fieldset className={styles.evidence} disabled={busy}>
-        <legend>{editorPublication ? 'Publication record' : 'Evidence for the administrator'}</legend>
+        <legend>
+          {editorPublication ? 'Publication record' : 'Evidence for the administrator'}
+        </legend>
         <label>
           {published ? 'Summary of changes' : 'Publication rationale'}
           <textarea

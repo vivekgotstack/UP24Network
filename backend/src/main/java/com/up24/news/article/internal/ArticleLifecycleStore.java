@@ -17,5 +17,6 @@ interface ArticleLifecycleStore {
     boolean restore(UUID id, long version, UUID actorId);
     void creditUpdate(UUID id, String contributor);
     void record(UUID articleId, String action, UUID actorId, long version);
+    void recordEditorialEvidence(UUID articleId, String action, UUID actorId, long version, ArticleLifecycle.EditorialEvidence evidence);
     List<ArticleLifecycle.Activity> activity(UUID id);
 }

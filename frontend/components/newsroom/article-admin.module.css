@@ -183,6 +183,19 @@
 .activityLedger time {
   color: var(--muted);
 }
+.activityEvidence {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.activityEvidence summary {
+  cursor: pointer;
+  padding-block: 5px;
+  font-weight: 600;
+}
+.activityEvidence p {
+  margin-block: 8px;
+  white-space: pre-wrap;
+}
 .autofill {
   display: flex !important;
   align-items: center;

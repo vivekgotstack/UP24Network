@@ -26,6 +26,7 @@ export type ArticleActivity = {
   actor?: EditorialActor | null;
   version: number;
   occurredAt: string;
+  evidence?: { changeSummary: string; verificationNotes: string } | null;
 };
 export type LifecycleAction = 'ARCHIVE' | 'TRASH' | 'RESTORE';
 export function articlePagePath(status = 'ALL', q = '', page = 1, size = 20) {

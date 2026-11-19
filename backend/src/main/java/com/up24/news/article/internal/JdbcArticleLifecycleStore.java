@@ -85,11 +85,35 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
         jdbc.update("UPDATE article_record SET updated_byline=? WHERE id=?",contributor,id);
     }
     @Override public void record(UUID articleId, String action, UUID actorId, long version) {
-        jdbc.update("INSERT INTO article_activity(id,article_id,action,actor_id,version) VALUES (?,?,?,?,?)",UUID.randomUUID(),articleId,action,actorId,version);
+        recordActivity(articleId, action, actorId, version, null);
+    }
+    @Override public void recordEditorialEvidence(UUID articleId, String action, UUID actorId, long version,
+                                                  ArticleLifecycle.EditorialEvidence evidence) {
+        try {
+            recordActivity(articleId, action, actorId, version, json.writeValueAsString(evidence));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            throw new IllegalStateException("Could not record editorial evidence", exception);
+        }
+    }
+    private void recordActivity(UUID articleId, String action, UUID actorId, long version, String evidence) {
+        jdbc.update("""
+                INSERT INTO article_activity(id,article_id,action,actor_id,version,editorial_evidence)
+                VALUES (?,?,?,?,?,?::jsonb)
+                """, UUID.randomUUID(), articleId, action, actorId, version, evidence);
         jdbc.update("DELETE FROM article_activity WHERE article_id=? AND id NOT IN (SELECT id FROM article_activity WHERE article_id=? ORDER BY occurred_at DESC,id DESC LIMIT 100)",articleId,articleId);
     }
     @Override public List<ArticleLifecycle.Activity> activity(UUID id) {
         return jdbc.query("SELECT * FROM article_activity WHERE article_id=? ORDER BY occurred_at DESC,id DESC LIMIT 50",
-                (row,index) -> new ArticleLifecycle.Activity(row.getObject("id",UUID.class),row.getString("action"),row.getObject("actor_id",UUID.class),row.getLong("version"),row.getTimestamp("occurred_at").toInstant()),id);
+                (row,index) -> new ArticleLifecycle.Activity(row.getObject("id",UUID.class),row.getString("action"),
+                        row.getObject("actor_id",UUID.class),row.getLong("version"),row.getTimestamp("occurred_at").toInstant(),
+                        evidence(row.getString("editorial_evidence"))), id);
+    }
+    private ArticleLifecycle.EditorialEvidence evidence(String value) throws java.sql.SQLException {
+        if (value == null) return null;
+        try {
+            return json.readValue(value, ArticleLifecycle.EditorialEvidence.class);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            throw new java.sql.SQLException("Invalid stored editorial evidence", exception);
+        }
     }
 }

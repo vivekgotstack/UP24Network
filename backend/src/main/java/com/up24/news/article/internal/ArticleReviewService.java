@@ -1,6 +1,7 @@
 package com.up24.news.article.internal;
 
 import com.up24.news.article.ArticleDesk;
+import com.up24.news.article.ArticleLifecycle.EditorialEvidence;
 import com.up24.news.article.ArticleOperationException;
 import com.up24.news.article.internal.ArticleReview.*;
 import com.up24.news.identity.Accounts;
@@ -16,6 +17,9 @@ import static com.up24.news.article.ArticleOperationException.Reason.*;
 
 @Service
 class ArticleReviewService {
+    private record CheckedSubmission(ArticleDesk.Managed article, ArticleDesk.Input input, Kind kind,
+                                     EditorialEvidence evidence) {}
+
     private final ArticleDesk articles;
     private final ArticleLifecycleStore lifecycle;
     private final ArticleReviewStore requests;
@@ -51,7 +55,7 @@ class ArticleReviewService {
         var article = readableArticle(id, actor);
         if (!article.status().equals("DRAFT")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Published stories can only be changed through editorial review.");
+                    "Use the publishing workflow to correct a published report.");
         }
         requireNoPending(id);
         ReportingRequirements.draft(input);
@@ -61,17 +65,45 @@ class ArticleReviewService {
     @Transactional
     public Summary submit(UUID id, Submission submission, Accounts.Account actor) {
         daily.lockContributor(actor.id());
+        var checked = prepare(id, submission, actor);
+        var review = requests.add(id, checked.input(), checked.kind(), actor, checked.evidence().changeSummary(),
+                checked.evidence().verificationNotes(), daily.openDay(actor.id()));
+        lifecycle.record(id, "SUBMIT_REVIEW", actor.id(), checked.article().version());
+        return review;
+    }
+
+    @Transactional
+    public ArticleDesk.Managed publishByEditor(UUID id, Submission submission, Accounts.Account actor) {
+        var checked = prepare(id, submission, actor);
+        if (checked.kind() == Kind.UPDATE
+                && !checked.article().article().slug().equals(ArticleFieldPolicy.slug(checked.input().slug()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only an administrator can change the address of a published report.");
+        }
+        var applied = articles.save(id, checked.input(), actor.id(), checked.article().article().author());
+        if (checked.kind() == Kind.PUBLISH) {
+            applied = articles.publish(id, applied.version(), true, false, actor.id());
+        } else {
+            lifecycle.creditUpdate(id, actor.displayName());
+            applied = articles.find(id).orElseThrow(ArticleReviewService::missingArticle);
+        }
+        String action = checked.kind() == Kind.PUBLISH ? "EDITOR_RELEASE" : "EDITOR_UPDATE";
+        lifecycle.recordEditorialEvidence(id, action, actor.id(), applied.version(), checked.evidence());
+        return applied;
+    }
+
+    private CheckedSubmission prepare(UUID id, Submission submission, Accounts.Account actor) {
         lockArticle(id);
         var article = readableArticle(id, actor);
         if (article.version() != submission.articleVersion()) {
-            throw conflict("This article changed. Refresh its latest version before sending a proposal.");
+            throw conflict("This article changed. Refresh to the latest version before continuing.");
         }
         requireNoPending(id);
         String summary = evidence(submission.changeSummary(), 20, "Change summary");
         String notes = evidence(submission.verificationNotes(), 40, "Verification notes");
         var proposed = submission.input();
         if (proposed.version() != null && proposed.version().longValue() != article.version()) {
-            throw conflict("The proposal is based on a different article version.");
+            throw conflict("This submission is based on a different article version.");
         }
         String reel = ArticleFieldPolicy.verifyProposal(proposed);
         var kind = article.status().equals("DRAFT") ? Kind.PUBLISH : Kind.UPDATE;
@@ -80,9 +112,7 @@ class ArticleReviewService {
                 proposed.city(), reel==null?trimMedia(proposed.image()):null, reel==null?proposed.imageAlt():"", trimMedia(proposed.videoUrl()), proposed.youtubeId(),
                 proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel, proposed.english(),
                 ArticleFieldPolicy.tags(proposed.tags()), ArticleFieldPolicy.mediaCredit(proposed.mediaCredit()));
-        var review = requests.add(id, snapshot, kind, actor, summary, notes, daily.openDay(actor.id()));
-        lifecycle.record(id, "SUBMIT_REVIEW", actor.id(), article.version());
-        return review;
+        return new CheckedSubmission(article, snapshot, kind, new EditorialEvidence(summary, notes));
     }
 
     @Transactional

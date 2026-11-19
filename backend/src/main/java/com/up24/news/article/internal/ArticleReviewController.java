@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.article.ArticleDesk;
 import com.up24.news.article.internal.ArticleReview.*;
 import com.up24.news.identity.Access;
 import jakarta.validation.Valid;
@@ -26,9 +27,15 @@ class ArticleReviewController {
     StaffHistory history(@PathVariable UUID articleId) { return service.history(articleId, access.current()); }
 
     @PostMapping("/articles/{articleId}/review")
-    @PreAuthorize("@access.hasAny('EDITOR','REPORTER')")
+    @PreAuthorize("@access.hasAny('REPORTER')")
     Summary submit(@PathVariable UUID articleId, @Valid @RequestBody Submission input) {
         return service.submit(articleId, input, access.current());
+    }
+
+    @PostMapping("/articles/{articleId}/editor-publication")
+    @PreAuthorize("@access.hasAny('EDITOR')")
+    ArticleDesk.Managed publishByEditor(@PathVariable UUID articleId, @Valid @RequestBody Submission input) {
+        return service.publishByEditor(articleId, input, access.current());
     }
 
     @GetMapping("/article-reviews")

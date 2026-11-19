@@ -444,7 +444,10 @@ export function AdminConsole({
                       : undefined
                   }
                   onEditorPublished={(published) => {
-                    client.setQueryData(['newsroom', user.id, `admin/articles/${published.id}`], published);
+                    client.setQueryData(
+                      ['newsroom', user.id, `admin/articles/${published.id}`],
+                      published,
+                    );
                     setNotice('Report published.');
                     void refreshArticles();
                   }}

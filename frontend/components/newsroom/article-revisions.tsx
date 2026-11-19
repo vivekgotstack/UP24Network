@@ -31,6 +31,8 @@ const actions: Record<string, string> = {
   APPROVE_REVIEW: 'Approved',
   RETURN_REVIEW: 'Returned for revision',
   PUBLISH: 'Published',
+  EDITOR_RELEASE: 'Published by editor',
+  EDITOR_UPDATE: 'Correction published by editor',
   UNPUBLISH: 'Unpublished',
   ARCHIVE: 'Archived',
   TRASH: 'Moved to trash',
@@ -195,6 +197,13 @@ export function ArticleRevisions({
                   <strong>{actions[entry.action] ?? entry.action}</strong>
                   <span>{actorLabel(entry.actorId, entry.actor)}</span>
                   <time dateTime={entry.occurredAt}>{savedAt(entry.occurredAt)}</time>
+                  {entry.evidence && (
+                    <details className={styles.activityEvidence}>
+                      <summary>Publication record</summary>
+                      <p>{entry.evidence.changeSummary}</p>
+                      <p>{entry.evidence.verificationNotes}</p>
+                    </details>
+                  )}
                 </li>
               ))}
             </ul>

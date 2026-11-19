@@ -12,7 +12,8 @@ public interface ArticleLifecycle {
         public Page { items=List.copyOf(items); counts=Map.copyOf(counts); }
     }
     record Revision(long version, Instant savedAt, String title, String status, UUID actorId) {}
-    record Activity(UUID id, String action, UUID actorId, long version, Instant occurredAt) {}
+    record EditorialEvidence(String changeSummary, String verificationNotes) {}
+    record Activity(UUID id, String action, UUID actorId, long version, Instant occurredAt, EditorialEvidence evidence) {}
 
     Page browse(UUID authorId, String status, String search, int page, int size);
     ArticleDesk.Managed change(UUID id, long version, Action action, UUID actorId);

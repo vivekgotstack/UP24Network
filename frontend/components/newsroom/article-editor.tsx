@@ -500,6 +500,7 @@ export function ArticleEditor({
                 <input
                   name="slug"
                   required={!adminMode || version !== null}
+                  readOnly={editorPublication && proposedUpdate}
                   maxLength={500}
                   value={draft.slug}
                   onChange={(event) => set('slug', event.target.value)}
@@ -733,8 +734,12 @@ export function ArticleEditor({
                 disabled={busy || !canReview || conflict || (proposedUpdate && !dirty)}
               >
                 {editorPublication
-                  ? proposedUpdate ? 'Prepare correction for publication' : 'Prepare to publish'
-                  : proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
+                  ? proposedUpdate
+                    ? 'Prepare correction for publication'
+                    : 'Prepare to publish'
+                  : proposedUpdate
+                    ? 'Review proposed update'
+                    : 'Prepare review request'}
               </Button>
             )}
             {article?.status === 'PUBLISHED' && session.data && (
