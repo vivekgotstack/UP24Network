@@ -6,20 +6,23 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { HoroscopeEdition } from '@/lib/horoscope';
 import { luckyColourSwatch, zodiacFor, zodiacSigns } from '@/lib/zodiac';
 import { ZodiacArt } from '@/components/zodiac-art';
+import { copy, type SiteLocale } from '@/lib/locale';
 
 export function RashifalReadings({
   edition,
   compact = false,
+  locale = 'hi',
 }: {
   edition: HoroscopeEdition;
   compact?: boolean;
+  locale?: SiteLocale;
 }) {
   const reducedMotion = useReducedMotion();
   const readings = zodiacSigns.flatMap((zodiac) => {
     const reading = edition.signs.find((sign) => sign.sign === zodiac.id);
     return reading ? [reading] : [];
   });
-  const date = new Intl.DateTimeFormat('hi-IN', {
+  const date = new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {
     dateStyle: 'long',
     timeZone: 'Asia/Kolkata',
   }).format(new Date(`${edition.date}T00:00:00+05:30`));
@@ -28,14 +31,13 @@ export function RashifalReadings({
     <section
       className={`rashifal-section${compact ? ' rashifal-section-compact' : ''}`}
       id="rashifal"
-      lang="hi"
       aria-labelledby="rashifal-title"
     >
       <div className="rashifal-heading">
         <div>
-          <h2 id="rashifal-title">आज का राशिफल</h2>
+          <h2 id="rashifal-title">{copy(locale, 'आज का राशिफल', 'Today’s horoscope')}</h2>
           {!compact && (
-            <p className="rashifal-intro">अपनी राशि चुनें और आज का फल, शुभ अंक व शुभ रंग पढ़ें।</p>
+            <p className="rashifal-intro">{copy(locale, 'अपनी राशि चुनें।', 'Choose your zodiac sign.')}</p>
           )}
         </div>
         <div className="rashifal-date">
@@ -43,17 +45,17 @@ export function RashifalReadings({
         </div>
       </div>
       <Tabs.Root defaultValue={readings[0]?.sign ?? 'aries'} orientation="horizontal">
-        <Tabs.List className="rashi-signs" aria-label="अपनी राशि चुनें">
+        <Tabs.List className="rashi-signs" aria-label={copy(locale, 'राशि चुनें', 'Choose your sign')}>
           {readings.map((sign) => (
             <Tabs.Trigger
               key={sign.sign}
               className="rashi-sign"
               value={sign.sign}
-              aria-label={`${sign.name} राशिफल`}
+              aria-label={copy(locale, `${sign.name} राशिफल`, `${zodiacFor(sign.sign)?.englishName ?? sign.name} horoscope`)}
             >
               <ZodiacArt sign={sign.sign} />
-              <span className="rashi-sign-name">{sign.name}</span>
-              {!compact && (
+              <span className="rashi-sign-name">{copy(locale, sign.name, zodiacFor(sign.sign)?.englishName ?? sign.name)}</span>
+              {!compact && locale === 'hi' && (
                 <span className="rashi-sign-english" lang="en" aria-hidden="true">
                   {zodiacFor(sign.sign)?.englishName}
                 </span>
@@ -73,24 +75,23 @@ export function RashifalReadings({
                 <figure className="rashi-portrait">
                   <ZodiacArt sign={sign.sign} large />
                   <figcaption>
-                    <span>{zodiacFor(sign.sign)?.motif}</span>
+                    {locale === 'hi' && <span>{zodiacFor(sign.sign)?.motif}</span>}
                     <span lang="en">{zodiacFor(sign.sign)?.englishName}</span>
                   </figcaption>
                 </figure>
               )}
               <div className="rashi-copy">
                 <header>
-                  <p className="eyebrow">आपकी राशि · आज का फल</p>
-                  <h3>{sign.name} राशिफल</h3>
+                  <h3>{copy(locale, `${sign.name} राशिफल`, zodiacFor(sign.sign)?.englishName ?? sign.name)}</h3>
                 </header>
-                <p className="rashi-text">{sign.reading}</p>
+                <p className="rashi-text" lang="hi">{sign.reading}</p>
                 <dl className="rashi-details">
                   <div>
-                    <dt>शुभ अंक</dt>
+                    <dt>{copy(locale, 'शुभ अंक', 'Lucky number')}</dt>
                     <dd className="rashi-lucky-number">{sign.luckyNumber || '—'}</dd>
                   </div>
                   <div>
-                    <dt>शुभ रंग</dt>
+                    <dt>{copy(locale, 'शुभ रंग', 'Lucky colour')}</dt>
                     <dd>
                       {luckyColourSwatch(sign.luckyColour) && (
                         <span
@@ -99,7 +100,7 @@ export function RashifalReadings({
                           aria-hidden="true"
                         />
                       )}
-                      <span>{sign.luckyColour || '—'}</span>
+                      <span lang="hi">{sign.luckyColour || '—'}</span>
                     </dd>
                   </div>
                 </dl>
@@ -110,11 +111,11 @@ export function RashifalReadings({
       </Tabs.Root>
       {compact && (
         <Link className="rashi-full-edition" href="/section/rashifal">
-          पूरा राशिफल पढ़ें
+          {copy(locale, 'पूरा राशिफल', 'Full horoscope')}
         </Link>
       )}
       <p className="rashi-note">
-        ज्योतिष परंपरा पर आधारित सामान्य मार्गदर्शन। यह निश्चित भविष्यवाणी या पेशेवर सलाह नहीं है।
+        {copy(locale, 'ज्योतिष परंपरा पर आधारित सामान्य मार्गदर्शन।', 'General guidance from astrological tradition.')}
       </p>
     </section>
   );

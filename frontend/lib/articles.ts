@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import type { SiteLocale } from '@/lib/locale';
 
 export type Article = {
   slug: string;
@@ -8,6 +9,7 @@ export type Article = {
   category: string;
   city: string;
   author: string;
+  updatedBy?: string | null;
   publishedAt: string;
   readingMinutes: number;
   image: string;
@@ -89,8 +91,8 @@ export async function getArticlePage(filters: ArticleFilters = {}): Promise<Arti
   return response.json();
 }
 
-export function articleDate(date: string) {
-  return new Intl.DateTimeFormat('en-IN', {
+export function articleDate(date: string, locale: SiteLocale = 'en') {
+  return new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

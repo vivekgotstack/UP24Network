@@ -6,14 +6,17 @@ import { BrandLogo } from '@/components/brand-logo';
 import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cms, CmsError, type Account } from '@/lib/cms';
+import { copy, type SiteLocale } from '@/lib/locale';
 
 export function AuthPanel({
   editorial = false,
   signup = false,
+  locale = 'en',
   onAuthenticated,
 }: {
   editorial?: boolean;
   signup?: boolean;
+  locale?: SiteLocale;
   onAuthenticated: (account: Account) => Promise<unknown>;
 }) {
   const [visible, setVisible] = useState(false);
@@ -29,7 +32,7 @@ export function AuthPanel({
     try {
       if (signup) {
         if (new TextEncoder().encode(password).length > 72)
-          throw new Error('Use a password of at most 72 UTF-8 bytes.');
+          throw new Error(copy(locale, 'पासवर्ड अधिकतम 72 UTF-8 बाइट का रखें।', 'Use a password of at most 72 UTF-8 bytes.'));
         await cms('auth/register', 'POST', {
           email,
           password,
@@ -41,10 +44,10 @@ export function AuthPanel({
     } catch (reason) {
       setError(
         reason instanceof CmsError && reason.status === 401
-          ? 'The email or password is incorrect.'
-          : reason instanceof Error
+          ? copy(locale, 'ईमेल या पासवर्ड गलत है।', 'The email or password is incorrect.')
+          : reason instanceof Error && (!(reason instanceof CmsError) || locale === 'en')
             ? reason.message
-            : 'Sign-in failed. Please try again.',
+            : copy(locale, 'खाता नहीं खुला। दोबारा कोशिश करें।', 'Sign-in failed. Please try again.'),
       );
     } finally {
       setBusy(false);
@@ -53,44 +56,42 @@ export function AuthPanel({
   return (
     <section className="auth-layout">
       <div className="auth-brand-panel">
-        <Link href="/" className="brand-badge" aria-label="UP24Network home">
+        <Link href="/" className="brand-badge" aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}>
           <BrandLogo eager />
         </Link>
-        <p className="eyebrow">{editorial ? 'THE NEWSROOM' : 'YOUR READING SPACE'}</p>
-        <h1 lang="hi">{editorial ? 'हर खबर के पीछे,\nएक जिम्मेदारी।' : 'अच्छी खबरों से\nजुड़े रहिए।'}</h1>
+        <h1>{editorial ? copy(locale, 'संपादकीय कक्ष', 'Newsroom') : copy(locale, 'खबरों से जुड़े रहें', 'Stay connected')}</h1>
         <p>
           {editorial
-            ? 'An independent workspace for reporting, editing and publishing.'
-            : 'Your account and your next good read, in one place.'}
+            ? copy(locale, 'रिपोर्टिंग, संपादन और प्रकाशन का कार्यक्षेत्र।', 'Your reporting, editing and publishing workspace.')
+            : copy(locale, 'अपना खाता खोलें और खबरें पढ़ें।', 'Sign in to manage your account.')}
         </p>
         <a href="/" className="text-link">
-          Back to the front page
+          {copy(locale, 'मुख्य पृष्ठ', 'Home')}
         </a>
       </div>
       <div className="auth-form-panel">
         <LockKeyhole size={22} aria-hidden="true" />
-        <p className="eyebrow">{editorial ? 'EDITORIAL ACCESS' : 'READER ACCOUNT'}</p>
-        <h2>{signup ? 'Create your account' : 'Welcome back.'}</h2>
+        <h2>{signup ? copy(locale, 'खाता बनाएँ', 'Create an account') : copy(locale, 'लॉगिन', 'Sign in')}</h2>
         <p>
           {editorial
-            ? 'Use the account provided by your administrator.'
+            ? copy(locale, 'प्रशासक का दिया खाता इस्तेमाल करें।', 'Use the account provided by your administrator.')
             : signup
-              ? 'Create a free subscriber account.'
-              : 'Sign in to your UP24Network account.'}
+              ? copy(locale, 'मुफ़्त पाठक खाता बनाएँ।', 'Create a free subscriber account.')
+              : copy(locale, 'अपने UP24Network खाते में लॉगिन करें।', 'Sign in to your UP24Network account.')}
         </p>
         <form onSubmit={submit} className="cms-form">
           {signup && (
             <label>
-              Your name
+              {copy(locale, 'नाम', 'Your name')}
               <input name="displayName" autoComplete="name" required maxLength={100} />
             </label>
           )}
           <label>
-            Email address
+            {copy(locale, 'ईमेल', 'Email address')}
             <input name="email" type="email" autoComplete="username" required maxLength={254} />
           </label>
           <label>
-            Password
+            {copy(locale, 'पासवर्ड', 'Password')}
             <span className="password-field">
               <input
                 name="password"
@@ -102,7 +103,7 @@ export function AuthPanel({
               />
               <button
                 type="button"
-                aria-label={visible ? 'Hide password' : 'Show password'}
+                aria-label={visible ? copy(locale, 'पासवर्ड छिपाएँ', 'Hide password') : copy(locale, 'पासवर्ड दिखाएँ', 'Show password')}
                 aria-pressed={visible}
                 onClick={() => setVisible((value) => !value)}
               >
@@ -112,7 +113,7 @@ export function AuthPanel({
           </label>
           {signup && (
             <p className="field-help">
-              Use at least 12 characters. Subscriber accounts do not have editorial access.
+              {copy(locale, 'कम से कम 12 अक्षर रखें। पाठक खाते से संपादकीय पहुँच नहीं मिलती।', 'Use at least 12 characters. Subscriber accounts do not have editorial access.')}
             </p>
           )}
           {error && (
@@ -121,17 +122,17 @@ export function AuthPanel({
             </p>
           )}
           <Button disabled={busy} type="submit" className="auth-submit">
-            {busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}
+            {busy ? copy(locale, 'प्रतीक्षा करें…', 'Please wait…') : signup ? copy(locale, 'खाता बनाएँ', 'Create account') : copy(locale, 'लॉगिन', 'Sign in')}
           </Button>
         </form>
-        {!signup && <Link className="text-button" href="/account/recover">Forgot your password?</Link>}
+        {!signup && <Link className="text-button" href="/account/recover">{copy(locale, 'पासवर्ड भूल गए?', 'Forgot your password?')}</Link>}
         {!editorial && (
           <Link className="text-button" href={signup ? '/account/sign-in' : '/account/register'}>
-            {signup ? 'Already registered? Sign in' : 'New here? Create an account'}
+            {signup ? copy(locale, 'मौजूदा खाते में लॉगिन', 'Already registered? Sign in') : copy(locale, 'नया खाता बनाएँ', 'New here? Create an account')}
           </Link>
         )}
         <p className="auth-help">
-          Need help with access? <Link href="/contact">Contact the newsroom</Link>.
+          <Link href="/contact">{copy(locale, 'खाते के लिए सहायता', 'Get account help')}</Link>
         </p>
       </div>
     </section>

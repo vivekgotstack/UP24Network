@@ -71,12 +71,16 @@ class JdbcArticleLifecycleStore implements ArticleLifecycleStore {
                         video_url=r.snapshot->>'video_url',youtube_id=r.snapshot->>'youtube_id',reel_url=r.snapshot->>'reel_url',paragraphs=r.snapshot->'paragraphs',
                         english_content=NULLIF(r.snapshot->'english_content','null'::jsonb),
                         source_notes=COALESCE(r.snapshot->>'source_notes',''),region=COALESCE(r.snapshot->>'region',''),
-                        status='DRAFT',breaking=FALSE,manual_override=TRUE,edited_by=?,version=a.version+1,updated_at=CURRENT_TIMESTAMP
+                        status='DRAFT',breaking=FALSE,manual_override=TRUE,edited_by=?,version=a.version+1,updated_at=CURRENT_TIMESTAMP,
+                        updated_byline=r.snapshot->>'updated_byline'
                     FROM article_revision r WHERE a.id=? AND r.article_id=a.id AND r.version=?
                     """,actorId,id,version)>0;
         } catch(DuplicateKeyException exception) {
             throw new ArticleOperationException(ArticleOperationException.Reason.CONFLICT,"That historical URL is now used by another report. Edit its slug before restoring this revision.");
         }
+    }
+    @Override public void creditUpdate(UUID id, String contributor) {
+        jdbc.update("UPDATE article_record SET updated_byline=? WHERE id=?",contributor,id);
     }
     @Override public void record(UUID articleId, String action, UUID actorId, long version) {
         jdbc.update("INSERT INTO article_activity(id,article_id,action,actor_id,version) VALUES (?,?,?,?,?)",UUID.randomUUID(),articleId,action,actorId,version);

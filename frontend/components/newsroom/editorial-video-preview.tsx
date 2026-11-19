@@ -23,7 +23,7 @@ export function EditorialVideoPreview({
 }) {
   const poster = allowedMedia(image.trim()) ? image.trim() : '';
   const reelUrl = canonicalReelUrl(reel);
-  if (reelUrl) return <InstagramReel key={reelUrl} url={reelUrl} title={title} cover={poster} />;
+  if (reelUrl) return <InstagramReel url={reelUrl} title={title} locale="en" />;
 
   let youtubeId = '';
   try {

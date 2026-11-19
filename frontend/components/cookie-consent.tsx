@@ -70,11 +70,11 @@ export function CookiePreferencesProvider({ children, locale }: { children: Reac
               <span>
                 <strong>{copy(locale, 'बाहरी वीडियो', 'External videos')}</strong>
                 <span className={styles.explanation}>
-                  {copy(locale, 'अनुमति देकर वीडियो चलाने पर YouTube या Instagram का प्लेयर लोड होगा। उस सेवा को आपका IP पता और डिवाइस की जानकारी मिल सकती है।', 'When you allow and play a video, YouTube or Instagram loads its player and may receive your IP address and device information.')}
+                  {copy(locale, 'वीडियो चलाने की अनुमति देने पर YouTube का प्लेयर लोड होगा। YouTube को आपका IP पता और डिवाइस की जानकारी मिल सकती है।', 'When you allow and play a video, YouTube loads its player and may receive your IP address and device information.')}
                 </span>
               </span>
               <input
-                aria-label={copy(locale, 'YouTube और Instagram के वीडियो की अनुमति', 'Allow YouTube and Instagram videos')}
+                aria-label={copy(locale, 'YouTube वीडियो की अनुमति', 'Allow YouTube videos')}
                 type="checkbox"
                 checked={video}
                 onChange={(event) => setVideo(event.target.checked)}
@@ -117,7 +117,7 @@ export function CookieConsent({ locale }: { locale: SiteLocale }) {
       <div>
         <h2>{copy(locale, 'कुकी और गोपनीयता', 'Cookies and privacy')}</h2>
         <p>
-          {copy(locale, 'ज़रूरी कुकी साइट को सुरक्षित ढंग से चलाती हैं। YouTube और Instagram के वीडियो आपकी अनुमति पर लोड होते हैं।', 'Essential cookies help keep the site secure. YouTube and Instagram videos load with your permission.')}{' '}
+          {copy(locale, 'ज़रूरी कुकी साइट को सुरक्षित ढंग से चलाती हैं। YouTube के वीडियो आपकी अनुमति पर लोड होते हैं।', 'Essential cookies help keep the site secure. YouTube videos load with your permission.')}{' '}
           <Link href="/cookies">{copy(locale, 'कुकी नीति', 'Cookie policy')}</Link>
         </p>
       </div>

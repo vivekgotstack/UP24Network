@@ -26,7 +26,7 @@ final class ArticleRows {
                     row.getString("image_alt"),row.getString("video_url"),paragraphs,false,row.getString("youtube_id"),
                     row.getBoolean("breaking"),row.getString("source_url"),row.getString("reel_url"),
                     Math.max(1,row.getInt("edition_number")),row.getObject("continuation_root_id",UUID.class),
-                    row.getString("continuation_of_slug"), english);
+                    row.getString("continuation_of_slug"), english, row.getString("updated_byline"));
             return new ArticleDesk.Managed(row.getObject("id",UUID.class),row.getObject("author_id",UUID.class),
                     row.getString("status"),row.getBoolean("manual_override"),row.getLong("version"),view,
                     body?row.getString("source_notes"):"",row.getString("region"));

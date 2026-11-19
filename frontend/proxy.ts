@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
     "worker-src 'self'",
     `connect-src 'self'${mediaOrigin}${mediaUploadOrigin}${development ? ' ws: wss:' : ''}`,
     `media-src 'self' https://up24network.com https://www.up24network.com${mediaOrigin}`,
-    'frame-src https://www.youtube-nocookie.com https://www.instagram.com',
+    'frame-src https://www.youtube-nocookie.com',
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

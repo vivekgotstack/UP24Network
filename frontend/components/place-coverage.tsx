@@ -5,7 +5,10 @@ import { SiteHeader } from '@/components/site-header';
 import { CoverageFeed } from '@/components/coverage-feed';
 import { CoverageRail } from '@/components/coverage-rail';
 import { getArticlePage } from '@/lib/articles';
-import { cities, regions, regionCities } from '@/lib/regions';
+import { cities, cityTitle, regions, regionCities, regionTitle } from '@/lib/regions';
+import { reportCount } from '@/lib/coverage-labels';
+import { copy, type SiteLocale } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
 type Kind = 'city' | 'region';
 function placeFor(kind: Kind, slug: string) {
@@ -13,15 +16,24 @@ function placeFor(kind: Kind, slug: string) {
     ? cities.find((city) => city.slug === slug)
     : regions.find((region) => region.slug === slug);
 }
-export function placeMetadata(kind: Kind, slug: string): Metadata {
+function placeLabel(place: NonNullable<ReturnType<typeof placeFor>>, locale: SiteLocale) {
+  return 'aliases' in place ? cityTitle(place, locale) : regionTitle(place, locale);
+}
+export async function placeMetadata(kind: Kind, slug: string): Promise<Metadata> {
+  const locale = await getReaderLocale();
   const place = placeFor(kind, slug);
+  const label = place ? placeLabel(place, locale) : '';
   return place
     ? {
-        title: `${place.title} की खबरें`,
-        description: `${place.title} से स्थानीय खबरें, जमीनी रिपोर्ट और वीडियो।`,
+        title: copy(locale, `${label} की खबरें`, `${label} news`),
+        description: copy(
+          locale,
+          `${label} से स्थानीय खबरें, ज़मीनी रिपोर्ट और वीडियो।`,
+          `Local news, field reports and videos from ${label}.`,
+        ),
         alternates: { canonical: `/${kind}/${slug}` },
       }
-    : { title: 'Page not found' };
+    : { title: copy(locale, 'पृष्ठ नहीं मिला', 'Page not found') };
 }
 export async function PlaceCoverage({
   kind,
@@ -37,46 +49,61 @@ export async function PlaceCoverage({
   const city = kind === 'city' ? cities.find((item) => item.slug === slug)! : undefined;
   const region = regions.find((item) => item.slug === (city?.region ?? slug))!;
   const localCities = regionCities(region.slug);
-  const result = await getArticlePage({ region: region.slug, cities: city?.aliases, page });
+  const [result, locale] = await Promise.all([
+    getArticlePage({ region: region.slug, cities: city?.aliases, page }),
+    getReaderLocale(),
+  ]);
+  const name = placeLabel(place, locale);
   return (
     <>
       <SiteHeader category={region.slug === 'uttar-pradesh' ? 'Uttar Pradesh' : ''} />
       <main id="main-content">
         <header className="page-heading" id="stories">
           <div>
-            <nav className="coverage-breadcrumb" aria-label="Breadcrumb">
-              <Link href="/">मुख्य पृष्ठ</Link>
-              <span>/</span>
-              <Link href="/regions">राज्य और शहर</Link>
+            <nav className="coverage-breadcrumb" aria-label={copy(locale, 'पृष्ठ क्रम', 'Breadcrumb')}>
+              <Link href="/">{copy(locale, 'मुख्य पृष्ठ', 'Home')}</Link>
+              <span aria-hidden="true">/</span>
+              <Link href="/regions">{copy(locale, 'राज्य और शहर', 'States and cities')}</Link>
               {city && (
                 <>
-                  <span>/</span>
-                  <Link href={`/region/${region.slug}`}>{region.title}</Link>
+                  <span aria-hidden="true">/</span>
+                  <Link href={`/region/${region.slug}`}>{regionTitle(region, locale)}</Link>
                 </>
               )}
             </nav>
-            <h1>{place.title} की खबरें</h1>
+            <h1>{copy(locale, `${name} की खबरें`, `${name} news`)}</h1>
             <p>
               {city
-                ? 'आपके शहर की हलचल, स्थानीय मुद्दे और जमीनी रिपोर्ट।'
-                : 'शहरों और कस्बों से स्थानीय रिपोर्ट, जनजीवन और क्षेत्र की खबरें।'}
+                ? copy(
+                    locale,
+                    'शहर की हलचल, स्थानीय मुद्दे और ज़मीनी रिपोर्ट।',
+                    'City news, local issues, and first-hand reporting.',
+                  )
+                : copy(
+                    locale,
+                    'शहरों और कस्बों से स्थानीय खबरें और रिपोर्ट।',
+                    'Local news and reporting from cities and towns across the region.',
+                  )}
             </p>
           </div>
-          <span className="result-count">{result.total} रिपोर्ट</span>
+          <span className="result-count">{reportCount(locale, result.total)}</span>
         </header>
-        <nav className="coverage-topics" aria-label="Cities in this region">
+        <nav
+          className="coverage-topics"
+          aria-label={copy(locale, 'इस क्षेत्र के शहर', 'Cities in this region')}
+        >
           {localCities.map((item) => (
             <Link
               key={item.slug}
               href={`/city/${item.slug}`}
               aria-current={city?.slug === item.slug ? 'page' : undefined}
             >
-              {item.title}
+              {cityTitle(item, locale)}
             </Link>
           ))}
         </nav>
         <div className="coverage-layout">
-          <section aria-label={`${place.title} news`}>
+          <section aria-label={copy(locale, `${name} की खबरें`, `${name} news`)}>
             <CoverageFeed result={result} base={`/${kind}/${slug}`} />
           </section>
           <CoverageRail places={localCities.filter((item) => item.slug !== city?.slug)} />

@@ -167,6 +167,22 @@
   font: 13px/1.5 var(--sans);
   color: var(--muted);
 }
+.activityLedger h3 {
+  margin-block: 16px 8px;
+  font: 700 17px/1.4 var(--serif);
+}
+.activityLedger li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  padding-block: 6px;
+  border-block-end: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  font: 400 13px/1.4 var(--sans);
+}
+.activityLedger time {
+  color: var(--muted);
+}
 .assist {
   display: flex;
   align-items: center;

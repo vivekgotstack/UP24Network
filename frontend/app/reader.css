@@ -1835,7 +1835,7 @@
     background: var(--surface);
     border-top-color: var(--brand-gold);
   }
-  .section-page-grid h2 {
+  .section-page-grid h3 {
     font: 700 28px/1.7 var(--serif);
     margin: 10px 0;
   }

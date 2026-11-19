@@ -76,7 +76,7 @@ class ArticleReviewService {
         ReportingRequirements.staff(proposed, workflows.get(actor.id()));
         String reel = ArticleFieldPolicy.verifyProposal(proposed);
         var snapshot = new ArticleDesk.Input(proposed.title(), proposed.slug(), proposed.summary(), proposed.category(),
-                proposed.city(), trimMedia(proposed.image()), proposed.imageAlt(), trimMedia(proposed.videoUrl()), proposed.youtubeId(),
+                proposed.city(), reel==null?trimMedia(proposed.image()):null, reel==null?proposed.imageAlt():"", trimMedia(proposed.videoUrl()), proposed.youtubeId(),
                 proposed.body(), article.version(), proposed.sourceNotes(), proposed.region(), null, reel, proposed.english());
         var kind = article.status().equals("DRAFT") ? Kind.PUBLISH : Kind.UPDATE;
         var review = requests.add(id, snapshot, kind, actor, summary, notes, daily.openDay(actor.id()));
@@ -101,6 +101,8 @@ class ArticleReviewService {
         var applied = articles.save(article.id(), request.input(), admin.id(), article.article().author());
         if (review.kind() == Kind.PUBLISH) {
             applied = articles.publish(applied.id(), applied.version(), true, false, admin.id());
+        } else {
+            lifecycle.creditUpdate(article.id(), review.submittedBy());
         }
         var decision = requests.decide(id, State.APPROVED, admin.id(), null);
         lifecycle.record(article.id(), "APPROVE_REVIEW", admin.id(), applied.version());

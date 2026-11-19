@@ -5,14 +5,17 @@ import { AuthPanel } from '@/components/auth-panel';
 import { NewsroomSignIn } from '@/components/newsroom/newsroom-sign-in';
 import type { Account } from '@/lib/cms';
 import { useSession } from '@/lib/session';
+import type { SiteLocale } from '@/lib/locale';
 export function AuthPage({
   editorial = false,
   signup = false,
   workspace = 'admin',
+  locale = 'en',
 }: {
   editorial?: boolean;
   signup?: boolean;
   workspace?: 'admin' | 'staff';
+  locale?: SiteLocale;
 }) {
   const session = useSession(),
     router = useRouter();
@@ -43,7 +46,7 @@ export function AuthPage({
     );
   }
   return (
-    <main id="main-content" lang="en">
+    <main id="main-content" lang={editorial ? 'en' : locale}>
       {editorial ? (
         <NewsroomSignIn
           account={session.data}
@@ -51,7 +54,7 @@ export function AuthPage({
           signInPath={workspace === 'admin' ? '/admin/sign-in' : '/newsroom/sign-in'}
         />
       ) : (
-        <AuthPanel editorial={editorial} signup={signup} onAuthenticated={authenticated} />
+        <AuthPanel editorial={editorial} signup={signup} locale={locale} onAuthenticated={authenticated} />
       )}
     </main>
   );

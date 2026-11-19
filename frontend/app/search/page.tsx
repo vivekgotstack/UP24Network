@@ -5,16 +5,22 @@ import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { getArticlePage } from '@/lib/articles';
-import { newsSections, sectionCategories } from '@/lib/sections';
+import { newsSections, sectionCategories, sectionTitle } from '@/lib/sections';
+import { reportCount } from '@/lib/coverage-labels';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Search', robots: { index: false, follow: true } };
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getReaderLocale();
+  return { title: copy(locale, 'खोज', 'Search'), robots: { index: false, follow: true } };
+}
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; category?: string; page?: string }>;
 }) {
-  const params = await searchParams;
+  const [params, locale] = await Promise.all([searchParams, getReaderLocale()]);
   const query = typeof params.q === 'string' ? params.q.trim().slice(0, 120) : '';
   const category = newsSections.some((s) => s.name === params.category) ? params.category! : '';
   const section = newsSections.find((item) => item.name === category);
@@ -31,37 +37,42 @@ export default async function SearchPage({
       <main id="main-content">
         <header className="page-heading" id="stories">
           <div>
-            <p className="eyebrow">UP24NETWORK SEARCH</p>
-            <h1 lang="hi">खबर तलाशिए</h1>
+            <h1>{copy(locale, 'खबर खोजें', 'Search reports')}</h1>
           </div>
         </header>
         <form role="search" action="/search" className="search-page-form search-full">
           <label className="sr-only" htmlFor="search-query">
-            Headline, topic or city
+            {copy(locale, 'खबर, विषय या शहर', 'Headline, topic or city')}
           </label>
           <input
             id="search-query"
             name="q"
             type="search"
-            placeholder="खबर, विषय या शहर"
+            placeholder={copy(locale, 'खबर, विषय या शहर', 'Headline, topic or city')}
             defaultValue={query}
             maxLength={120}
           />
           <label className="sr-only" htmlFor="search-category">
-            News section
+            {copy(locale, 'समाचार विभाग', 'News section')}
           </label>
           <select id="search-category" name="category" defaultValue={category}>
-            <option value="">All sections</option>
+            <option value="">{copy(locale, 'सभी विभाग', 'All sections')}</option>
             {newsSections.map((s) => (
               <option key={s.slug} value={s.name}>
-                {s.title}
+                {sectionTitle(s.name, locale)}
               </option>
             ))}
           </select>
-          <Button type="submit">Search</Button>
+          <Button type="submit">{copy(locale, 'खोजें', 'Search')}</Button>
         </form>
         <p className="search-result-note" role="status">
-          {results.total} reports{query ? ` matching “${query}”` : ' in the current news library'}
+          {query
+            ? copy(
+                locale,
+                `“${query}” के लिए ${reportCount(locale, results.total)}`,
+                `${reportCount(locale, results.total)} matching “${query}”`,
+              )
+            : reportCount(locale, results.total)}
         </p>
         {results.total ? (
           <div className="story-grid">
@@ -71,8 +82,12 @@ export default async function SearchPage({
           </div>
         ) : (
           <EmptyState
-            title="इस खोज से कोई खबर नहीं मिली।"
-            description="विषय या शहर का कोई दूसरा नाम आजमाइए।"
+            title={copy(locale, 'कोई खबर नहीं मिली।', 'No matching reports.')}
+            description={copy(
+              locale,
+              'कोई दूसरा विषय या शहर खोजें।',
+              'Try a different topic or city.',
+            )}
             search
           />
         )}

@@ -96,6 +96,26 @@ class EditorialWorkflowTest {
                 .contentType("application/json").content(json.writeValueAsString(Map.of("note", "Recorded the owner's editorial recognition."))));
     }
 
+    @Test void englishTranslationPublishesThroughReviewAndSurvivesALegacyEdit() throws Exception {
+        String slug = "translated-report-" + UUID.randomUUID();
+        var draft = desk.save(null, input(slug, "स्थानीय समाचार", null), editor.id(), editor.displayName());
+        var proposal = new ArticleDesk.Input("स्थानीय समाचार", slug, "परीक्षण का सारांश।", "Uttar Pradesh", "Lucknow",
+                "/images/newsroom.jpg", "UP24Network newsroom", null, null, "परीक्षण रिपोर्ट का पाठ।", draft.version(),
+                "Local test reporting notes", "uttar-pradesh", null, null,
+                new ArticleDesk.EnglishInput("Local report", "A translated summary.", "First paragraph.\n\nSecond paragraph.", null));
+        UUID review = submit(draft, editor, proposal);
+        mvc.perform(get("/api/articles/" + slug)).andExpect(status().isNotFound());
+        approve(review, editor).andExpect(status().isOk());
+        var published = desk.find(draft.id()).orElseThrow();
+        desk.save(draft.id(), input(slug, "स्थानीय समाचार", published.version()), owner.id(), owner.displayName());
+        mvc.perform(get("/api/articles/" + slug)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("स्थानीय समाचार"))
+                .andExpect(jsonPath("$.english.title").value("Local report"))
+                .andExpect(jsonPath("$.english.paragraphs[1]").value("Second paragraph."));
+        mvc.perform(get("/api/articles/browse").param("q", "translated summary"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].english.title").value("Local report"));
+    }
+
     @Test void readershipCountsPublishedVisitsFromSubscribersAndGuestsOnly() throws Exception {
         var reader = accounts.create(UUID.randomUUID() + "@reader.test", "Test reader", PASSWORD, Accounts.Role.SUBSCRIBER);
         String slug = "reader-views-" + UUID.randomUUID();

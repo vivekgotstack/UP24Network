@@ -1,26 +1,32 @@
 import Link from 'next/link';
 import { Clapperboard } from 'lucide-react';
-import { NewsImage } from '@/components/news-image';
+import { localizeArticle } from '@/lib/article-locale';
 import { getArticlePage } from '@/lib/articles';
 import { canonicalReelUrl, trendingReelsCategory } from '@/lib/instagram';
 import { textLanguage } from '@/lib/language';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 import { sectionHref } from '@/lib/sections';
 import styles from './trending-reels.module.css';
 
 export async function TrendingReels() {
-  const page = await getArticlePage({ categories: [trendingReelsCategory], size: 3 }).catch(
-    () => null,
-  );
-  const reels = page?.items.filter(({ reelUrl }) => canonicalReelUrl(reelUrl)) ?? [];
+  const [page, locale] = await Promise.all([
+    getArticlePage({ categories: [trendingReelsCategory], size: 3 }).catch(() => null),
+    getReaderLocale(),
+  ]);
+  const reels =
+    page?.items
+      .filter(({ reelUrl }) => canonicalReelUrl(reelUrl))
+      .map((article) => localizeArticle(article, locale)) ?? [];
   if (!reels.length) return null;
 
   return (
     <section className={styles.section} aria-labelledby="trending-reels-heading">
       <div className={styles.heading}>
-        <h2 id="trending-reels-heading" lang="en">
-          Trending Reels
-        </h2>
-        <Link href={sectionHref(trendingReelsCategory)}>सभी रील्स</Link>
+        <h2 id="trending-reels-heading">{copy(locale, 'ट्रेंडिंग रील्स', 'Trending Reels')}</h2>
+        <Link href={sectionHref(trendingReelsCategory)}>
+          {copy(locale, 'सभी रील्स', 'All reels')}
+        </Link>
       </div>
       <ul className={styles.list}>
         {reels.map((reel) => (
@@ -28,12 +34,18 @@ export async function TrendingReels() {
             <Link className={styles.card} href={`/news/${encodeURIComponent(reel.slug)}`}>
               <span className={styles.cover} aria-hidden="true">
                 <Clapperboard size={23} />
-                {reel.image && reel.image !== '/brand/up24-logo.png' && (
-                  <NewsImage src={reel.image} sizes="68px" />
-                )}
               </span>
-              <span className={styles.cardTitle} lang={textLanguage(reel.title)}>
-                {reel.title}
+              <span className={styles.cardText}>
+                <strong className={styles.cardTitle} lang={textLanguage(reel.title)}>
+                  {reel.title}
+                </strong>
+                <span className={styles.cardIntro} lang={textLanguage(reel.summary)}>
+                  {reel.summary}
+                </span>
+                <span className={styles.credit}>
+                  {copy(locale, 'चयन', 'Curated by')}{' '}
+                  <span lang={textLanguage(reel.author)}>{reel.author}</span>
+                </span>
               </span>
             </Link>
           </li>

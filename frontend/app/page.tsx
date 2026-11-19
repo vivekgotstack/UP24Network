@@ -7,8 +7,8 @@ import { NewsList } from '@/components/news-list';
 import { EmptyState } from '@/components/empty-state';
 import { getArticles } from '@/lib/articles';
 import { newest } from '@/lib/news';
-import { newsSections, sectionHref, sectionCategories } from '@/lib/sections';
-import { cities } from '@/lib/regions';
+import { newsSections, sectionHref, sectionCategories, sectionTitle } from '@/lib/sections';
+import { cities, cityTitle } from '@/lib/regions';
 import { WatchSection } from '@/components/watch-section';
 import { Reveal } from '@/components/reveal';
 import { HeadlineTicker } from '@/components/headline-ticker';
@@ -17,6 +17,8 @@ import { AirQualityStrip } from '@/components/air-quality-strip';
 import { TrendingReels } from '@/components/trending-reels';
 import { trendingReelsCategory } from '@/lib/instagram';
 import { getPublicationSettings } from '@/lib/publication-api';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,13 +33,13 @@ export default async function Home({
   if (typeof filters.category === 'string' && newsSections.some((s) => s.name === filters.category))
     redirect(sectionHref(filters.category));
   if (filters.view === 'latest') redirect('/latest');
-  const [reports, settings] = await Promise.all([getArticles(), getPublicationSettings()]);
+  const [reports, settings, locale] = await Promise.all([getArticles(), getPublicationSettings(), getReaderLocale()]);
   const articles = newest(reports.filter(({ category }) => category !== trendingReelsCategory));
   const lead =
     articles.find((a) => a.breaking && Date.now() - Date.parse(a.publishedAt) < 86400000) ??
     articles[0];
   const remaining = articles.filter((a) => a.slug !== lead?.slug);
-  const date = new Intl.DateTimeFormat('hi-IN', {
+  const date = new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {
     dateStyle: 'full',
     timeZone: 'Asia/Kolkata',
   }).format(new Date());
@@ -57,12 +59,11 @@ export default async function Home({
       <main id="main-content">
         <header className="page-heading edition-heading" id="stories">
           <div>
-            <p className="eyebrow">THE FRONT PAGE</p>
-            <h1 lang="hi">आज की बड़ी खबरें</h1>
+            <h1>{copy(locale, 'आज की बड़ी खबरें', 'Today’s headlines')}</h1>
           </div>
           <div className="edition-date">
             <span className="edition-stamp">UP24Network</span>
-            <time dateTime={new Date().toISOString().slice(0, 10)} lang="hi">
+            <time dateTime={new Intl.DateTimeFormat('sv-SE', { dateStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date())}>
               {date}
             </time>
           </div>
@@ -72,16 +73,16 @@ export default async function Home({
             <StoryCard article={lead} lead />
             <aside className="briefing">
               <div className="section-heading">
-                <h2 lang="hi">इस वक्त</h2>
-                <Link href="/latest">Latest</Link>
+                <h2>{copy(locale, 'इस वक्त', 'Now')}</h2>
+                <Link href="/latest">{copy(locale, 'ताज़ा खबरें', 'Latest')}</Link>
               </div>
               <NewsList articles={remaining.slice(0, 4)} numbered />
               <div className="region-note">
-                <p className="eyebrow">YOUR REGION</p>
+                <p className="eyebrow">{copy(locale, 'आपका इलाका', 'Local')}</p>
                 <div>
                   {cities.slice(0, 6).map((city) => (
                     <Link key={city.slug} href={`/city/${city.slug}`}>
-                      {city.title}
+                      {cityTitle(city, locale)}
                     </Link>
                   ))}
                 </div>
@@ -102,8 +103,8 @@ export default async function Home({
           {remaining.length > 0 && (
             <section className="more-stories">
               <div className="section-heading">
-                <h2 lang="hi">खबरें विस्तार से</h2>
-                <Link href="/latest">All reports</Link>
+                <h2>{copy(locale, 'खबरें विस्तार से', 'More news')}</h2>
+                <Link href="/latest">{copy(locale, 'सभी खबरें', 'All reports')}</Link>
               </div>
               <Reveal className="story-grid">
                 {remaining.slice(0, 6).map((article) => (
@@ -119,8 +120,8 @@ export default async function Home({
         {desks.map((desk) => (
           <section className="more-stories" key={desk.slug}>
             <div className="section-heading">
-              <h2 lang="hi">{desk.title}</h2>
-              <Link href={sectionHref(desk.name)}>View section</Link>
+              <h2>{sectionTitle(desk.name, locale)}</h2>
+              <Link href={sectionHref(desk.name)}>{copy(locale, 'और पढ़ें', 'View section')}</Link>
             </div>
             <div className="story-grid">
               {articles
@@ -134,16 +135,14 @@ export default async function Home({
         ))}
         <section className="section-directory">
           <div className="section-heading">
-            <h2 lang="hi">हर खबर की अपनी जगह</h2>
-            <span>EXPLORE</span>
+            <h2>{copy(locale, 'हर खबर की अपनी जगह', 'Explore news sections')}</h2>
           </div>
-          <nav aria-label="Explore categories">
+          <nav aria-label={copy(locale, 'खबरों के विभाग', 'News sections')}>
             {newsSections
               .filter((s) => s.name !== 'Videos')
               .map((section) => (
                 <Link key={section.slug} href={sectionHref(section.name)}>
-                  <span lang="hi">{section.title}</span>
-                  <small>{section.name}</small>
+                  <span>{sectionTitle(section.name, locale)}</span>
                 </Link>
               ))}
           </nav>

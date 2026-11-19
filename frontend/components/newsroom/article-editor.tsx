@@ -160,11 +160,17 @@ export function ArticleEditor({
       (!draft.image || draft.image.startsWith('/brand/'))
     )
       throw new Error('Choose a photograph or video for this report.');
-    if (!adminMode && draft.image && !draft.image.startsWith('/brand/') && !draft.imageAlt.trim())
+    if (
+      !adminMode &&
+      !reelArticle &&
+      draft.image &&
+      !draft.image.startsWith('/brand/') &&
+      !draft.imageAlt.trim()
+    )
       throw new Error('Add a description for the photograph.');
     if (!draft.slug.trim() || !/^[\p{L}\p{N}\p{M}_-]+$/u.test(draft.slug))
       throw new Error('Use letters, numbers and hyphens for the article slug.');
-    if (!allowedMedia(draft.image) || (!reelArticle && !allowedMedia(draft.videoUrl, false)))
+    if (!reelArticle && (!allowedMedia(draft.image) || !allowedMedia(draft.videoUrl, false)))
       throw new Error('Choose a local asset or an approved HTTPS media URL.');
     const { title, summary, body } = draft.english;
     if (
@@ -178,6 +184,8 @@ export function ArticleEditor({
       version,
       byline: adminMode ? draft.byline : '',
       reelUrl,
+      image: reelArticle ? '' : draft.image,
+      imageAlt: reelArticle ? '' : draft.imageAlt,
       youtubeId: reelArticle ? '' : videoId(draft.youtubeId.trim()),
       videoUrl: reelArticle ? '' : draft.videoUrl,
     };
@@ -459,7 +467,7 @@ export function ArticleEditor({
             </span>
           </label>
           <label>
-            Summary
+            {reelArticle ? 'Reel introduction' : 'Summary'}
             <textarea
               name="summary"
               required
@@ -467,6 +475,11 @@ export function ArticleEditor({
               rows={3}
               value={draft.summary}
               onChange={(event) => set('summary', event.target.value)}
+              placeholder={
+                reelArticle
+                  ? 'Introduce the Reel, credit its creator, and explain why it matters.'
+                  : undefined
+              }
             />
             {helpersAllowed && (
               <Button
@@ -588,7 +601,7 @@ export function ArticleEditor({
             )}
           </details>
           <fieldset className="media-fields">
-            <legend>{reelArticle ? 'Instagram Reel & cover' : 'Photograph & video'}</legend>
+            <legend>{reelArticle ? 'Instagram link' : 'Photograph & video'}</legend>
             {reelArticle && (
               <label>
                 Public Instagram Reel link
@@ -602,35 +615,38 @@ export function ArticleEditor({
                   placeholder="https://www.instagram.com/reel/ABC123/"
                 />
                 <span className="field-help">
-                  Use the Reel’s share link. Confirm the original creator and any publication rights
-                  in your review notes.
+                  Paste the original Reel’s share link. Readers open it on Instagram.
                 </span>
               </label>
             )}
-            <MediaUpload
-              disabled={busy || assisting}
-              onUploaded={(asset) => set('image', asset.url)}
-            />
-            <label>
-              {reelArticle ? 'Cover photograph (optional)' : 'Photograph'}
-              <input
-                name="image"
-                maxLength={2000}
-                value={draft.image}
-                onChange={(event) => set('image', event.target.value)}
-                placeholder="/images/report.jpg or an approved HTTPS URL"
-              />
-            </label>
-            <label>
-              Image description
-              <input
-                name="imageAlt"
-                maxLength={500}
-                value={draft.imageAlt}
-                onChange={(event) => set('imageAlt', event.target.value)}
-                placeholder="Describe what the photograph shows"
-              />
-            </label>
+            {!reelArticle && (
+              <>
+                <MediaUpload
+                  disabled={busy || assisting}
+                  onUploaded={(asset) => set('image', asset.url)}
+                />
+                <label>
+                  Photograph
+                  <input
+                    name="image"
+                    maxLength={2000}
+                    value={draft.image}
+                    onChange={(event) => set('image', event.target.value)}
+                    placeholder="/images/report.jpg or an approved HTTPS URL"
+                  />
+                </label>
+                <label>
+                  Image description
+                  <input
+                    name="imageAlt"
+                    maxLength={500}
+                    value={draft.imageAlt}
+                    onChange={(event) => set('imageAlt', event.target.value)}
+                    placeholder="Describe what the photograph shows"
+                  />
+                </label>
+              </>
+            )}
             {!reelArticle && (
               <>
                 <label>

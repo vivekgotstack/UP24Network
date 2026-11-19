@@ -2,16 +2,19 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
 import type { PublicationDocument as Document } from '@/lib/publication';
-import { getPublicationPage, getPublicationNavigation } from '@/lib/publication-api';
+import { getPublicationPage, getPublicationNavigation, publicationEdition } from '@/lib/publication-api';
+import { copy, publicationLabel } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 import { CookiePreferences } from '@/components/cookie-consent';
 import { ReaderContactForm } from '@/components/reader-contact-form';
 
 export async function PublicationDocument({ document: initial }: { document: Document }) {
-  const [persisted, publicationNavigation] = await Promise.all([
+  const [persisted, publicationNavigation, locale] = await Promise.all([
     getPublicationPage(initial.path),
     getPublicationNavigation(),
+    getReaderLocale(),
   ]);
-  const document = persisted ?? initial;
+  const { document, contentLocale } = publicationEdition(initial, persisted, locale);
   const contactTopic =
     document.path === '/corrections'
       ? 'CORRECTION'
@@ -22,21 +25,20 @@ export async function PublicationDocument({ document: initial }: { document: Doc
   return (
     <>
       <SiteHeader compact />
-      <main id="main-content" className="publication-page" lang="en">
-        <nav className="publication-breadcrumb" aria-label="Breadcrumb">
+      <main id="main-content" className="publication-page" lang={locale}>
+        <nav className="publication-breadcrumb" aria-label={copy(locale, 'पृष्ठ का रास्ता', 'Breadcrumb')}>
           <Link href="/">UP24Network</Link>
           <span aria-hidden="true">/</span>
-          <span>{document.label}</span>
+          <span lang={contentLocale}>{document.label}</span>
         </nav>
         <header className="publication-heading">
-          <p className="eyebrow">THE PUBLICATION</p>
-          <h1>{document.title}</h1>
-          <p className="publication-intro">{document.intro}</p>
+          <h1 lang={contentLocale}>{document.title}</h1>
+          <p className="publication-intro" lang={contentLocale}>{document.intro}</p>
           {persisted?.updatedAt && (
             <p className="publication-date">
-              Updated{' '}
+              {copy(locale, 'अपडेट', 'Updated')}{' '}
               <time dateTime={persisted.updatedAt}>
-                {new Intl.DateTimeFormat('en-IN', {
+                {new Intl.DateTimeFormat(`${locale}-IN`, {
                   dateStyle: 'long',
                   timeZone: 'Asia/Kolkata',
                 }).format(new Date(persisted.updatedAt))}
@@ -46,31 +48,31 @@ export async function PublicationDocument({ document: initial }: { document: Doc
         </header>
         <div className="publication-layout">
           <aside className="publication-sidebar">
-            <nav aria-label="Publication information">
-              <p className="eyebrow">INFORMATION & POLICIES</p>
+            <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
+              <p className="eyebrow">{copy(locale, 'जानकारी और नीतियाँ', 'Information & policies')}</p>
               {publicationNavigation.map(({ path, label }) => (
                 <Link
                   key={path}
                   href={path}
                   aria-current={path === document.path ? 'page' : undefined}
                 >
-                  {label}
+                  {publicationLabel(locale, path, label)}
                 </Link>
               ))}
             </nav>
-            <nav className="publication-contents" aria-label="On this page">
-              <p className="eyebrow">ON THIS PAGE</p>
+            <nav className="publication-contents" aria-label={copy(locale, 'इस पृष्ठ पर', 'On this page')}>
+              <p className="eyebrow">{copy(locale, 'इस पृष्ठ पर', 'On this page')}</p>
               {document.sections.map((section) => (
-                <a key={section.id} href={`#${section.id}`}>
+                <a key={section.id} href={`#${section.id}`} lang={contentLocale}>
                   {section.title}
                 </a>
               ))}
-              {showContactForm && <a href="#reader-contact">Send a message</a>}
+              {showContactForm && <a href="#reader-contact">{copy(locale, 'संदेश भेजें', 'Send a message')}</a>}
             </nav>
           </aside>
           <article className="publication-copy" aria-label={document.title}>
             {document.sections.map((section) => (
-              <section id={section.id} key={section.id} aria-labelledby={`heading-${section.id}`}>
+              <section id={section.id} key={section.id} aria-labelledby={`heading-${section.id}`} lang={contentLocale}>
                 <h2 id={`heading-${section.id}`}>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
@@ -93,7 +95,7 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 )}
                 {document.path === '/cookies' && section.id === 'choice' && (
                   <div className="publication-related">
-                    <CookiePreferences>अपनी कुकी पसंद बदलें</CookiePreferences>
+                    <CookiePreferences>{copy(locale, 'कुकी पसंद बदलें', 'Change cookie settings')}</CookiePreferences>
                   </div>
                 )}
                 {document.path === '/contact' && section.id === 'channels' && (
@@ -107,7 +109,7 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                       >
                         <strong>{social.name}</strong>
                         <span>
-                          UP24Network<span className="sr-only"> · Opens in a new tab</span>
+                          UP24Network<span className="sr-only"> · {copy(locale, 'नए टैब में खुलेगा', 'Opens in a new tab')}</span>
                         </span>
                       </a>
                     ))}
@@ -117,29 +119,29 @@ export async function PublicationDocument({ document: initial }: { document: Doc
             ))}
             {(document.path === '/cookies' || document.path === '/privacy') && (
               <section aria-labelledby="instagram-media-heading">
-                <h2 id="instagram-media-heading">Instagram reels</h2>
+                <h2 id="instagram-media-heading">{copy(locale, 'Instagram रील्स', 'Instagram reels')}</h2>
                 <p>
-                  When you allow external videos and choose to load a reel, your browser connects
-                  directly to Instagram. Instagram may receive your IP address and browser details.
-                  You can withdraw permission through Cookie settings in the footer.
+                  {copy(
+                    locale,
+                    'रील का लिंक खोलने पर आप Instagram पर जाते हैं। वहाँ Instagram की गोपनीयता नीति लागू होती है।',
+                    'Reel links take you to Instagram, where Instagram’s privacy policy applies.',
+                  )}
                 </p>
               </section>
             )}
             {document.path === '/privacy' && (
               <section aria-labelledby="reader-view-counts-heading">
-                <h2 id="reader-view-counts-heading">Article view counts</h2>
+                <h2 id="reader-view-counts-heading">{copy(locale, 'लेख कितनी बार खुले', 'Article view counts')}</h2>
                 <p>
-                  We count public article views to understand which reports readers open. We use the
-                  current sign-in status to exclude staff views. The resulting totals contain no
-                  reader names, account identifiers, or browsing histories.
+                  {copy(locale, 'हम देखते हैं कि कौन-सी सार्वजनिक रिपोर्ट कितनी बार खुलती है। मौजूदा लॉगिन स्थिति से कर्मचारियों के व्यू अलग रखे जाते हैं। कुल संख्या में पाठक का नाम, खाता पहचान या पढ़ने का इतिहास नहीं होता।', 'We count public article views to understand which reports readers open. We use the current sign-in status to exclude staff views. The resulting totals contain no reader names, account identifiers, or browsing histories.')}
                 </p>
               </section>
             )}
-            {showContactForm && <ReaderContactForm topic={contactTopic} />}
+            {showContactForm && <ReaderContactForm topic={contactTopic} locale={locale} />}
             <footer className="publication-note">
               <p>
-                For a question about this policy or a published report,{' '}
-                <Link href="/contact">contact UP24Network</Link>.
+                {copy(locale, 'इस नीति या किसी रिपोर्ट के बारे में प्रश्न हो तो', 'For a question about this policy or a published report,')}{' '}
+                <Link href="/contact">{copy(locale, 'UP24Network से संपर्क करें', 'contact UP24Network')}</Link>{copy(locale, '।', '.')}
               </p>
             </footer>
           </article>

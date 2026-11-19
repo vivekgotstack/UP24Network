@@ -13,8 +13,7 @@
 .heading h2 {
   font: 700 clamp(22px, 3vw, 29px)/1.2 var(--serif);
 }
-.heading a,
-.viewerActions a {
+.heading a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -50,12 +49,10 @@
   background: var(--brand-navy);
   color: var(--brand-gold);
 }
-.cover img,
-.viewerCover img {
-  object-fit: contain;
-}
-.cover :global(.media-placeholder) {
-  display: none;
+.cardText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
 }
 .cardTitle {
   min-width: 0;
@@ -63,44 +60,20 @@
   font: 600 16px/1.35 var(--serif);
 }
 .viewer {
-  width: min(100%, 520px);
-  margin: 0 auto clamp(24px, 4vw, 40px);
-  padding: 12px;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  margin-block: 12px clamp(16px, 3vw, 26px);
 }
-.preview {
-  display: grid;
-  justify-items: center;
-  row-gap: 12px;
-  padding-block: 8px;
+.cardIntro {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font: 400 13px/1.4 var(--sans);
+  overflow-wrap: anywhere;
 }
-.viewerCover {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  aspect-ratio: 4 / 3;
-  background: var(--brand-navy);
-}
-.frame {
-  display: block;
-  width: min(100%, 360px);
-  height: auto;
-  aspect-ratio: 9 / 16;
-  margin-inline: auto;
-  border: 0;
-  background: var(--surface-raised);
-}
-.permission {
-  text-align: center;
-  font: 400 15px/1.55 var(--sans);
-}
-.viewerActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 4px 12px;
+.credit {
+  color: var(--muted);
+  font: 400 12px/1.35 var(--sans);
+  overflow-wrap: anywhere;
 }
 @media (max-width: 700px) {
   .list {

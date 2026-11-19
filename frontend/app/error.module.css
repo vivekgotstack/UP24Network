@@ -1,0 +1,11 @@
+.english {
+  display: none;
+}
+
+:global(html[lang='en']) .hindi {
+  display: none;
+}
+
+:global(html[lang='en']) .english {
+  display: revert;
+}

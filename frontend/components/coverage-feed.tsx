@@ -3,8 +3,11 @@ import { StoryCard } from '@/components/story-card';
 import { NewsList } from '@/components/news-list';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
-export function CoverageFeed({ result, base }: { result: ArticlePage; base: string }) {
+export async function CoverageFeed({ result, base }: { result: ArticlePage; base: string }) {
+  const locale = await getReaderLocale();
   const [lead, ...remaining] = result.items;
   const feature = result.page === 1 && lead;
   const grid = feature ? remaining.slice(3) : result.items;
@@ -15,7 +18,7 @@ export function CoverageFeed({ result, base }: { result: ArticlePage; base: stri
           <StoryCard article={lead} lead />
           {remaining.length > 0 && (
             <div className="coverage-briefs">
-              <p className="eyebrow">और खबरें</p>
+              <p className="eyebrow">{copy(locale, 'और खबरें', 'More news')}</p>
               <NewsList articles={remaining.slice(0, 3)} />
             </div>
           )}

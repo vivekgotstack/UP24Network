@@ -3,6 +3,9 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import type { PublicationDocument } from '@/lib/publication';
 import { publicationNavigation } from '@/lib/publication';
+import { hindiPublication } from '@/lib/publication-hi';
+import type { SiteLocale } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
 export type PublicationSettings = {
   tagline: string;
@@ -78,10 +81,19 @@ export const getNewsletterAvailability = cache(async (): Promise<boolean> => {
   return false;
 });
 export async function publicationMetadata(fallback: PublicationDocument): Promise<Metadata> {
-  const document = (await getPublicationPage(fallback.path)) ?? fallback;
+  const [persisted, locale] = await Promise.all([getPublicationPage(fallback.path), getReaderLocale()]);
+  const { document } = publicationEdition(fallback, persisted, locale);
   return {
     title: document.title,
     description: document.description,
     alternates: { canonical: document.path },
   };
+}
+
+export function publicationEdition(fallback: PublicationDocument, persisted: EditablePublicationDocument | undefined, locale: SiteLocale) {
+  if (locale === 'hi' && (!persisted || persisted.version === 0)) {
+    const translated = hindiPublication(fallback);
+    if (translated) return { document: translated, contentLocale: 'hi' as const };
+  }
+  return { document: persisted ?? fallback, contentLocale: 'en' as const };
 }

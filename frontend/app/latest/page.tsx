@@ -5,19 +5,29 @@ import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
 import { getArticlePage } from '@/lib/articles';
+import { reportCount } from '@/lib/coverage-labels';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = {
-  title: 'ताजा खबरें',
-  description: 'UP24Network की सबसे हाल में प्रकाशित रिपोर्ट।',
-  alternates: { canonical: '/latest' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getReaderLocale();
+  return {
+    title: copy(locale, 'ताज़ा खबरें', 'Latest news'),
+    description: copy(
+      locale,
+      'UP24Network की सबसे हाल में प्रकाशित रिपोर्ट।',
+      'The latest reports from UP24Network.',
+    ),
+    alternates: { canonical: '/latest' },
+  };
+}
 export default async function Latest({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const params = await searchParams;
+  const [params, locale] = await Promise.all([searchParams, getReaderLocale()]);
   const results = await getArticlePage({ page: params.page });
   return (
     <>
@@ -26,11 +36,16 @@ export default async function Latest({
       <main id="main-content">
         <header className="page-heading" id="stories">
           <div>
-            <p className="eyebrow">LATEST / NEWS DESK</p>
-            <h1 lang="hi">ताजा खबरें</h1>
-            <p lang="hi">सबसे नई रिपोर्ट, प्रकाशन के क्रम में।</p>
+            <h1>{copy(locale, 'ताज़ा खबरें', 'Latest news')}</h1>
+            <p>
+              {copy(
+                locale,
+                'सबसे नई रिपोर्ट, प्रकाशन के क्रम में।',
+                'The latest reports, in publication order.',
+              )}
+            </p>
           </div>
-          <span className="result-count">{results.total} reports</span>
+          <span className="result-count">{reportCount(locale, results.total)}</span>
         </header>
         {results.total ? (
           <div className="story-grid">

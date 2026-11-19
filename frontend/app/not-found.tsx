@@ -1,19 +1,28 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
-export default function NotFound() {
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
+
+export default async function NotFound() {
+  const locale = await getReaderLocale();
   return (
     <>
       <SiteHeader compact />
       <main id="main-content" className="empty-state">
-        <p className="eyebrow">404 / PAGE NOT FOUND</p>
-        <h1 lang="hi">यह पन्ना यहाँ नहीं है।</h1>
-        <p>The report may have moved, or the address may be incorrect.</p>
+        <h1>{copy(locale, 'पृष्ठ नहीं मिला', 'Page not found')}</h1>
+        <p>
+          {copy(
+            locale,
+            'खबर का पता बदल गया होगा या लिंक गलत हो सकता है।',
+            'The report may have moved, or the link may be incorrect.',
+          )}
+        </p>
         <div className="empty-actions">
           <Link className="text-link" href="/">
-            Front page
+            {copy(locale, 'मुख्य पृष्ठ', 'Home')}
           </Link>
           <Link className="text-link" href="/search">
-            Search reports
+            {copy(locale, 'खबर खोजें', 'Search reports')}
           </Link>
         </div>
       </main>

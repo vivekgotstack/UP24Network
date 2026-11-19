@@ -1,6 +1,11 @@
-export default function Loading() {
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
+
+export default async function Loading() {
+  const locale = await getReaderLocale();
+  const label = copy(locale, 'खबरें लोड हो रही हैं…', 'Loading reports…');
   return (
-    <main id="main-content" className="page-loading" aria-busy="true" aria-label="Loading reports">
+    <main id="main-content" className="page-loading" aria-busy="true" aria-label={label}>
       <div className="loading-masthead skeleton" />
       <div className="loading-title skeleton" />
       <div className="story-grid">
@@ -13,7 +18,7 @@ export default function Loading() {
         ))}
       </div>
       <p className="sr-only" role="status">
-        Loading reports…
+        {label}
       </p>
     </main>
   );

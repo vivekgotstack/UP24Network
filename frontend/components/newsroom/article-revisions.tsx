@@ -7,13 +7,45 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useNewsroomResource } from '@/lib/session';
 import type { Account } from '@/lib/cms';
 import type { ManagedArticle } from '@/lib/newsroom/types';
-import { articleDesk, type ArticleRevision } from '@/lib/newsroom/articles';
+import {
+  articleDesk,
+  type ArticleRevision,
+  type ArticleActivity,
+  type EditorialActor,
+} from '@/lib/newsroom/articles';
 import styles from './article-admin.module.css';
 
 function savedAt(value: string) {
-  return new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(value),
-  );
+  return new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date(value));
+}
+
+const actions: Record<string, string> = {
+  CREATE_DRAFT: 'Draft created',
+  CREATE_CONTINUATION: 'Continuation created',
+  EDIT_ARTICLE: 'Article edited',
+  SUBMIT_REVIEW: 'Submitted for review',
+  APPROVE_REVIEW: 'Approved',
+  RETURN_REVIEW: 'Returned for revision',
+  PUBLISH: 'Published',
+  UNPUBLISH: 'Unpublished',
+  ARCHIVE: 'Archived',
+  TRASH: 'Moved to trash',
+  RESTORE: 'Restored to draft',
+  RESTORE_REVISION: 'Revision restored',
+  PURGE: 'Deleted',
+};
+
+function actorLabel(actorId: string | null, actor?: EditorialActor | null) {
+  const role = actor?.role === 'ADMIN' ? 'administrator' : actor?.role.toLowerCase();
+  return actor
+    ? `${actor.name} · ${role}`
+    : actorId
+      ? 'Account unavailable'
+      : 'No named contributor';
 }
 
 export function ArticleRevisions({
@@ -34,6 +66,11 @@ export function ArticleRevisions({
   const revisions = useNewsroomResource<ArticleRevision[]>(
     user,
     `admin/articles/${article.id}/revisions`,
+    open,
+  );
+  const activity = useNewsroomResource<ArticleActivity[]>(
+    user,
+    `admin/articles/${article.id}/activity`,
     open,
   );
   const snapshot = useNewsroomResource<ManagedArticle>(
@@ -88,6 +125,7 @@ export function ArticleRevisions({
               {revisions.data?.map((revision) => (
                 <option key={revision.version} value={revision.version}>
                   Revision {revision.version} · {savedAt(revision.savedAt)} · {revision.title}
+                  {revision.actor && ` · ${revision.actor.name}`}
                 </option>
               ))}
             </select>
@@ -145,6 +183,23 @@ export function ArticleRevisions({
             {restore.error.message}
           </p>
         )}
+        <section aria-labelledby="article-activity-heading" className={styles.activityLedger}>
+          <h3 id="article-activity-heading">Editorial activity</h3>
+          {activity.isLoading && <p role="status">Loading editorial activity…</p>}
+          {activity.error && <p role="alert">{activity.error.message}</p>}
+          {activity.data?.length === 0 && <p>No recorded activity.</p>}
+          {Boolean(activity.data?.length) && (
+            <ul>
+              {activity.data?.map((entry) => (
+                <li key={entry.id}>
+                  <strong>{actions[entry.action] ?? entry.action}</strong>
+                  <span>{actorLabel(entry.actorId, entry.actor)}</span>
+                  <time dateTime={entry.occurredAt}>{savedAt(entry.occurredAt)}</time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
       <ConfirmDialog
         open={confirm}

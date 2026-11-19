@@ -1,36 +1,53 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
-import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
-export const metadata: Metadata = { title: 'सभी विभाग', alternates: { canonical: '/sections' } };
-export default function SectionsPage() {
+import {
+  newsSections,
+  sectionDescription,
+  sectionGroups,
+  sectionHref,
+  sectionTitle,
+} from '@/lib/sections';
+import { copy } from '@/lib/locale';
+import { getReaderLocale } from '@/lib/reader-locale';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getReaderLocale();
+  return {
+    title: copy(locale, 'सभी विभाग', 'All sections'),
+    alternates: { canonical: '/sections' },
+  };
+}
+export default async function SectionsPage() {
+  const locale = await getReaderLocale();
   return (
     <>
       <SiteHeader compact />
       <main id="main-content">
         <header className="page-heading">
           <div>
-            <p className="eyebrow">UP24NETWORK DIRECTORY</p>
-            <h1 lang="hi">खबरों की हर दिशा</h1>
-            <p lang="hi">अपनी रुचि का विभाग चुनिए और उसकी पूरी कवरेज पढ़िए।</p>
+            <h1>{copy(locale, 'सभी विभाग', 'All sections')}</h1>
+            <p>{copy(locale, 'अपनी रुचि की खबरें पढ़ें।', 'Browse news by topic.')}</p>
           </div>
         </header>
-        <nav className="coverage-topics" aria-label="Quick links">
-          <Link href="/latest">ताजा खबरें</Link>
-          <Link href="/regions">राज्य और शहर</Link>
-          <Link href="/watch">वीडियो रिपोर्ट</Link>
+        <nav className="coverage-topics" aria-label={copy(locale, 'मुख्य लिंक', 'Quick links')}>
+          <Link href="/latest">{copy(locale, 'ताज़ा खबरें', 'Latest news')}</Link>
+          <Link href="/regions">{copy(locale, 'राज्य और शहर', 'States and cities')}</Link>
+          <Link href="/watch">{copy(locale, 'वीडियो रिपोर्ट', 'Video reports')}</Link>
         </nav>
         {sectionGroups.map((group) => (
           <section className="directory-group" key={group.title}>
-            <h2>{group.title}</h2>
-            <nav className="section-page-grid" aria-label={group.title}>
+            <h2>{copy(locale, group.title, group.englishTitle)}</h2>
+            <nav
+              className="section-page-grid"
+              aria-label={copy(locale, group.title, group.englishTitle)}
+            >
               {newsSections
                 .filter((section) => group.slugs.includes(section.slug))
                 .map((section) => (
                   <Link key={section.slug} href={sectionHref(section.name)}>
-                    <span className="eyebrow">{section.name}</span>
-                    <h2 lang="hi">{section.title}</h2>
-                    <p lang="hi">{section.description}</p>
+                    <h3>{sectionTitle(section.name, locale)}</h3>
+                    <p>{sectionDescription(section, locale)}</p>
                   </Link>
                 ))}
             </nav>

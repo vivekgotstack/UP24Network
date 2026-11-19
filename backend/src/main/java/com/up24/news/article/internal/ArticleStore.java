@@ -22,7 +22,10 @@ class ArticleStore implements ArticleDesk {
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     private final ApplicationEventPublisher events;
-    ArticleStore(JdbcTemplate jdbc,ObjectMapper json,ApplicationEventPublisher events) { this.jdbc=jdbc; this.json=json; this.events=events; }
+    private final ArticleLifecycleStore lifecycle;
+    ArticleStore(JdbcTemplate jdbc,ObjectMapper json,ApplicationEventPublisher events,ArticleLifecycleStore lifecycle) {
+        this.jdbc=jdbc; this.json=json; this.events=events; this.lifecycle=lifecycle;
+    }
     private Managed map(ResultSet row,int index) throws SQLException {
         return ArticleRows.full(row,json);
     }
@@ -94,15 +97,17 @@ class ArticleStore implements ArticleDesk {
         String paragraphs=contentJson(ArticleFieldPolicy.paragraphs(input.body()));
         ArticleView.English translation = ArticleFieldPolicy.english(input.english());
         String english = translation == null ? null : contentJson(translation);
-        String image=media(input.image(),"image"),video=media(input.videoUrl(),"video");
         String reel=ArticleFieldPolicy.reel(input);
+        String image=media(reel==null?input.image():null,"image"),video=media(input.videoUrl(),"video");
+        String imageAlt=reel==null?value(input.imageAlt()):"";
         try {
             if(id==null) jdbc.update("INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,video_url,youtube_id,reel_url,paragraphs,english_content,manual_override,source_notes,region,edited_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,TRUE,?,?,?)",
-                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,english,value(input.sourceNotes()),value(input.region()),actor);
-            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,english_content=CASE WHEN ? THEN ?::jsonb ELSE english_content END,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
-                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,value(input.imageAlt()),video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,input.english()!=null,english,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
+                    articleId,slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),value(input.byline()).isEmpty()?author:input.byline().strip(),actor,image,imageAlt,video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,english,value(input.sourceNotes()),value(input.region()),actor);
+            else if(jdbc.update("UPDATE article_record SET slug=?,title=?,summary=?,category=?,city=?,image=?,image_alt=?,video_url=?,youtube_id=?,reel_url=?,paragraphs=?::jsonb,english_content=CASE WHEN ? THEN ?::jsonb ELSE english_content END,source_notes=?,region=?,author=CASE WHEN ?='' THEN author ELSE ? END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP,updated_byline=NULL WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
+                    slug,input.title().trim(),input.summary().trim(),input.category(),value(input.city()),image,imageAlt,video,value(input.youtubeId()).isEmpty()?null:input.youtubeId(),reel,paragraphs,input.english()!=null,english,value(input.sourceNotes()),value(input.region()),value(input.byline()),value(input.byline()),actor,id,input.version())==0)
                 concurrentChange(id);
         } catch(DuplicateKeyException exception) { throw new ResponseStatusException(HttpStatus.CONFLICT,"That article slug is already in use"); }
+        if (actor!=null) lifecycle.record(articleId,id==null?"CREATE_DRAFT":"EDIT_ARTICLE",actor,id==null?0:input.version()+1);
         events.publishEvent(new ArticleChanged(articleId));
         return find(articleId).orElseThrow();
     }
@@ -112,6 +117,7 @@ class ArticleStore implements ArticleDesk {
     @Transactional @Override public Managed publish(UUID id,long version,boolean published,boolean breaking,UUID actor) {
         if(jdbc.update("UPDATE article_record SET status=?,breaking=?,published_at=CASE WHEN ? THEN COALESCE(published_at,CURRENT_TIMESTAMP) ELSE published_at END,edited_by=?,manual_override=TRUE,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=? AND status IN ('DRAFT','PUBLISHED')",
                 published?"PUBLISHED":"DRAFT",published&&breaking,published,actor,id,version)==0) concurrentChange(id);
+        if (actor!=null) lifecycle.record(id,published?"PUBLISH":"UNPUBLISH",actor,version+1);
         events.publishEvent(new ArticleChanged(id));
         return find(id).orElseThrow();
     }
@@ -146,7 +152,7 @@ class ArticleStore implements ArticleDesk {
     static final String SEARCH_TEXT = "lower(concat_ws(' ',title,summary,city,category,english_content->>'title',english_content->>'summary'))";
     static final String SUMMARY_COLUMNS = "id,author_id,status,manual_override,version,slug,title,summary,category,city,author,"
             + "published_at,reading_minutes,image,image_alt,video_url,youtube_id,reel_url,breaking,source_url,region,"
-            + "edition_number,continuation_root_id,english_content->>'title' AS english_title,"
+            + "edition_number,continuation_root_id,updated_byline,english_content->>'title' AS english_title,"
             + "english_content->>'summary' AS english_summary,english_content->>'imageAlt' AS english_image_alt, "
             + CONTINUATION_SLUG;
 }

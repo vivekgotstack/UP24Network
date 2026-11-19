@@ -9,12 +9,22 @@ export type DeskPage = {
   pages: number;
   counts: Record<ManagedArticle['status'], number>;
 };
+export type EditorialActor = { name: string; role: string };
 export type ArticleRevision = {
   version: number;
   savedAt: string;
   title: string;
   status: string;
   actorId: string | null;
+  actor?: EditorialActor | null;
+};
+export type ArticleActivity = {
+  id: string;
+  action: string;
+  actorId: string | null;
+  actor?: EditorialActor | null;
+  version: number;
+  occurredAt: string;
 };
 export type LifecycleAction = 'ARCHIVE' | 'TRASH' | 'RESTORE';
 export function articlePagePath(status = 'ALL', q = '', page = 1, size = 20) {
