@@ -130,10 +130,15 @@ export function ArticleWorkspace({
           removed. Restoration always creates a draft.
         </p>
       )}
-      {!administrator && (
+      {user.role === 'REPORTER' && (
         <p className="cms-muted">
           Prepare a review request to publish a draft or propose changes to a published report. Your
           submissions are grouped into one daily batch for administrator review.
+        </p>
+      )}
+      {user.role === 'EDITOR' && (
+        <p className="cms-muted">
+          Complete the reporting and verification checks to publish a draft or update a live report.
         </p>
       )}
       <div className="desk-filters">
@@ -298,7 +303,7 @@ export function ArticleWorkspace({
                   {!trashMode && (
                     <Button size="sm" variant="outline" asChild>
                       <Link href={`${basePath}/articles/${row.id}`}>
-                        {!administrator && row.status === 'PUBLISHED'
+                        {user.role === 'REPORTER' && row.status === 'PUBLISHED'
                           ? 'Propose update'
                           : 'Edit report'}
                       </Link>

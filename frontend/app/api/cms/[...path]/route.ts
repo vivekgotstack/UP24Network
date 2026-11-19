@@ -14,6 +14,7 @@ const REVIEW_BATCH = `admin/article-reviews/batches/${UUID}/[0-9]{4}-[0-9]{2}-[0
 const ARTICLE_VIEW = /^articles\/([\p{L}\p{N}\p{M}_-]{1,500})\/view$/u;
 const ARTICLE_RESOURCE = new RegExp(`^admin/articles/${UUID}$`, 'i');
 const ARTICLE_REVIEW = new RegExp(`^admin/articles/${UUID}/review$`, 'i');
+const EDITOR_PUBLICATION = new RegExp(`^admin/articles/${UUID}/editor-publication$`, 'i');
 const endpoints: [RegExp, string[]][] = [
   [/^auth\/(csrf|me|workflow)$/, ['GET']],
   [/^auth\/(login|register|logout|logout-all|refresh)$/, ['POST']],
@@ -32,6 +33,7 @@ const endpoints: [RegExp, string[]][] = [
   [new RegExp(`^admin/articles/${UUID}/publication$`, 'i'), ['POST']],
   [new RegExp(`^admin/articles/${UUID}/continuations$`, 'i'), ['POST']],
   [ARTICLE_REVIEW, ['GET', 'POST']],
+  [EDITOR_PUBLICATION, ['POST']],
   [/^admin\/article-reviews$/, ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}$`, 'i'), ['GET']],
   [new RegExp(`^admin/article-reviews/${UUID}/return$`, 'i'), ['POST']],
@@ -121,7 +123,10 @@ async function proxy(request: NextRequest, context: Context) {
   }
   try {
     const articleEdit =
-      (request.method === 'POST' && (path === 'admin/articles' || ARTICLE_REVIEW.test(path))) ||
+      (request.method === 'POST' &&
+        (path === 'admin/articles' ||
+          ARTICLE_REVIEW.test(path) ||
+          EDITOR_PUBLICATION.test(path))) ||
       (request.method === 'PUT' && ARTICLE_RESOURCE.test(path));
     const maxBodyBytes = articleView
       ? 0

@@ -11,13 +11,14 @@ import { ContinueStoryButton } from '@/components/newsroom/continue-story-button
 import { ArticleMediaFields } from '@/components/newsroom/article-media-fields';
 import {
   StaffReviewStatus,
-  StaffReviewSubmission,
+  StaffEditorialSubmission,
 } from '@/components/newsroom/staff-article-review';
 import { cms, CmsError } from '@/lib/cms';
 import { useSession, useNewsroomResource } from '@/lib/session';
 import { openingSummary, reportTopics, reportWordCount } from '@/lib/newsroom/report-format';
 import { defaultWorkflow, type WorkflowPolicy } from '@/lib/newsroom/workflows';
-import { articleReviews, type Review, type ReviewHistory } from '@/lib/newsroom/reviews';
+import { articleDesk } from '@/lib/newsroom/articles';
+import { articleReviews, type ReviewHistory, type ReviewSubmission } from '@/lib/newsroom/reviews';
 import { canonicalReelUrl, trendingReelsCategory } from '@/lib/instagram';
 import styles from './article-admin.module.css';
 
@@ -41,6 +42,7 @@ export function ArticleEditor({
   onCancel,
   adminMode = false,
   onPublish,
+  onEditorPublished,
 }: {
   article: ManagedArticle | null;
   busy: boolean;
@@ -50,11 +52,13 @@ export function ArticleEditor({
     stayInEditor?: boolean,
   ) => Promise<ManagedArticle | undefined>;
   onPublish?: (saved: ManagedArticle) => Promise<ManagedArticle | undefined>;
+  onEditorPublished?: (published: ManagedArticle) => void;
   onDirty: (dirty: boolean) => void;
   onCancel: () => void;
   adminMode?: boolean;
 }) {
   const session = useSession();
+  const editorPublication = session.data?.role === 'EDITOR';
   const workflow = useNewsroomResource<WorkflowPolicy>(session.data, 'auth/workflow', !adminMode);
   const history = useNewsroomResource<ReviewHistory>(
     session.data,
@@ -95,7 +99,7 @@ export function ArticleEditor({
     draft.slug.trim() || (adminMode && version === null ? slugify(draft.title) : '');
   const autoSummary = adminMode ? openingSummary(draft.body) : '';
   const approvedOnCurrentVersion =
-    latest?.state === 'APPROVED' && latest.articleVersion === version;
+    !editorPublication && latest?.state === 'APPROVED' && latest.articleVersion === version;
   const canReview =
     !adminMode &&
     Boolean(article && history.data && !history.error) &&
@@ -279,7 +283,21 @@ export function ArticleEditor({
       byline: current.byline,
     }));
   }
-  function markSubmitted(review: Review) {
+  async function commitStaffArticle(request: ReviewSubmission) {
+    if (!article) return;
+    if (editorPublication) {
+      const published = await articleDesk.releaseByEditor(article.id, request);
+      const next = toDraft(published);
+      setDraft(next);
+      setSaved(JSON.stringify(next));
+      setVersion(published.version);
+      setArticleStatus(published.status);
+      setProposal(null);
+      setConflict(false);
+      onEditorPublished?.(published);
+      return;
+    }
+    const review = await articleReviews.submit(article.id, request);
     history.setData({ reviews: [review, ...(history.data?.reviews ?? [])], latestInput: null });
     setSaved(JSON.stringify(draft));
     setProposal(null);
@@ -386,12 +404,12 @@ export function ArticleEditor({
             canResume={!unsaved && !busy && !proposal && !conflict}
             onResume={openReturned}
           />
-          <StaffReviewSubmission
-            articleId={article.id}
+          <StaffEditorialSubmission
             input={pendingReview ? null : proposal}
             published={proposedUpdate}
+            editorPublication={editorPublication}
             onBack={() => setProposal(null)}
-            onSubmitted={markSubmitted}
+            onCommit={commitStaffArticle}
             onConflict={reviewConflict}
             onEvidenceChange={setReviewEvidence}
           />
@@ -714,7 +732,9 @@ export function ArticleEditor({
                 value="review"
                 disabled={busy || !canReview || conflict || (proposedUpdate && !dirty)}
               >
-                {proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
+                {editorPublication
+                  ? proposedUpdate ? 'Prepare correction for publication' : 'Prepare to publish'
+                  : proposedUpdate ? 'Review proposed update' : 'Prepare review request'}
               </Button>
             )}
             {article?.status === 'PUBLISHED' && session.data && (
@@ -741,12 +761,17 @@ export function ArticleEditor({
           )}
           {proposedUpdate && (
             <p className="field-help">
-              Changes go into a review request. Readers see the current report until the
-              administrator approves the update.
+              {editorPublication
+                ? 'Readers see the current report until you publish the corrections.'
+                : 'Readers see the current report until the administrator approves the update.'}
             </p>
           )}
           {!adminMode && !article && (
-            <p className="field-help">Save the draft to begin an editorial review request.</p>
+            <p className="field-help">
+              {editorPublication
+                ? 'Save the draft to begin the publication checklist.'
+                : 'Save the draft to begin an editorial review request.'}
+            </p>
           )}
         </fieldset>
       </form>

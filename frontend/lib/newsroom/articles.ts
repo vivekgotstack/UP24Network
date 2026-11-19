@@ -1,4 +1,5 @@
 import { cms } from '@/lib/cms';
+import type { ReviewSubmission } from '@/lib/newsroom/reviews';
 import type { ManagedArticle, SaveArticle } from '@/lib/newsroom/types';
 
 export type DeskPage = {
@@ -43,6 +44,8 @@ export const articleDesk = {
       published,
       breaking,
     }),
+  releaseByEditor: (id: string, submission: ReviewSubmission) =>
+    cms<ManagedArticle>(`admin/articles/${id}/editor-publication`, 'POST', submission),
   lifecycle: (article: ManagedArticle, action: LifecycleAction) =>
     cms<ManagedArticle>(`admin/articles/${article.id}/lifecycle`, 'POST', {
       version: article.version,

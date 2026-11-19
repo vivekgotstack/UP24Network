@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { textLanguage } from '@/lib/language';
-import { articleReviews, type Review, type ReviewSubmission } from '@/lib/newsroom/reviews';
+import type { Review, ReviewSubmission } from '@/lib/newsroom/reviews';
 import type { SaveArticle } from '@/lib/newsroom/types';
 import styles from './staff-article-review.module.css';
 
@@ -158,20 +158,20 @@ export function StaffReviewStatus({
   );
 }
 
-export function StaffReviewSubmission({
-  articleId,
+export function StaffEditorialSubmission({
   input,
   published,
+  editorPublication,
   onBack,
-  onSubmitted,
+  onCommit,
   onConflict,
   onEvidenceChange,
 }: {
-  articleId: string;
   input: SaveArticle | null;
   published: boolean;
+  editorPublication: boolean;
   onBack: () => void;
-  onSubmitted: (review: Review) => void;
+  onCommit: (request: ReviewSubmission) => Promise<void>;
   onConflict: (reason: unknown) => void;
   onEvidenceChange: (dirty: boolean) => void;
 }) {
@@ -208,7 +208,7 @@ export function StaffReviewSubmission({
     }
     setBusy(true);
     try {
-      const review = await articleReviews.submit(articleId, {
+      await onCommit({
         articleVersion,
         input: proposal,
         changeSummary: summary,
@@ -219,10 +219,9 @@ export function StaffReviewSubmission({
       setVerificationNotes('');
       setConfirmed({ factsVerified: false, rightsVerified: false, standardsVerified: false });
       onEvidenceChange(false);
-      onSubmitted(review);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : 'The review request could not be submitted.',
+        reason instanceof Error ? reason.message : 'The report could not be submitted.',
       );
       onConflict(reason);
     } finally {
@@ -234,15 +233,18 @@ export function StaffReviewSubmission({
     <form className={`${styles.submission} cms-form`} onSubmit={submit} aria-busy={busy}>
       <header className={styles.intro}>
         <h3 ref={heading} tabIndex={-1}>
-          {published ? 'Submit a proposed update' : 'Request publication'}
+          {editorPublication
+            ? published ? 'Confirm and publish corrections' : 'Confirm and publish report'
+            : published ? 'Submit a proposed update' : 'Request publication'}
         </h3>
         <p>
-          This version and its evidence join your daily review batch in India Standard Time.
-          Publication requires administrator approval.
+          {editorPublication
+            ? 'Complete the reporting record and sign-off. The report goes live when you publish.'
+            : 'This version and its evidence join your daily review batch in India Standard Time. Publication requires administrator approval.'}
         </p>
       </header>
       <details className={styles.preview}>
-        <summary>Review submitted article text</summary>
+        <summary>Preview report text</summary>
         <div className={styles.proposalBody}>
           <h4 lang={textLanguage(proposal.title)}>{proposal.title}</h4>
           <p className={styles.prose} lang={textLanguage(proposal.summary)}>
@@ -254,7 +256,7 @@ export function StaffReviewSubmission({
         </div>
       </details>
       <fieldset className={styles.evidence} disabled={busy}>
-        <legend>Evidence for the administrator</legend>
+        <legend>{editorPublication ? 'Publication record' : 'Evidence for the administrator'}</legend>
         <label>
           {published ? 'Summary of changes' : 'Publication rationale'}
           <textarea
@@ -323,7 +325,7 @@ export function StaffReviewSubmission({
       )}
       <div className={styles.actions}>
         <Button type="submit" disabled={busy}>
-          {busy ? 'Submitting…' : 'Submit for review'}
+          {busy ? 'Submitting…' : editorPublication ? 'Publish now' : 'Submit for review'}
         </Button>
         <Button type="button" variant="outline" disabled={busy} onClick={onBack}>
           Back to article
