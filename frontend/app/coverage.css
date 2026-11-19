@@ -136,40 +136,29 @@
       position: relative;
       isolation: isolate;
     }
-    :is(.compact-logo, .edition-logo)::before,
     :is(.compact-logo, .edition-logo)::after {
       content: '';
       position: absolute;
-      inset: 8%;
-      border-radius: 50%;
+      inset: 0;
       pointer-events: none;
-      background:
-        radial-gradient(circle at 16% 33%, #fff1ad 0 0.7px, #ffca495e 1.4px, transparent 2.8px),
-        radial-gradient(circle at 29% 12%, #ffcf58 0 0.8px, transparent 2px),
-        radial-gradient(circle at 68% 14%, #fff5cb 0 0.8px, #ffd45e66 1.5px, transparent 3px),
-        radial-gradient(circle at 88% 42%, #ffc84b 0 0.7px, transparent 2px),
-        radial-gradient(circle at 77% 73%, #fff1ad 0 0.9px, #ffca4966 1.6px, transparent 3px),
-        radial-gradient(circle at 49% 89%, #ffdb7c 0 0.7px, transparent 2px),
-        radial-gradient(circle at 24% 76%, #fff5cb 0 0.8px, #ffd45e66 1.5px, transparent 3px),
-        radial-gradient(circle at 8% 56%, #ffc84b 0 0.7px, transparent 2px);
-      animation: logo-gold-drift 5.6s linear infinite;
+      background: linear-gradient(
+        112deg,
+        transparent 32%,
+        #dfa52338 43%,
+        #ffd05c95 49%,
+        #fff0bcbf 51%,
+        #f4b63a50 57%,
+        transparent 68%
+      );
+      animation: logo-gold-sweep 4s ease-in-out infinite;
     }
-    :is(.compact-logo, .edition-logo)::after {
-      animation-delay: -2.8s;
-      animation-direction: reverse;
-      animation-name: logo-gold-counter-drift;
-    }
-    @keyframes logo-gold-drift {
-      0% { opacity: 0; transform: rotate(-20deg) scale(1.25); }
-      24% { opacity: 0.85; }
-      70% { opacity: 0.65; }
-      100% { opacity: 0; transform: rotate(24deg) scale(0.38); }
-    }
-    @keyframes logo-gold-counter-drift {
-      0% { opacity: 0; transform: rotate(88deg) scale(0.42); }
-      30% { opacity: 0.55; }
-      76% { opacity: 0.78; }
-      100% { opacity: 0; transform: rotate(132deg) scale(1.28); }
+    @keyframes logo-gold-sweep {
+      0% {
+        transform: translateX(-105%);
+      }
+      43%, 100% {
+        transform: translateX(105%);
+      }
     }
   }
   .edition-tagline {
