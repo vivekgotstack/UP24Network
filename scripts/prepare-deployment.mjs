@@ -21,6 +21,8 @@ const secret = (name, bytes=24) => {
 };
 const previousPublic=properties(join(directory,'deployment.env'));
 const frontendProduction=properties(join(root,'frontend/.env.production'));
+if(frontendProduction.NEWS_API_URL && frontendProduction.NEWS_API_URL!=='http://backend:8080')
+  throw new Error('Docker uses http://backend:8080 for NEWS_API_URL in frontend/.env.production.');
 const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? 'https://www.up24network.com';
 const site=new URL(requestedSite);
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port)

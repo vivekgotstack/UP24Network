@@ -81,6 +81,7 @@ events and never reach into another module's internal repositories.
 - **Continue story** starts a linked draft with a new editorial version number and preserves the previous report and its address. Story versions start at 1 and saved revisions remain available for recovery. Staff preview video and submit for review. Save and publish remains an administrator action.
 - The editor has compact searchable City and Section trays. The Uttar Pradesh catalogue uses the [Ministry of Housing and Urban Affairs urban local body list](https://pmay-urban.gov.in/list-ulb.pdf). The homepage keeps all twelve Rashifal signs in a sidebar, with the full edition under `/section/rashifal`.
 - The public header offers Hindi and English, plus Light, Dark, and System themes. Language selection preserves the current address and theme selection respects reduced motion. Editors can add an English edition through the same publication workflow. Untranslated articles and owner-edited policy text keep their published language. Rehearse a bilingual staff proposal before the release.
+- Production frontend settings are in the ignored `frontend/.env.production`. Run `node scripts/prepare-deployment.mjs` after changing them to refresh the Docker configuration. Provider keys and database credentials belong in the backend configuration. Next, complete the VPS preflight using the owner's service credentials.
 
 - GitHub repository connected locally.
 - First reader slice: a Spring Boot Article module connected to a Next.js homepage
