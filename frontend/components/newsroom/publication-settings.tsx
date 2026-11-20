@@ -139,6 +139,17 @@ function SettingsForm({
           <label className={styles.toggle}>
             <input
               type="checkbox"
+              checked={draft.showCricketScores !== false}
+              onChange={(event) => set('showCricketScores', event.target.checked)}
+            />
+            <span>
+              Live cricket scores
+              <small>Show the free, automatically updated tracker after reader consent.</small>
+            </span>
+          </label>
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
               checked={draft.showVideo}
               onChange={(event) => set('showVideo', event.target.checked)}
             />

@@ -28,16 +28,18 @@ export function CookiePreferences({ children }: { children?: ReactNode }) {
 export function CookiePreferencesProvider({ children, locale }: { children: ReactNode; locale: SiteLocale }) {
   const { choice } = useConsent();
   const [open, setOpen] = useState(false),
-    [video, setVideo] = useState(false);
+    [video, setVideo] = useState(false),
+    [scores, setScores] = useState(false);
   const returnFocus = useRef<HTMLButtonElement>(null);
   function show(trigger: HTMLButtonElement) {
     returnFocus.current = trigger;
     setVideo(choice?.externalVideo ?? false);
+    setScores(choice?.externalScores ?? false);
     setOpen(true);
   }
-  function save(externalVideo: boolean) {
+  function save(externalVideo: boolean, externalScores: boolean) {
     setOpen(false);
-    saveConsent(externalVideo);
+    saveConsent({ externalVideo, externalScores });
   }
   return (
     <CookieDialog.Provider value={{ open: show, locale }}>
@@ -80,6 +82,20 @@ export function CookiePreferencesProvider({ children, locale }: { children: Reac
                 onChange={(event) => setVideo(event.target.checked)}
               />
             </label>
+            <label className={styles.option}>
+              <span>
+                <strong>{copy(locale, 'लाइव क्रिकेट स्कोर', 'Live cricket scores')}</strong>
+                <span className={styles.explanation}>
+                  {copy(locale, 'स्कोर लोड होने पर आपका ब्राउज़र SportScore से जुड़ता है। उसे आपका IP पता और डिवाइस की जानकारी मिल सकती है।', 'When scores load, your browser connects to SportScore. It may receive your IP address and device information.')}
+                </span>
+              </span>
+              <input
+                aria-label={copy(locale, 'लाइव क्रिकेट स्कोर की अनुमति', 'Allow live cricket scores')}
+                type="checkbox"
+                checked={scores}
+                onChange={(event) => setScores(event.target.checked)}
+              />
+            </label>
             <p>
               {copy(locale, 'यह साइट अभी विज्ञापन ट्रैकिंग या बाहरी एनालिटिक्स नहीं चलाती।', 'The site currently uses no advertising trackers or external analytics.')}{' '}
               <Link href="/cookies" onClick={() => setOpen(false)}>
@@ -91,10 +107,10 @@ export function CookiePreferencesProvider({ children, locale }: { children: Reac
               </Link>
             </p>
             <div className={styles.actions}>
-              <Button variant="outline" onClick={() => save(false)}>
+              <Button variant="outline" onClick={() => save(false, false)}>
                 {copy(locale, 'वैकल्पिक सेवाएँ अस्वीकार करें', 'Reject optional services')}
               </Button>
-              <Button variant="outline" onClick={() => save(video)}>
+              <Button variant="outline" onClick={() => save(video, scores)}>
                 {copy(locale, 'पसंद सहेजें', 'Save choices')}
               </Button>
             </div>
@@ -117,15 +133,15 @@ export function CookieConsent({ locale }: { locale: SiteLocale }) {
       <div>
         <h2>{copy(locale, 'कुकी और गोपनीयता', 'Cookies and privacy')}</h2>
         <p>
-          {copy(locale, 'ज़रूरी कुकी साइट को सुरक्षित ढंग से चलाती हैं। YouTube के वीडियो आपकी अनुमति पर लोड होते हैं।', 'Essential cookies help keep the site secure. YouTube videos load with your permission.')}{' '}
+          {copy(locale, 'ज़रूरी कुकी साइट को सुरक्षित ढंग से चलाती हैं। बाहरी वीडियो और क्रिकेट स्कोर आपकी अनुमति से लोड होते हैं।', 'Essential cookies help keep the site secure. External videos and cricket scores load with your permission.')}{' '}
           <Link href="/cookies">{copy(locale, 'कुकी नीति', 'Cookie policy')}</Link>
         </p>
       </div>
       <div className={styles.actions}>
-        <Button variant="outline" onClick={() => saveConsent(false)}>
+        <Button variant="outline" onClick={() => saveConsent({ externalVideo: false, externalScores: false })}>
           {copy(locale, 'वैकल्पिक सेवाएँ अस्वीकार करें', 'Reject optional services')}
         </Button>
-        <Button variant="outline" onClick={() => saveConsent(true)}>
+        <Button variant="outline" onClick={() => saveConsent({ externalVideo: true, externalScores: true })}>
           {copy(locale, 'वैकल्पिक सेवाएँ स्वीकार करें', 'Allow optional services')}
         </Button>
         <CookiePreferences>{copy(locale, 'पसंद चुनें', 'Customize')}</CookiePreferences>

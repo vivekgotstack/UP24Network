@@ -14,6 +14,7 @@ export type PublicationSettings = {
   footerDescription: string;
   showRashifal: boolean;
   showVideo: boolean;
+  showCricketScores: boolean;
   version: number;
   updatedAt: string;
 };
@@ -29,6 +30,7 @@ const defaults: PublicationSettings = {
     'उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।',
   showRashifal: true,
   showVideo: true,
+  showCricketScores: true,
   version: 0,
   updatedAt: '',
 };

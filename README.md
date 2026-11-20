@@ -27,11 +27,12 @@ Put production secrets in **`backend/.env`** using unquoted `KEY=value` lines. O
 | `ASTROLOGICS_API_KEY`, `WEATHERBIT_API_KEY` | Optional keys for Rashifal and air quality |
 | `NEWSLETTER_LIST_ID`, `NEWSLETTER_DOI_TEMPLATE_ID` | Optional Brevo double opt-in list and template IDs |
 | `YOUTUBE_API_KEY` | Optional YouTube Data API key. The feed also supports RSS |
-| `SPORTMONKS_CRICKET_API_TOKEN` | Sportmonks Cricket API token for the homepage scoreboard. Enable Cricket scores in Admin → Automations |
 
 **`frontend/.env.production`** holds public configuration. Set `SITE_URL=https://www.up24network.com` and `SITE_INDEXABLE=true` for launch. Compose sets `NEWS_API_URL`, and deployment uses the backend CloudFront origin when `MEDIA_CDN_URL` is empty. Set `ANDROID_SHA256_CERT_FINGERPRINTS` when configuring Android App Links. For local overrides use `frontend/.env.local`.
 
 The env files, credentials, signing keys, and generated `.local` files are ignored by Git. Spring's `application.properties` contains shared defaults.
+
+The homepage uses SportScore's free editorial cricket widget. It updates automatically and requires no account or API key. Admin → Site settings controls visibility, and readers can allow it through Cookie settings.
 
 ## Deploy to the VPS
 

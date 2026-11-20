@@ -3,7 +3,8 @@
 import { useSyncExternalStore } from 'react';
 
 const POLICY_VERSION = 2;
-type Choice = { version: typeof POLICY_VERSION; externalVideo: boolean; savedAt: number };
+type Preferences = { externalVideo: boolean; externalScores: boolean };
+type Choice = Preferences & { version: typeof POLICY_VERSION; savedAt: number };
 const KEY = 'UP24_CONSENT';
 const EVENT = 'up24-consent-change';
 const MAX_AGE = 180 * 86400;
@@ -22,7 +23,7 @@ function parse(raw: string): Choice | null {
       value.savedAt <= Date.now() &&
       value.savedAt > Date.now() - MAX_AGE * 1000
     )
-      return value;
+      return { ...value, externalScores: value.externalScores === true };
   } catch {
     /* An absent/invalid preference grants no optional permission. */
   }
@@ -75,8 +76,8 @@ function subscribe(callback: () => void) {
     }
   };
 }
-export function saveConsent(externalVideo: boolean) {
-  const value: Choice = { version: POLICY_VERSION, externalVideo, savedAt: Date.now() };
+export function saveConsent(preferences: Preferences) {
+  const value: Choice = { version: POLICY_VERSION, ...preferences, savedAt: Date.now() };
   const raw = encodeURIComponent(JSON.stringify(value));
   try {
     document.cookie = `${KEY}=${raw}; Path=/; Max-Age=${MAX_AGE}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;

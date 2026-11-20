@@ -66,7 +66,7 @@ const settings={
 for (const [variable,key] of Object.entries({
   BREVO_API_KEY:'up24.providers.brevo.api-key',BREVO_SENDER_EMAIL:'up24.providers.brevo.sender-email',
   ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',
-  WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key',SPORTMONKS_CRICKET_API_TOKEN:'up24.providers.sportmonks.cricket-api-token',
+  WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key',
 })) {
   const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;
 }

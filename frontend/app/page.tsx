@@ -105,9 +105,7 @@ export default async function Home({
         <Suspense fallback={null}>
           <AirQualityStrip />
         </Suspense>
-        <Suspense fallback={null}>
-          <CricketScoreboard locale={locale} />
-        </Suspense>
+        {settings.showCricketScores !== false && <CricketScoreboard locale={locale} />}
         <Suspense fallback={null}>
           <TrendingReels />
         </Suspense>
