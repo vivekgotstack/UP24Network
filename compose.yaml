@@ -60,7 +60,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./deploy/postgres/01-roles.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro
     healthcheck:
-      test: [CMD-SHELL, 'pg_isready -U postgres -d up24network']
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres -d up24network']
       interval: 10s
       timeout: 5s
       retries: 10

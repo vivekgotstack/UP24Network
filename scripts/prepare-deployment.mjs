@@ -30,8 +30,8 @@ const adminPassword=process.env.ADMIN_PASSWORD ?? environment.ADMIN_PASSWORD;
 if (!adminEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail) || /\.invalid$/i.test(adminEmail))
   throw new Error('Set a real ADMIN_EMAIL in backend/.env first.');
 if (!adminPassword) throw new Error('Set ADMIN_PASSWORD in backend/.env first.');
-if(adminPassword.length<12 || adminPassword.length>64 || Buffer.byteLength(adminPassword,'utf8')>72)
-  throw new Error('ADMIN_PASSWORD must use 12-64 characters and at most 72 UTF-8 bytes.');
+if(adminPassword.length<16 || adminPassword.length>64 || Buffer.byteLength(adminPassword,'utf8')>72)
+  throw new Error('ADMIN_PASSWORD must use 16-64 characters and at most 72 UTF-8 bytes.');
 secret('postgres-password');
 const applicationPassword=secret('application-db-password');
 const migrationPassword=secret('migration-db-password');
@@ -68,7 +68,7 @@ for (const [variable,key] of Object.entries({
   ASTROLOGICS_API_KEY:'up24.providers.astrologics.api-key',YOUTUBE_API_KEY:'up24.providers.youtube.api-key',
   WEATHERBIT_API_KEY:'up24.providers.weatherbit.api-key',
 })) {
-  const value=process.env[variable] || environment[variable] || local[key] || existing[key]; if (value!==undefined) settings[key]=value;
+  const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key]; if (value) settings[key]=value;
 }
 for (const [variable,key] of Object.entries({NEWSLETTER_LIST_ID:'up24.newsletter.list-id',NEWSLETTER_DOI_TEMPLATE_ID:'up24.newsletter.doi-template-id'})) {
   const value=process.env[variable] ?? environment[variable] ?? local[key] ?? existing[key];
@@ -94,6 +94,10 @@ const backendCdn = settings['up24.media.s3.cdn-url']?.replace(/\/$/, '');
 if (frontendCdn && backendCdn && frontendCdn !== backendCdn)
   throw new Error('MEDIA_CDN_URL in frontend/.env.production must match UP24_MEDIA_CDN_URL in backend/.env.');
 if (frontendCdn) settings['up24.media.s3.cdn-url'] = frontendCdn;
+const mediaBucket=settings['up24.media.s3.bucket'], mediaRegion=settings['up24.media.s3.region'];
+const uploadOrigin=mediaBucket&&mediaRegion
+  ? (mediaBucket.includes('.')?`https://s3.${mediaRegion}.amazonaws.com`:`https://${mediaBucket}.s3.${mediaRegion}.amazonaws.com`)
+  : '';
 prepareRedisCache(settings, existing['spring.data.redis.password']);
 writePrivate(join(directory,'backend.properties'),propertyText(settings));
 writePrivate(join(directory,'rabbitmq.conf'),[
@@ -105,7 +109,7 @@ writePrivate(join(directory,'rabbitmq.conf'),[
 ].join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:process.env.SITE_INDEXABLE ?? frontendProduction.SITE_INDEXABLE ?? previousPublic.SITE_INDEXABLE ?? 'false',
   MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
-  MEDIA_UPLOAD_ORIGIN:settings['up24.media.s3.bucket']?(settings['up24.media.s3.bucket'].includes('.')?`https://s3.${settings['up24.media.s3.region']||'ap-south-1'}.amazonaws.com`:`https://${settings['up24.media.s3.bucket']}.s3.${settings['up24.media.s3.region']||'ap-south-1'}.amazonaws.com`):'',
+  MEDIA_UPLOAD_ORIGIN:uploadOrigin,
   UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
   ANDROID_SHA256_CERT_FINGERPRINTS:process.env.ANDROID_SHA256_CERT_FINGERPRINTS ?? frontendProduction.ANDROID_SHA256_CERT_FINGERPRINTS ?? previousPublic.ANDROID_SHA256_CERT_FINGERPRINTS ?? ''};
 if(!['true','false'].includes(publicConfig.SITE_INDEXABLE)) throw new Error('Set SITE_INDEXABLE to true or false in frontend/.env.production.');

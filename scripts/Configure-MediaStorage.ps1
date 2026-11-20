@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory)][ValidatePattern('^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$')][string]$Bucket,
     [Parameter(Mandatory)][string]$CdnUrl,
-    [ValidatePattern('^[a-z]{2}(-[a-z]+)+-[0-9]$')][string]$Region = 'ap-south-1',
+    [Parameter(Mandatory)][ValidatePattern('^[a-z]{2}(-[a-z]+)+-[0-9]$')][string]$Region,
     [ValidatePattern('^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*/$')][string]$Prefix = 'up24/published/images/',
     [ValidatePattern('^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*/$')][string]$VideoPrefix = 'up24/published/videos/',
     [ValidatePattern('^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*/$')][string]$PrivateVideoPrefix = 'up24/private/videos/',
@@ -56,10 +56,22 @@ $runtimePolicy = [ordered]@{
 }
 Write-Up24Utf8File -Path (Join-Path $outputDirectory 'runtime-iam-policy.json') -Lines @($runtimePolicy | ConvertTo-Json -Depth 10)
 if ($AccountId) {
-    $bucketPolicy = [ordered]@{Version='2012-10-17';Statement=@(@{
-        Sid='UP24CloudFrontRead';Effect='Allow';Principal=@{Service='cloudfront.amazonaws.com'};Action='s3:GetObject';
-        Resource=@(('arn:aws:s3:::'+$Bucket+'/'+$Prefix+'*'),('arn:aws:s3:::'+$Bucket+'/'+$VideoPrefix+'*'));Condition=@{StringEquals=@{'AWS:SourceArn'=('arn:aws:cloudfront::'+$AccountId+':distribution/'+$DistributionId)}}
-    })}
+    $bucketArn = 'arn:aws:s3:::' + $Bucket
+    $bucketPolicy = [ordered]@{Version='2012-10-17';Statement=@(
+        @{
+            Sid='UP24CloudFrontRead';Effect='Allow';Principal=@{Service='cloudfront.amazonaws.com'};Action='s3:GetObject'
+            Resource=@(($bucketArn+'/'+$Prefix+'*'),($bucketArn+'/'+$VideoPrefix+'*'))
+            Condition=@{StringEquals=@{
+                'AWS:SourceArn'=('arn:aws:cloudfront::'+$AccountId+':distribution/'+$DistributionId)
+                'AWS:SourceAccount'=$AccountId
+            }}
+        },
+        @{
+            Sid='UP24DenyInsecureTransport';Effect='Deny';Principal='*';Action='s3:*'
+            Resource=@($bucketArn,($bucketArn+'/*'))
+            Condition=@{Bool=@{'aws:SecureTransport'='false';'aws:PrincipalIsAWSService'='false'}}
+        }
+    )}
     Write-Up24Utf8File -Path (Join-Path $outputDirectory 'cloudfront-bucket-policy.json') -Lines @($bucketPolicy | ConvertTo-Json -Depth 10)
 }
 $corsPolicy = [ordered]@{CORSRules=@(@{

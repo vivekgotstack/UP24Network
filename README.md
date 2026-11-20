@@ -37,7 +37,7 @@ The homepage uses SportScore's free editorial cricket widget. It updates automat
 ## Deploy to the VPS
 
 1. Point the public DNS at the VPS, open ports 80 and 443, and install Docker Engine with Compose 2.24+ and Node.js 24. Allow at least 8 GB RAM for builds, video encoding, and the running services.
-2. Set up the private S3 bucket and CloudFront Origin Access Control. Use `./scripts/Configure-MediaStorage.ps1` with `-Bucket`, `-CdnUrl`, `-SiteUrl`, and the region to generate the scoped IAM and CORS policies under `.local/media-storage`. Supply the AWS account and CloudFront distribution IDs to also generate the bucket policy. Apply the policies in AWS and keep S3 Block Public Access enabled.
+2. Set up the private S3 bucket in your AWS project's selected Region and configure CloudFront Origin Access Control to always sign origin requests. Use `./scripts/Configure-MediaStorage.ps1` with `-Bucket`, `-CdnUrl`, `-SiteUrl`, and `-Region` to generate the scoped IAM and CORS policies under `.local/media-storage`. Supply the AWS account and CloudFront distribution IDs to also generate the bucket policy. Merge the generated statements into any existing bucket policy and keep S3 Block Public Access enabled.
 3. From the repository root, prepare the private deployment files and check the values.
 
    ```sh
@@ -56,6 +56,8 @@ The homepage uses SportScore's free editorial cricket widget. It updates automat
 5. Verify a real sign-in email, publish a report, and confirm one upload and video playback. Submit `/sitemap-index.xml` in Google Search Console once the public site is live. Enable provider-backed jobs under **Admin → Automations** as needed.
 
 Caddy is the public entry point. Application, database, cache, and broker ports use the private Compose networks. To apply credential or environment changes, rerun preparation and deploy so the updated configuration is remounted.
+
+The GitHub Actions production-stack check builds and starts the Linux containers with disposable configuration. Review its result before deploying. The new archive starts with stories published in the new newsroom. Keep the existing WordPress installation and a restorable backup available for rollback when switching DNS.
 
 ## Backup and recovery
 
