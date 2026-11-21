@@ -15,14 +15,17 @@ import { ArticleProse } from '@/components/article-prose';
 import { textLanguage } from '@/lib/language';
 import { sectionHref, sectionTitle } from '@/lib/sections';
 import { newest } from '@/lib/news';
-import { copy } from '@/lib/locale';
+import { copy, isSiteLocale } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 import { localizeArticle } from '@/lib/article-locale';
 import { canonicalReelUrl } from '@/lib/instagram';
 import officialLogo from '@/public/brand/up24-logo.png';
 
 export const dynamic = 'force-dynamic';
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string }>;
+};
 const deskBylines = new Set(['UP24Network Editorial Team', 'UP24Network Desk']);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -55,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-export default async function ArticlePage({ params }: Props) {
+export default async function ArticlePage({ params, searchParams }: Props) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const slug = (await params).slug;
   const [original, all, locale] = await Promise.all([
@@ -65,7 +68,11 @@ export default async function ArticlePage({ params }: Props) {
   ]);
   if (!original) notFound();
   const article = localizeArticle(original, locale);
-  if (article.slug !== slug) permanentRedirect(`/news/${encodeURIComponent(article.slug)}`);
+  const requestedLocale = (await searchParams)?.lang;
+  if (article.slug !== slug) {
+    const languageQuery = isSiteLocale(requestedLocale) ? `?lang=${requestedLocale}` : '';
+    permanentRedirect(`/news/${encodeURIComponent(article.slug)}${languageQuery}`);
+  }
   const reelUrl = canonicalReelUrl(article.reelUrl);
   const byline = article.author.trim();
   const isDeskByline = deskBylines.has(byline);
@@ -257,6 +264,15 @@ export default async function ArticlePage({ params }: Props) {
             )}
             <div className="article-end">
               <span aria-hidden="true" />
+              <Link
+                href={{
+                  pathname: '/corrections',
+                  query: { story: article.slug, lang: locale },
+                  hash: 'reader-contact',
+                }}
+              >
+                {copy(locale, 'सुधार का अनुरोध करें', 'Request a correction')}
+              </Link>
               <Link href={sectionHref(article.category)}>
                 {copy(locale, 'इस विभाग की खबरें', 'More in this section')}
               </Link>

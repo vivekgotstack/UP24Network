@@ -12,7 +12,13 @@ import { getReaderLocale } from '@/lib/reader-locale';
 import { CookiePreferences } from '@/components/cookie-consent';
 import { ReaderContactForm } from '@/components/reader-contact-form';
 
-export async function PublicationDocument({ document: initial }: { document: Document }) {
+export async function PublicationDocument({
+  document: initial,
+  reference,
+}: {
+  document: Document;
+  reference?: { title: string; url: string };
+}) {
   const [persisted, publicationNavigation, locale] = await Promise.all([
     getPublicationPage(initial.path),
     getPublicationNavigation(),
@@ -172,7 +178,7 @@ export async function PublicationDocument({ document: initial }: { document: Doc
                 </p>
               </section>
             )}
-            {showContactForm && <ReaderContactForm topic={contactTopic} locale={locale} />}
+            {showContactForm && <ReaderContactForm topic={contactTopic} locale={locale} reference={reference} />}
             <footer className="publication-note">
               <p>
                 {copy(

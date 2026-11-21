@@ -10,6 +10,7 @@ import { getPublicationSettings, getPublicationNavigation } from '@/lib/publicat
 import { copy, publicationLabel, publicationTagline } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 import { textLanguage } from '@/lib/language';
+import { readerFeeds } from '@/lib/reader-feeds';
 
 const defaultFooterDescription = 'उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।';
 const yearInIndia = new Intl.DateTimeFormat('en-IN', { year: 'numeric', timeZone: 'Asia/Kolkata' });
@@ -79,6 +80,8 @@ export async function SiteFooter() {
         <p>© {yearInIndia.format(new Date())} UP24Network</p>
         <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
           <Link href="/archive">{copy(locale, 'खबरों का संग्रह', 'News archive')}</Link>
+          <a href={readerFeeds.hi.url} lang="hi">हिंदी RSS</a>
+          <a href={readerFeeds.en.url} lang="en">English RSS</a>
           {publicationNavigation.map(({ path, label }) => (
             <Link key={path} href={path}>
               {publicationLabel(locale, path, label)}

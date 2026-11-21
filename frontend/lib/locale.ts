@@ -1,6 +1,11 @@
 export type SiteLocale = 'hi' | 'en';
 
 export const LANGUAGE_COOKIE = 'UP24_LANGUAGE';
+export const READER_LOCALE_HEADER = 'x-up24-reader-locale';
+
+export function isSiteLocale(value: unknown): value is SiteLocale {
+  return value === 'hi' || value === 'en';
+}
 
 export function copy<T>(locale: SiteLocale, hi: T, en: T): T {
   return locale === 'en' ? en : hi;

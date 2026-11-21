@@ -16,9 +16,11 @@ export async function articleIndex<T>(page?: number | 'recent-news'): Promise<T 
   return response.json();
 }
 export function xml(value: string) {
-  return value.replace(
-    /[<>&"']/g,
-    (character) =>
-      ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[character]!,
-  );
+  return value
+    .replace(/[^\u0009\u000a\u000d\u0020-\ud7ff\ue000-\ufffd\u{10000}-\u{10ffff}]/gu, '')
+    .replace(
+      /[<>&"']/g,
+      (character) =>
+        ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[character]!,
+    );
 }

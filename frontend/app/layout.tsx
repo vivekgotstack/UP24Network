@@ -9,6 +9,7 @@ import { Providers } from '@/components/providers';
 import { ThemeBootstrap } from '@/components/theme-bootstrap';
 import { getReaderLocale } from '@/lib/reader-locale';
 import { brand } from '@/lib/brand';
+import { readerFeeds } from '@/lib/reader-feeds';
 import officialLogo from '@/public/brand/up24-logo.png';
 
 const indexable = process.env.SITE_INDEXABLE === 'true';
@@ -20,6 +21,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, title: brand.name, statusBarStyle: 'default' },
   publisher: brand.name,
+  alternates: {
+    types: {
+      'application/rss+xml': Object.values(readerFeeds).map(({ url, title }) => ({ url, title })),
+    },
+  },
   openGraph: { siteName: brand.name, locale: 'hi_IN', type: 'website' },
   icons: { icon: officialLogo.src, apple: '/icons/apple-touch-icon.png' },
   robots: { index: indexable, follow: indexable },

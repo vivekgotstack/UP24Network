@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isSiteLocale, READER_LOCALE_HEADER } from '@/lib/locale';
 
 /** Per-response script nonces; styles remain inline-capable for Framer Motion. */
 export async function proxy(request: NextRequest) {
@@ -36,6 +37,9 @@ export async function proxy(request: NextRequest) {
   ].join('; ');
   const headers = new Headers(request.headers);
   // Overwrite client input. Authorization stays in server layouts and the API.
+  const requestedLocale = request.nextUrl.searchParams.get('lang');
+  headers.delete(READER_LOCALE_HEADER);
+  if (isSiteLocale(requestedLocale)) headers.set(READER_LOCALE_HEADER, requestedLocale);
   headers.set('x-up24-return-to', request.nextUrl.pathname + request.nextUrl.search);
   headers.set('x-nonce', nonce);
   headers.set('Content-Security-Policy', policy);
@@ -50,7 +54,7 @@ export const config = {
   matcher: [
     {
       source:
-        '/((?!api|_next/static|_next/image|favicon.ico|brand/|fonts/|images/|videos/|media/|icons/|sw.js|offline.html|manifest.webmanifest|\\.well-known/|robots.txt|sitemap.xml).*)',
+        '/((?!api|feed/|_next/static|_next/image|favicon.ico|brand/|fonts/|images/|videos/|media/|icons/|sw.js|offline.html|manifest.webmanifest|\\.well-known/|robots.txt|sitemap.xml).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },

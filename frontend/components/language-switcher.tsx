@@ -13,6 +13,12 @@ export function LanguageSwitcher({ locale }: { locale: SiteLocale }) {
     if (language === locale || pending) return;
     const secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = `${LANGUAGE_COOKIE}=${language}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('lang')) {
+      url.searchParams.set('lang', language);
+      window.location.replace(url.href);
+      return;
+    }
     startTransition(() => router.refresh());
   }
 

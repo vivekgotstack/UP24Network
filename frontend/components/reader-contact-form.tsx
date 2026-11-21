@@ -19,9 +19,11 @@ const hindiTopics: Record<CorrespondenceTopic, string> = {
 export function ReaderContactForm({
   topic,
   locale,
+  reference,
 }: {
   topic?: CorrespondenceTopic;
   locale: SiteLocale;
+  reference?: { title: string; url: string };
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -29,6 +31,9 @@ export function ReaderContactForm({
   const heading = topic
     ? copy(locale, hindiTopics[topic], correspondenceTopics[topic])
     : copy(locale, 'संदेश भेजें', 'Send us a message');
+  const referenceText = reference
+    ? `\n\n${copy(locale, 'संबंधित खबर', 'Related article')} · ${decodeURI(reference.url)}`
+    : '';
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,12 +43,17 @@ export function ReaderContactForm({
     setSent(false);
     setError('');
     try {
+      const message = String(fields.get('message') ?? '').trim();
+      if (!message) {
+        setError(copy(locale, 'कृपया संदेश लिखें।', 'Enter a message.'));
+        return;
+      }
       await cms<void>('publication/contact', 'POST', {
         topic: topic ?? fields.get('topic'),
         name: String(fields.get('name') ?? '').trim(),
         email: String(fields.get('email') ?? '').trim(),
         subject: String(fields.get('subject') ?? '').trim(),
-        message: String(fields.get('message') ?? '').trim(),
+        message: message + referenceText,
       });
       form.reset();
       setSent(true);
@@ -71,6 +81,12 @@ export function ReaderContactForm({
   return (
     <section id="reader-contact" aria-labelledby="reader-contact-title">
       <h2 id="reader-contact-title">{heading}</h2>
+      {reference && (
+        <p>
+          {copy(locale, 'संबंधित खबर', 'Related article')} ·{' '}
+          <Link href={`${reference.url}?lang=${locale}`}>{reference.title}</Link>
+        </p>
+      )}
       <form className="reader-contact-form" onSubmit={submit} aria-busy={submitting}>
         <fieldset disabled={submitting}>
           {!topic && (
@@ -104,7 +120,7 @@ export function ReaderContactForm({
             <textarea
               name="message"
               rows={6}
-              maxLength={4000}
+              maxLength={4000 - referenceText.length}
               aria-describedby="contact-message-help"
               required
             />
@@ -112,8 +128,12 @@ export function ReaderContactForm({
           <p id="contact-message-help">
             {copy(
               locale,
-              'किसी खबर से जुड़ा संदेश हो तो उसका लिंक दें। पासवर्ड और संवेदनशील दस्तावेज़ न भेजें।',
-              'Include the article URL if your message concerns a story. Leave out passwords and sensitive documents.',
+              reference
+                ? 'बताएं कि खबर में क्या सुधार चाहिए। पासवर्ड और संवेदनशील दस्तावेज़ न भेजें।'
+                : 'किसी खबर से जुड़ा संदेश हो तो उसका लिंक दें। पासवर्ड और संवेदनशील दस्तावेज़ न भेजें।',
+              reference
+                ? 'Explain what needs correcting. Leave out passwords and sensitive documents.'
+                : 'Include the article URL if your message concerns a story. Leave out passwords and sensitive documents.',
             )}
           </p>
           <p>
