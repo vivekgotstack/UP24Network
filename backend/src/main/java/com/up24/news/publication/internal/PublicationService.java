@@ -3,8 +3,10 @@ package com.up24.news.publication.internal;
 import com.up24.news.publication.Publication;
 import com.up24.news.publication.PublicationException;
 import jakarta.validation.Validator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import java.time.Clock;
 import java.util.HashSet;
 import java.util.List;
@@ -16,8 +18,11 @@ class PublicationService implements Publication {
     private final PublicationRepository repository;
     private final Validator validator;
     private final Clock clock;
-    PublicationService(PublicationRepository repository, Validator validator, Clock clock) {
+    private final String privateAdminEmail;
+    PublicationService(PublicationRepository repository, Validator validator, Clock clock,
+                       @Value("${up24.newsroom.admin-email:}") String privateAdminEmail) {
         this.repository=repository; this.validator=validator; this.clock=clock;
+        this.privateAdminEmail = privateAdminEmail.strip();
     }
     @Override public Settings settings() { return repository.settings(); }
     @Override public List<Document> pages() { return repository.pages(); }
@@ -32,6 +37,13 @@ class PublicationService implements Publication {
         validate(input);
         if (input.announcementEnabled() && input.announcement().isBlank())
             throw new PublicationException(INVALID_INPUT,"Add announcement text before enabling the announcement.");
+        if ((input.grievanceOfficerName() == null) != (input.grievanceEmail() == null) ||
+                StringUtils.hasText(input.grievanceOfficerName()) != StringUtils.hasText(input.grievanceEmail())) {
+            throw new PublicationException(INVALID_INPUT, "Enter both the grievance officer's name and public email, or clear both.");
+        }
+        if (StringUtils.hasText(input.grievanceEmail()) && privateAdminEmail.equalsIgnoreCase(input.grievanceEmail())) {
+            throw new PublicationException(INVALID_INPUT, "Use a public grievance email address separate from the newsroom login.");
+        }
         if (!repository.updateSettings(input,clock.instant()))
             throw new PublicationException(CONFLICT,"Settings changed in another window. Reload before saving again.");
         return repository.settings();

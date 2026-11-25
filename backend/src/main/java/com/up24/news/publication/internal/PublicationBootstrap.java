@@ -22,7 +22,7 @@ class PublicationBootstrap implements ApplicationRunner {
     @Transactional @Override public void run(ApplicationArguments arguments) throws Exception {
         var now=clock.instant();
         repository.seedSettings(new SettingsInput("खबर हमारी यकीन आपका",false,"",
-                "उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।",true,true,true,0L),now);
+                "उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।",true,true,true,null,null,0L),now);
         try (var input=new ClassPathResource("publication/pages.json").getInputStream()) {
             List<Document> documents=json.readValue(input,new TypeReference<>() {});
             for (var document:documents) repository.seedPage(document.path().substring(1),new DocumentInput(document.label(),document.title(),

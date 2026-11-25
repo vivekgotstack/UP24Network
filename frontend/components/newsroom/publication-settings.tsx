@@ -45,7 +45,11 @@ function SettingsForm({
     setFeedback('');
     try {
       const { updatedAt: _updatedAt, ...input } = draft;
-      const saved = await cms<PublicationSettings>('admin/publication/settings', 'PUT', input);
+      const saved = await cms<PublicationSettings>('admin/publication/settings', 'PUT', {
+        ...input,
+        grievanceOfficerName: input.grievanceOfficerName?.trim() ?? '',
+        grievanceEmail: input.grievanceEmail?.trim() ?? '',
+      });
       setDraft(saved);
       setDirty(false);
       onSaved(saved);
@@ -111,6 +115,29 @@ function SettingsForm({
             />
           </label>
           <p>The official UP24Network logo stays the masthead mark.</p>
+        </fieldset>
+        <fieldset className={styles.card} disabled={busy}>
+          <h2>Public grievance contact</h2>
+          <label>
+            Grievance officer name
+            <input
+              maxLength={120}
+              required={Boolean(draft.grievanceEmail)}
+              value={draft.grievanceOfficerName ?? ''}
+              onChange={(event) => set('grievanceOfficerName', event.target.value)}
+            />
+          </label>
+          <label>
+            Public grievance email
+            <input
+              type="email"
+              maxLength={254}
+              required={Boolean(draft.grievanceOfficerName)}
+              value={draft.grievanceEmail ?? ''}
+              onChange={(event) => set('grievanceEmail', event.target.value)}
+            />
+          </label>
+          <p>These details appear on the public Complaints page. Use a monitored public mailbox.</p>
         </fieldset>
         <fieldset className={styles.card} disabled={busy}>
           <h2>Publication announcement</h2>

@@ -163,6 +163,10 @@
 .reader-contact-form :is([role='status'], [role='alert']):not(:empty) {
   margin-top: 16px;
 }
+.receipt-reference {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
 .publication-related {
   display: flex;
   flex-wrap: wrap;

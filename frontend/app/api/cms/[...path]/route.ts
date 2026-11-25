@@ -53,6 +53,7 @@ const endpoints: [RegExp, string[]][] = [
   [/^admin\/publication\/pages\/[a-z-]+$/, ['PUT']],
   [/^admin\/publication\/inbox$/, ['GET']],
   [new RegExp(`^admin/publication/inbox/${UUID}$`, 'i'), ['PATCH', 'DELETE']],
+  [new RegExp(`^admin/publication/inbox/${UUID}/preservation$`, 'i'), ['PATCH']],
   [/^admin\/media$/, ['GET']],
   [/^admin\/media\/storage$/, ['GET', 'PUT']],
   [/^admin\/media\/storage\/sync$/, ['POST']],
@@ -89,7 +90,7 @@ async function proxy(request: NextRequest, context: Context) {
         : path === 'admin/accounts/browse'
           ? ['scope', 'q', 'page', 'size']
           : path === 'admin/publication/inbox'
-            ? ['page', 'open']
+            ? ['page', 'open', 'topic', 'reference']
             : path === 'admin/article-reviews'
               ? ['page', 'state']
               : path === 'admin/article-reviews/batches'

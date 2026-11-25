@@ -158,6 +158,7 @@ export const publicationDocuments = {
         title: 'Privacy, dignity and sensitive reporting',
         paragraphs: [
           'The public interest in a story must be weighed against foreseeable harm. Reporting about children, survivors of sexual violence, medical circumstances, bereavement and people at risk requires particular care. Identifying information should not be published merely because it is available online.',
+          'Protect identities where the law requires it. Check names, images, audio, family and school details, captions and metadata for clues that could identify a protected child or survivor. Escalate any proposed identification for legal review before publishing.',
           'Crime and court coverage must respect the distinction between an accusation and a finding. Reports should avoid language that assumes guilt, promotes hostility towards a community or exposes a protected person’s identity. Graphic material requires a clear editorial reason and proportionate presentation.',
         ],
       },
@@ -273,13 +274,14 @@ export const publicationDocuments = {
         paragraphs: [
           'Account information is used to create and authenticate accounts, enforce permissions and maintain the service. Staff email addresses are used to deliver requested sign-in codes. Technical information may help detect abuse, investigate a failure or protect the website.',
           'Reader enquiries are used to respond to the subject raised, assess news material, investigate complaints or fulfil a related request. A news tip or correction request is not permission to add someone to a marketing list.',
+          'Our readership statistics store daily totals for each article. An address may be held briefly in memory to limit automated requests, but the readership table stores counts without IP addresses, reader IDs or individual reading histories.',
         ],
       },
       {
         id: 'storage',
         title: 'Cookies and saved stories',
         paragraphs: [
-          'Sign-in uses HttpOnly access and rotating refresh cookies tied to a revocable login. Request-verification protections help prevent another website from submitting account changes on your behalf. These mechanisms support account security and service operation. A separate consent-preference cookie remembers your optional external-video choice for up to 180 days.',
+          'Sign-in uses HttpOnly access and rotating refresh cookies tied to a revocable login. Request-verification cookies protect actions such as signing in or updating an account. A separate cookie remembers your choices for external video and live cricket scores for up to 180 days. Browser preferences also remember your chosen language and appearance.',
           'Saved article titles, addresses and related display details are held in this browser’s local storage. They are not synchronised between devices or uploaded as an account reading history by the saved-stories feature. You can remove individual saved stories or clear this site’s browser data. Blocking storage or cookies may limit the features that depend on them.',
         ],
       },
@@ -287,7 +289,7 @@ export const publicationDocuments = {
         id: 'providers',
         title: 'Service providers and external media',
         paragraphs: [
-          'Brevo delivers requested newsroom sign-in and account-recovery emails. The service receives the recipient address and the message needed for that delivery. Email codes are not included in public links or website analytics. Pending background delivery payloads are protected in storage and removed after completion or expiry.',
+          'Brevo delivers requested sign-in and account-recovery emails. If you sign up for the newsletter, we also send Brevo your email address to handle subscription confirmation and delivery. You can stop newsletter emails using the unsubscribe link in each issue.',
           'YouTube videos use a privacy-enhanced embedded player that loads only after external-video permission is given and you choose to play a video. Playback connects the browser to YouTube, which may process network and device information. Cookie settings in the footer allow you to withdraw permission. Following an external social or other website link takes you to a service whose information practices are separate from ours.',
           'The homepage cricket tracker connects to SportScore only after you allow live scores. SportScore may receive your IP address and browser information. Use Cookie settings to withdraw that permission.',
           'Information may be handled by infrastructure and communication providers to operate the service, or disclosed where a valid legal obligation requires it. Such handling is distinct from selling a reader’s account details.',
@@ -297,7 +299,7 @@ export const publicationDocuments = {
         id: 'retention',
         title: 'Retention and security',
         paragraphs: [
-          'Account information is retained while the account remains in use or while needed for a legitimate operational, security or legal purpose. Correspondence is retained in relation to the enquiry, complaint or editorial matter it concerns. Published journalism may form part of a continuing public record.',
+          'We keep account information while the account is in use or as needed for an operational, security or legal purpose. We normally delete reader correspondence after one year. Open complaints and privacy requests are kept until decided, then for a year. Records needed for active legal matters can be retained longer. Published journalism may form part of a continuing public record.',
           'Access controls, protected passwords and limited-duration verification codes reduce the risk of unauthorised access. No system can guarantee absolute security. Do not send a password or sign-in code to someone claiming to assist with an account.',
         ],
       },
@@ -305,12 +307,11 @@ export const publicationDocuments = {
         id: 'choices',
         title: 'Your choices and privacy requests',
         paragraphs: [
-          'You can browse public news without creating an account, sign out of an account, remove locally saved stories and choose whether to open an external video. For an account correction, deletion request or question about information supplied to us, contact the publication and describe the request.',
+          'Read public news without an account and manage optional services through Cookie settings. Use the form below to ask about the personal information we hold about you or to request a correction, update or deletion where applicable.',
           'We may ask for enough information to verify that a request concerns your account or information. A request concerning a published report is also assessed for journalistic context, applicable obligations and the rights of other people. Please do not send identity documents unless an appropriate verification method has been agreed.',
         ],
         links: [
-          { href: '/contact', label: 'Contact for a privacy request' },
-          { href: '/complaints', label: 'Raise a privacy concern' },
+          { href: '/complaints', label: 'Raise a concern about published material' },
         ],
       },
       {
@@ -344,6 +345,7 @@ export const publicationDocuments = {
         paragraphs: [
           'Provide the article or video link, the date it appeared if known, your relationship to the matter, the passage or action you are challenging, supporting evidence and the remedy requested. Include a private reply method.',
           'If there is a time-sensitive safety or privacy concern, explain the risk and identify the material involved. Keep sensitive documents out of public comments and share only what is relevant to the review.',
+          'The form gives you a receipt with a reference number. Keep it for follow-up. If your request concerns personal information we hold about you, use the form on our privacy page.',
         ],
         links: [{ href: '/contact', label: 'Contact channels and submission guidance' }],
       },
@@ -352,7 +354,7 @@ export const publicationDocuments = {
         title: 'Editorial review and response',
         paragraphs: [
           'The publication assesses the complaint against the report, available source material, relevant editorial standards and information provided by the complainant. The reporter or editor may be asked for an explanation. A concern about the person handling the matter should be identified so that it can be considered in assigning the review.',
-          'An outcome may include a correction, clarification, added response, change to identifying detail, removal in exceptional circumstances, or an explanation of why the reporting is retained. Further verification may be necessary before a decision can be reached.',
+          'We aim to communicate a decision within 15 days of receiving an editorial complaint. A decision may result in a correction, clarification, a published reply, removal of identifying details or an explanation of why the report stays as published.',
         ],
       },
       {

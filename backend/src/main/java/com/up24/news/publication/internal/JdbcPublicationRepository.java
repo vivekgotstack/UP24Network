@@ -37,6 +37,7 @@ class JdbcPublicationRepository implements PublicationRepository {
                 var input=json.readValue(row.getString("content"),SettingsInput.class);
                 return new Settings(input.tagline(),input.announcementEnabled(),input.announcement(),input.footerDescription(),
                         input.showRashifal(),input.showVideo(),!Boolean.FALSE.equals(input.showCricketScores()),
+                        input.grievanceOfficerName(),input.grievanceEmail(),
                         row.getLong("version"),row.getTimestamp("updated_at").toInstant());
             } catch (JsonProcessingException exception) { throw new SQLException("Invalid stored publication settings",exception); }
         });
@@ -63,7 +64,11 @@ class JdbcPublicationRepository implements PublicationRepository {
         jdbc.update("INSERT INTO publication_settings(id,content,updated_at) VALUES (1,?::jsonb,?) ON CONFLICT(id) DO NOTHING",content(input),Timestamp.from(now));
     }
     @Override public void seedPage(String slug, DocumentInput input, Instant now) {
-        jdbc.update("INSERT INTO publication_page(slug,content,updated_at,position) VALUES (?,?::jsonb,?,(SELECT count(*) FROM publication_page)) ON CONFLICT(slug) DO NOTHING",
-                slug,content(input),Timestamp.from(now));
+        jdbc.update("""
+                INSERT INTO publication_page(slug,content,updated_at,position)
+                VALUES (?,?::jsonb,?,(SELECT count(*) FROM publication_page))
+                ON CONFLICT(slug) DO UPDATE SET content=EXCLUDED.content,updated_at=EXCLUDED.updated_at
+                WHERE publication_page.version=0 AND publication_page.content IS DISTINCT FROM EXCLUDED.content
+                """, slug, content(input), Timestamp.from(now));
     }
 }

@@ -53,6 +53,11 @@ export function AccountConsole({ locale }: { locale: SiteLocale }) {
         <span className="role-badge">
           {copy(locale, hindiRoles[user.role], user.role.toLowerCase())}
         </span>
+        <p>
+          <Link href={`/privacy?lang=${locale}#reader-contact`}>
+            {copy(locale, 'गोपनीयता और खाता डेटा अनुरोध', 'Privacy and account data requests')}
+          </Link>
+        </p>
         <div className="account-actions">
           {user.newsroomEligible && (
             <Button asChild>

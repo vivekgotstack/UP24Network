@@ -16,6 +16,8 @@ const hindiTopics: Record<CorrespondenceTopic, string> = {
   ADVERTISING: 'विज्ञापन संबंधी प्रश्न',
 };
 
+type Receipt = { reference: string; receivedAt: string };
+
 export function ReaderContactForm({
   topic,
   locale,
@@ -26,7 +28,7 @@ export function ReaderContactForm({
   reference?: { title: string; url: string };
 }) {
   const [submitting, setSubmitting] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [error, setError] = useState('');
   const heading = topic
     ? copy(locale, hindiTopics[topic], correspondenceTopics[topic])
@@ -40,7 +42,7 @@ export function ReaderContactForm({
     const form = event.currentTarget;
     const fields = new FormData(form);
     setSubmitting(true);
-    setSent(false);
+    setReceipt(null);
     setError('');
     try {
       const message = String(fields.get('message') ?? '').trim();
@@ -48,7 +50,7 @@ export function ReaderContactForm({
         setError(copy(locale, 'कृपया संदेश लिखें।', 'Enter a message.'));
         return;
       }
-      await cms<void>('publication/contact', 'POST', {
+      const acknowledgement = await cms<Receipt>('publication/contact', 'POST', {
         topic: topic ?? fields.get('topic'),
         name: String(fields.get('name') ?? '').trim(),
         email: String(fields.get('email') ?? '').trim(),
@@ -56,7 +58,7 @@ export function ReaderContactForm({
         message: message + referenceText,
       });
       form.reset();
-      setSent(true);
+      setReceipt(acknowledgement);
     } catch (reason) {
       setError(
         reason instanceof CmsError && reason.status === 429
@@ -151,14 +153,22 @@ export function ReaderContactForm({
           </Button>
         </fieldset>
         <div role="status">
-          {sent && (
-            <p>
-              {copy(
-                locale,
-                'UP24Network को आपका संदेश मिला।',
-                'Your message was received by UP24Network.',
-              )}
-            </p>
+          {receipt && (
+            <>
+              <p>
+                {copy(
+                  locale,
+                  'UP24Network को आपका संदेश मिला। फ़ॉलो-अप के लिए संदर्भ संख्या सहेज लें।',
+                  'UP24Network received your message. Keep this reference for any follow-up.',
+                )}
+              </p>
+              <p>
+                {copy(locale, 'संदर्भ संख्या', 'Reference number')} ·{' '}
+                <code className="receipt-reference" dir="ltr">
+                  {receipt.reference}
+                </code>
+              </p>
+            </>
           )}
         </div>
         {error && (

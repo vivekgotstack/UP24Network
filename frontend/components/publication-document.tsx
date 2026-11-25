@@ -5,6 +5,7 @@ import type { PublicationDocument as Document } from '@/lib/publication';
 import {
   getPublicationPage,
   getPublicationNavigation,
+  getPublicationSettings,
   publicationEdition,
 } from '@/lib/publication-api';
 import { copy, publicationLabel } from '@/lib/locale';
@@ -19,18 +20,23 @@ export async function PublicationDocument({
   document: Document;
   reference?: { title: string; url: string };
 }) {
-  const [persisted, publicationNavigation, locale] = await Promise.all([
+  const [persisted, publicationNavigation, locale, settings] = await Promise.all([
     getPublicationPage(initial.path),
     getPublicationNavigation(),
     getReaderLocale(),
+    initial.path === '/complaints' ? getPublicationSettings() : undefined,
   ]);
+  const officer = settings?.grievanceOfficerName?.trim();
+  const grievanceEmail = settings?.grievanceEmail?.trim();
   const { document, contentLocale } = publicationEdition(initial, persisted, locale);
   const contactTopic =
     document.path === '/corrections'
       ? 'CORRECTION'
       : document.path === '/complaints'
         ? 'COMPLAINT'
-        : undefined;
+        : document.path === '/privacy'
+          ? 'PRIVACY'
+          : undefined;
   const showContactForm = document.path === '/contact' || Boolean(contactTopic);
   return (
     <>
@@ -93,6 +99,19 @@ export async function PublicationDocument({
             </nav>
           </aside>
           <article className="publication-copy" aria-label={document.title}>
+            {officer && grievanceEmail && (
+              <section aria-labelledby="grievance-officer-heading">
+                <h2 id="grievance-officer-heading">
+                  {copy(locale, 'शिकायत अधिकारी', 'Grievance officer')}
+                </h2>
+                <p>{officer}</p>
+                <p>
+                  <a href={`mailto:${encodeURIComponent(grievanceEmail).replace('%40', '@')}`}>
+                    {grievanceEmail}
+                  </a>
+                </p>
+              </section>
+            )}
             {document.sections.map((section) => (
               <section
                 id={section.id}
@@ -178,7 +197,9 @@ export async function PublicationDocument({
                 </p>
               </section>
             )}
-            {showContactForm && <ReaderContactForm topic={contactTopic} locale={locale} reference={reference} />}
+            {showContactForm && (
+              <ReaderContactForm topic={contactTopic} locale={locale} reference={reference} />
+            )}
             <footer className="publication-note">
               <p>
                 {copy(

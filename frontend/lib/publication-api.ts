@@ -15,6 +15,8 @@ export type PublicationSettings = {
   showRashifal: boolean;
   showVideo: boolean;
   showCricketScores: boolean;
+  grievanceOfficerName?: string | null;
+  grievanceEmail?: string | null;
   version: number;
   updatedAt: string;
 };

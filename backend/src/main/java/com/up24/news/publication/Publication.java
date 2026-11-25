@@ -10,11 +10,14 @@ import java.util.Optional;
 /** The publication contract contains editable content, never administrative credentials. */
 public interface Publication {
     record Settings(String tagline, boolean announcementEnabled, String announcement, String footerDescription,
-                    boolean showRashifal, boolean showVideo, boolean showCricketScores, long version, Instant updatedAt) {}
+                    boolean showRashifal, boolean showVideo, boolean showCricketScores,
+                    String grievanceOfficerName, String grievanceEmail, long version, Instant updatedAt) {}
     record SettingsInput(@NotBlank @Size(max=160) String tagline, @NotNull Boolean announcementEnabled,
                          @NotNull @Size(max=400) String announcement, @NotNull @Size(max=600) String footerDescription,
                          @NotNull Boolean showRashifal, @NotNull Boolean showVideo,
                          @JsonInclude(JsonInclude.Include.NON_NULL) Boolean showCricketScores,
+                         @JsonInclude(JsonInclude.Include.NON_NULL) @Size(max=120) String grievanceOfficerName,
+                         @JsonInclude(JsonInclude.Include.NON_NULL) @Email @Size(max=254) String grievanceEmail,
                          @NotNull @PositiveOrZero Long version) {}
     record Link(@NotBlank @Size(max=500) String href, @NotBlank @Size(max=100) String label) {}
     record Section(@NotBlank @Pattern(regexp="[a-z0-9]+(?:-[a-z0-9]+)*") @Size(max=80) String id,
