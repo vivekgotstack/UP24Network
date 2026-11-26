@@ -99,7 +99,7 @@ export function PasswordRecoveryPanel({ locale }: { locale: SiteLocale }) {
           className="brand-badge"
           aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}
         >
-          <BrandLogo eager />
+          <BrandLogo />
         </Link>
         <h1>{copy(locale, 'खाता वापस खोलें', 'Recover your account')}</h1>
         <p>

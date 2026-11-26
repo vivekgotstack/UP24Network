@@ -5,7 +5,7 @@ import java.util.Locale;
 
 /** Bounded public discovery criteria, independent of HTTP and persistence. */
 public record ArticleQuery(List<String> categories, List<String> cities, String region, String search,
-                           boolean videoOnly, int page, int size) {
+                           boolean videoOnly, boolean writtenOnly, int page, int size) {
     public ArticleQuery {
         categories = filters(categories, 32);
         cities = filters(cities, 64).stream().map(value -> value.toLowerCase(Locale.ROOT)).toList();
@@ -13,6 +13,7 @@ public record ArticleQuery(List<String> categories, List<String> cities, String 
         if (region.length() > 80 || !region.matches("^$|[a-z]+(?:-[a-z]+)*"))
             throw new IllegalArgumentException("Use a valid regional edition slug");
         search = search == null ? "" : search.trim();
+        if (videoOnly && writtenOnly) throw new IllegalArgumentException("Choose one report format");
         if (search.length() > 200 || page < 1 || page > 100_000 || size < 1 || size > 48)
             throw new IllegalArgumentException("Use a search of at most 200 characters, page 1–100000 and size 1–48");
     }

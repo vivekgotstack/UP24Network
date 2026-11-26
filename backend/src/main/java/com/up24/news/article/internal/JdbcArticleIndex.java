@@ -32,8 +32,9 @@ class JdbcArticleIndex implements ArticleIndex {
                 SELECT slug, title, published_at FROM article_record
                 WHERE status = 'PUBLISHED' AND published_at <= CURRENT_TIMESTAMP
                   AND published_at >= CURRENT_TIMESTAMP - INTERVAL '48 hours'
+                  AND %s
                 ORDER BY published_at DESC, id DESC LIMIT ?
-                """, (row, index) -> new RecentNews(row.getString("slug"), row.getString("title"),
+                """.formatted(ArticleStore.WRITTEN_REPORTS), (row, index) -> new RecentNews(row.getString("slug"), row.getString("title"),
                 row.getTimestamp("published_at").toInstant()), PAGE_SIZE);
     }
 }

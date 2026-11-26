@@ -43,34 +43,35 @@ type Props = {
   onRun: (job: AutomationJob) => Promise<void>;
 };
 
+export function AutomationSwitch({ job, busy, onSettings }: Pick<Props, 'busy' | 'onSettings'> & { job: AutomationJob }) {
+  return (
+    <label className="cms-switch">
+      <input
+        type="checkbox"
+        role="switch"
+        aria-label={job.name}
+        checked={job.enabled}
+        disabled={busy || (!job.configured && !job.enabled)}
+        onChange={(event) => void onSettings(job, event.target.checked, job.intervalMinutes)}
+      />
+      <span>{job.enabled ? 'On' : 'Off'}</span>
+    </label>
+  );
+}
+
 export function AutomationPanel({ jobs, busy, onSettings, onRun }: Props) {
   return (
     <>
-      <h2>Automation controls</h2>
-      <p className="cms-muted">
-        YouTube updates come from the official channel. Daily sections use approved API adapters.
-        Provider keys stay on the server. Disabling Rashifal also hides its public section; saved
-        editions are retained.
-      </p>
       <div className="cms-job-list">
-        {jobs.map((job) => (
-          <article key={job.key}>
+        {[...jobs].sort((a, b) => Number(b.key === 'youtube') - Number(a.key === 'youtube')).map((job) => (
+          <article key={job.key} id={job.key}>
             <div className="cms-job-heading">
               <h3>{job.name}</h3>
-              <label className="cms-switch">
-                <span>{job.enabled ? 'Enabled' : 'Disabled'}</span>
-                <input
-                  type="checkbox"
-                  role="switch"
-                  aria-label={`Enable ${job.name}`}
-                  checked={job.enabled}
-                  disabled={busy || (!job.configured && !job.enabled)}
-                  onChange={(event) =>
-                    void onSettings(job, event.target.checked, job.intervalMinutes)
-                  }
-                />
-              </label>
+              <AutomationSwitch job={job} busy={busy} onSettings={onSettings} />
             </div>
+            {job.key === 'youtube' && (
+              <p className="cms-muted">Turn on to publish new uploads from the official YouTube channel automatically. Published videos stay available when the schedule is off. Use Import now for a one-time import.</p>
+            )}
             <p className="cms-muted">{job.configurationDetail}</p>
             {job.key === 'rashifal' && !job.configured && (
               <div className="cms-muted">
@@ -129,7 +130,7 @@ export function AutomationPanel({ jobs, busy, onSettings, onRun }: Props) {
                 disabled={busy || job.running || !job.configured}
                 onClick={() => void onRun(job)}
               >
-                {job.running ? 'Running…' : 'Run now'}
+                {job.running ? 'Running…' : job.key === 'youtube' ? 'Import now' : 'Run now'}
               </Button>
             </div>
             {job.key === 'rashifal' && (

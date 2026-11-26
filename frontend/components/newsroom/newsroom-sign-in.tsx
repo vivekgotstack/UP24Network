@@ -57,7 +57,7 @@ export function NewsroomSignIn({
     <section className="auth-layout">
       <div className="auth-brand-panel">
         <Link href="/" className="brand-badge" aria-label="TheMorningExpress home">
-          <BrandLogo eager />
+          <BrandLogo />
         </Link>
         <p className="eyebrow">PRIVATE NEWSROOM</p>
         <h1 lang="hi">

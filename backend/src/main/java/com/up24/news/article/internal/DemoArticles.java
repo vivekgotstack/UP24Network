@@ -72,6 +72,7 @@ class DemoArticles implements Articles {
                 .filter(a -> query.categories().isEmpty() || query.categories().contains(a.category()))
                 .filter(a -> query.cities().isEmpty() || query.cities().contains(a.city().trim().toLowerCase(java.util.Locale.ROOT)))
                 .filter(a -> !query.videoOnly() || a.videoUrl() != null || a.youtubeId() != null)
+                .filter(a -> !query.writtenOnly() || (!a.category().equals("Videos") && !a.category().equals("Trending Reels")))
                 .filter(a -> java.util.Arrays.stream(query.search().toLowerCase(java.util.Locale.ROOT).split("\\s+"))
                         .allMatch(word -> (a.title()+" "+a.summary()+" "+a.city()+" "+a.category()).toLowerCase(java.util.Locale.ROOT).contains(word)))
                 .sorted(java.util.Comparator.comparing(ArticleView::publishedAt).reversed().thenComparing(ArticleView::slug)).toList();

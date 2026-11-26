@@ -6,6 +6,7 @@
 @import './publication.css';
 @import './coverage.css';
 @import './admin-controls.css';
+@import './edition.css';
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 @font-face {
   font-family: 'Noto Serif Devanagari';
@@ -59,21 +60,22 @@
 :root {
   color-scheme: light dark;
   background: var(--paper);
-  --ink: light-dark(#15182a, #f6edf3);
+  --ink: light-dark(#182330, #f3f0eb);
   --brand-navy: #071c36;
   --brand-gold: #ffc47c;
   --brand-plum: #54245c;
   --brand-rule: linear-gradient(90deg, #43245d, #a83167 52%, #e56138 77%, #ffba72);
-  --brand-ink: light-dark(#54245c, #f3cbe9);
+  --brand-ink: light-dark(#274966, #b8d3ea);
   --on-brand: #fff8f1;
   --red: var(--brand-navy);
-  --muted: light-dark(#645861, #c8bbcc);
-  --line: light-dark(#e3d3ce, #4c3b51);
-  --paper: light-dark(#fff8f1, #171321);
-  --surface: light-dark(#f7eee9, #211a2b);
-  --surface-raised: light-dark(#fff, #2b2237);
-  --surface-wash: light-dark(#fff9, #241b30);
-  --surface-control: light-dark(#fffdfa, #21192b);
+  --muted: light-dark(#536170, #aab5c2);
+  --line: light-dark(#dce0e2, #303d4b);
+  --paper: light-dark(#faf9f6, #111923);
+  --surface: light-dark(#f0eee9, #1a2633);
+  --surface-raised: light-dark(#fff, #233140);
+  --surface-wash: light-dark(#fff9, #182432);
+  --surface-control: light-dark(#fffdfa, #16212d);
+  --edition-accent: light-dark(#a2471c, #ffc47c);
   --shadow-colour: light-dark(#43245d26, #080410a8);
   --focus-outline: light-dark(#8b2c79, #ffc47c);
   --disabled-ink: light-dark(#73666d, #a795ab);
@@ -92,8 +94,8 @@
   --sans: 'Source Sans', 'Noto Sans Devanagari', Arial, sans-serif;
   --background: var(--paper);
   --foreground: var(--ink);
-  --primary: light-dark(#54245c, #ffc47c);
-  --primary-foreground: light-dark(#fff, #21142c);
+  --primary: light-dark(#163652, #ffc47c);
+  --primary-foreground: light-dark(#fff, #071c36);
   --secondary: light-dark(#f1e5ed, #30243c);
   --secondary-foreground: var(--ink);
   --accent: light-dark(#f5e4ea, #3a2946);

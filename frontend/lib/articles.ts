@@ -72,6 +72,7 @@ export type ArticleFilters = {
   cities?: string[];
   q?: string;
   videoOnly?: boolean;
+  writtenOnly?: boolean;
   page?: string;
   size?: number;
 };
@@ -82,6 +83,7 @@ export async function getArticlePage(filters: ArticleFilters = {}): Promise<Arti
   for (const city of filters.cities ?? []) parameters.append('city', city);
   if (filters.q) parameters.set('q', filters.q.slice(0, 200));
   if (filters.videoOnly) parameters.set('videoOnly', 'true');
+  if (filters.writtenOnly) parameters.set('writtenOnly', 'true');
   const page = Number(filters.page);
   parameters.set(
     'page',

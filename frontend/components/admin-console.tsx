@@ -15,7 +15,7 @@ import { AdminNavigation } from '@/components/newsroom/admin-workspace';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { BrandLogo } from '@/components/brand-logo';
 import { TeamPanel } from '@/components/newsroom/team-panel';
-import { AutomationPanel, type AutomationJob } from '@/components/newsroom/automation-panel';
+import { AutomationPanel, AutomationSwitch, type AutomationJob } from '@/components/newsroom/automation-panel';
 import type { ManagedArticle } from '@/lib/newsroom/types';
 import { articleDesk, articlePagePath, type DeskPage } from '@/lib/newsroom/articles';
 
@@ -146,6 +146,16 @@ export function AdminConsole({
   const blocked = busy || Boolean(loadError);
   const counts = articleData.data?.counts;
   const published = counts?.PUBLISHED ?? 0;
+  const youtubeJob = jobs.find((job) => job.key === 'youtube');
+  async function saveAutomation(job: AutomationJob, enabled: boolean, intervalMinutes: number) {
+    await act(async () => {
+      const saved = await cms<AutomationJob>(`admin/automations/${job.key}`, 'PATCH', { enabled, intervalMinutes });
+      client.setQueryData<AutomationJob[]>(['newsroom', user!.id, 'admin/automations'], (previous) =>
+        previous?.map((item) => item.key === saved.key ? saved : item),
+      );
+      await jobData.refetch();
+    }, 'Automation settings saved.');
+  }
   const refresh = () =>
     Promise.all([articleData.refetch(), reportData.refetch(), jobData.refetch()]);
   const refreshArticles = () =>
@@ -175,7 +185,7 @@ export function AdminConsole({
       <header className="cms-heading">
         <div>
           <Link href="/" className="cms-home cms-brand-link">
-            <BrandLogo /> TheMorningExpress / Back to reader
+            <BrandLogo markOnly /> Back to reader
           </Link>
           <h1>{titles[section]}</h1>
         </div>
@@ -229,13 +239,22 @@ export function AdminConsole({
             <>
               <div className="cms-section-heading">
                 <div>
-                  <p className="eyebrow">EDITORIAL CONTROL</p>
-                  <h2>Publication overview.</h2>
+                  <h2>Publication overview</h2>
                 </div>
                 <Button variant="outline" disabled={busy} onClick={() => act(refresh)}>
                   Refresh
                 </Button>
               </div>
+              {youtubeJob && (
+                <section className="cms-card cms-youtube-control" aria-labelledby="youtube-control-title">
+                  <div>
+                    <h3 id="youtube-control-title">YouTube auto-import</h3>
+                    <p className="cms-muted">Automatically publish new uploads from the official channel.</p>
+                  </div>
+                  <AutomationSwitch job={youtubeJob} busy={blocked} onSettings={saveAutomation} />
+                  <Link className="text-link" href="/admin/automations#youtube">Import settings</Link>
+                </section>
+              )}
               <div className="cms-stats">
                 <div>
                   <strong>{published}</strong>
@@ -520,12 +539,7 @@ export function AdminConsole({
             <AutomationPanel
               jobs={jobs}
               busy={blocked}
-              onSettings={async (job, enabled, intervalMinutes) => {
-                await act(async () => {
-                  await cms(`admin/automations/${job.key}`, 'PATCH', { enabled, intervalMinutes });
-                  await jobData.refetch();
-                }, 'Automation settings saved.');
-              }}
+              onSettings={saveAutomation}
               onRun={async (job) => {
                 await act(async () => {
                   await cms(`admin/automations/${job.key}/run`, 'POST');

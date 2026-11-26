@@ -28,7 +28,6 @@ export function NewsImage({
         <span className="brand-badge">
           <BrandLogo />
         </span>
-        <span lang="hi">खबर हमारी यकीन आपका</span>
       </div>
     );
   return (

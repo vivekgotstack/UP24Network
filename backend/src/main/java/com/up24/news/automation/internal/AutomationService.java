@@ -73,27 +73,40 @@ class AutomationService {
     }
 
     Job run(String key) {
+        return run(key, false);
+    }
+
+    private Job run(String key, boolean scheduled) {
         Job existing = job(key);
         if (!existing.configured()) throw new ResponseStatusException(HttpStatus.CONFLICT, existing.configurationDetail());
         UUID lease = UUID.randomUUID();
         if (jdbc.update("""
                 UPDATE automation_job SET running=TRUE, lease_token=?, last_run_at=CURRENT_TIMESTAMP
                 WHERE job_key=? AND (NOT running OR last_run_at<CURRENT_TIMESTAMP-INTERVAL '15 minutes')
-                """, lease, key) == 0) throw new ResponseStatusException(HttpStatus.CONFLICT, "This import is already running");
+                  AND (NOT ? OR (enabled AND next_run_at<=CURRENT_TIMESTAMP))
+                """, lease, key, scheduled) == 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The source is already running or its schedule changed");
+        }
         AutomationSource source = sources.get(key);
         try {
             // External I/O happens without holding a database transaction or row lock.
             AutomationSource.Prepared batch = source.prepare();
             transaction.executeWithoutResult(status -> {
-                List<UUID> tokens = jdbc.query("SELECT lease_token FROM automation_job WHERE job_key=? FOR UPDATE",
-                        (row, index) -> row.getObject(1, UUID.class), key);
-                if (tokens.isEmpty() || !Objects.equals(lease, tokens.getFirst())) return;
+                record RunLease(UUID token, boolean enabled, int intervalMinutes) {}
+                var current = jdbc.query("SELECT lease_token, enabled, interval_minutes FROM automation_job WHERE job_key=? FOR UPDATE",
+                        (row, index) -> new RunLease(row.getObject(1, UUID.class), row.getBoolean(2), row.getInt(3)), key).stream().findFirst();
+                if (current.isEmpty() || !Objects.equals(lease, current.get().token())) return;
+                RunLease active = current.get();
+                if (scheduled && !active.enabled()) {
+                    jdbc.update("UPDATE automation_job SET running=FALSE, lease_token=NULL, last_result=? WHERE job_key=?",
+                            "Automatic import paused before publication.", key);
+                    return;
+                }
                 int count = batch.publish();
-                int interval = Objects.requireNonNull(jdbc.queryForObject("SELECT interval_minutes FROM automation_job WHERE job_key=?", Integer.class, key));
                 jdbc.update("""
                         UPDATE automation_job SET running=FALSE, lease_token=NULL, failure_count=0, last_result=?, next_run_at=? WHERE job_key=?
                         """, source.resultMessage(count),
-                        Timestamp.from(source.nextRun(clock.instant(), interval)), key);
+                        Timestamp.from(source.nextRun(clock.instant(), active.intervalMinutes())), key);
             });
         } catch (Exception exception) {
             String result = exception instanceof RestClientResponseException response
@@ -118,7 +131,7 @@ class AutomationService {
         for (Job job : list()) {
             if (job.enabled() && job.configured() && !job.nextRunAt().isAfter(now)
                     && (!job.running() || job.lastRunAt() != null && job.lastRunAt().isBefore(now.minusSeconds(900)))) {
-                try { run(job.key()); }
+                try { run(job.key(), true); }
                 catch (ResponseStatusException exception) {
                     if (exception.getStatusCode() != HttpStatus.CONFLICT) throw exception;
                 }

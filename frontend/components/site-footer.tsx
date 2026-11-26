@@ -1,4 +1,4 @@
-import { EditionArt } from '@/components/edition-art';
+import { BrandLogo } from '@/components/brand-logo';
 import { CookiePreferences } from '@/components/cookie-consent';
 import { NewsletterSection } from '@/components/newsletter-section';
 import { SocialIcon } from '@/components/social-icon';
@@ -36,15 +36,10 @@ export async function SiteFooter() {
   return (
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
-        <EditionArt
-          sizes={
-            channels.length
-              ? '(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px'
-              : '(max-width: 1152px) 100vw, 1152px'
-          }
-          tagline={publicationTagline(locale, settings.tagline)}
-          locale={locale}
-        />
+        <div className="footer-masthead">
+          <Link href="/" aria-label={brand.displayName}><BrandLogo /></Link>
+          <p lang={textLanguage(publicationTagline(locale, settings.tagline))}>{publicationTagline(locale, settings.tagline)}</p>
+        </div>
         {channels.length > 0 && (
           <nav className="social-links" aria-label={officialChannelsLabel}>
             <h2 className="footer-social-heading">{officialChannelsLabel}</h2>

@@ -1,7 +1,13 @@
-import Image from 'next/image';
-import officialLogo from '@/public/brand/the-morning-express-logo.jpg';
-
-/** Render the supplied artwork without cropping or re-encoding it. */
-export function BrandLogo({ eager = false }: { eager?: boolean }) {
-  return <Image src={officialLogo} alt="" unoptimized loading={eager ? 'eager' : 'lazy'} />;
+export function BrandLogo({ markOnly = false }: { markOnly?: boolean }) {
+  return (
+    <span className="brand-wordmark" aria-hidden="true" lang="en">
+      <span className="brand-sun" />
+      {!markOnly && (
+        <span className="brand-name">
+          <span>The Morning</span>
+          <span>Express</span>
+        </span>
+      )}
+    </span>
+  );
 }

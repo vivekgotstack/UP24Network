@@ -40,9 +40,10 @@ class ArticleController {
                        @RequestParam(defaultValue = "") String region,
                        @RequestParam(defaultValue = "") String q,
                        @RequestParam(defaultValue = "false") boolean videoOnly,
+                       @RequestParam(defaultValue = "false") boolean writtenOnly,
                        @RequestParam(defaultValue = "1") int page,
                        @RequestParam(defaultValue = "12") int size) {
-        try { return articles.browse(new ArticleQuery(category, city, region, q, videoOnly, page, size)); }
+        try { return articles.browse(new ArticleQuery(category, city, region, q, videoOnly, writtenOnly, page, size)); }
         catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
         }

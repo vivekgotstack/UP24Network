@@ -21,6 +21,7 @@ import java.util.*;
 
 @Service
 class ArticleStore implements ArticleDesk {
+    static final String WRITTEN_REPORTS = "category NOT IN ('Videos', 'Trending Reels')";
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     private final ApplicationEventPublisher events;
@@ -64,6 +65,7 @@ class ArticleStore implements ArticleDesk {
             parameters.put("cities", query.cities());
         }
         if (query.videoOnly()) sql.append(" AND (NULLIF(video_url,'') IS NOT NULL OR NULLIF(youtube_id,'') IS NOT NULL)");
+        if (query.writtenOnly()) sql.append(" AND ").append(WRITTEN_REPORTS);
         if (!query.search().isBlank()) {
             String[] words = query.search().toLowerCase(Locale.ROOT).split("\\s+");
             for (int index = 0; index < words.length; index++) {

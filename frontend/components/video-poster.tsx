@@ -16,7 +16,7 @@ export function VideoPoster({
       className="video-trigger"
       aria-label={`Watch: ${title}`}
     >
-      <NewsImage src={image} sizes="(max-width: 700px) 100vw, 60vw" />
+      <NewsImage src={image} sizes="(max-width: 650px) 100vw, 400px" />
       <span className="video-shade" />
       <span className="play-mark" aria-hidden="true">
         <Play size={22} fill="currentColor" />

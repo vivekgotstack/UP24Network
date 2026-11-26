@@ -67,7 +67,7 @@ export function AuthPanel({
           className="brand-badge"
           aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}
         >
-          <BrandLogo eager />
+          <BrandLogo />
         </Link>
         <h1>
           {editorial

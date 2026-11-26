@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { SiteHeader } from '@/components/site-header';
-import { HeadlineTicker } from '@/components/headline-ticker';
 import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
@@ -10,45 +10,37 @@ import { copy } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 
 export const dynamic = 'force-dynamic';
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getReaderLocale();
+type LatestProps = { searchParams: Promise<{ page?: string }> };
+const getLatest = cache((page?: string) => getArticlePage({ page }));
+
+export async function generateMetadata({ searchParams }: LatestProps): Promise<Metadata> {
+  const [locale, { page }] = await Promise.all([getReaderLocale(), searchParams]);
+  const results = await getLatest(page);
   return {
     title: copy(locale, 'ताज़ा खबरें', 'Latest news'),
     description: copy(
       locale,
-      'TheMorningExpress की सबसे हाल में प्रकाशित रिपोर्ट।',
-      'The latest reports from TheMorningExpress.',
+      'द मॉर्निंग एक्सप्रेस की ताज़ा खबरें, लिखित रिपोर्ट, वीडियो और रील।',
+      'The latest articles, video reports and reels from The Morning Express.',
     ),
-    alternates: { canonical: '/latest' },
+    alternates: { canonical: results.page > 1 ? `/latest?page=${results.page}` : '/latest' },
   };
 }
-export default async function Latest({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
+export default async function Latest({ searchParams }: LatestProps) {
   const [params, locale] = await Promise.all([searchParams, getReaderLocale()]);
-  const results = await getArticlePage({ page: params.page });
+  const results = await getLatest(params.page);
   return (
     <>
       <SiteHeader latest />
-      <HeadlineTicker articles={results.items} />
-      <main id="main-content">
-        <header className="page-heading" id="stories">
+      <main id="main-content" className="latest-edition">
+        <header className="edition-heading" id="stories">
           <div>
             <h1>{copy(locale, 'ताज़ा खबरें', 'Latest news')}</h1>
-            <p>
-              {copy(
-                locale,
-                'सबसे नई रिपोर्ट, प्रकाशन के क्रम में।',
-                'The latest reports, in publication order.',
-              )}
-            </p>
           </div>
           <span className="result-count">{reportCount(locale, results.total)}</span>
         </header>
         {results.total ? (
-          <div className="story-grid">
+          <div className="story-grid latest-grid">
             {results.items.map((article) => (
               <StoryCard key={article.slug} article={article} />
             ))}

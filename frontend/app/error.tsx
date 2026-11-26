@@ -23,7 +23,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
       <header className="compact-header compact-header-minimal">
         <Link className="brand-lockup" href="/" aria-label="TheMorningExpress home">
           <span className="compact-logo">
-            <BrandLogo eager />
+          <BrandLogo />
           </span>
         </Link>
       </header>

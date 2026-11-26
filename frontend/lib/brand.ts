@@ -1,6 +1,7 @@
 export const brand = {
   name: 'TheMorningExpress',
-  logoPath: '/brand/the-morning-express-logo.jpg',
+  displayName: 'The Morning Express',
+  logoPath: '/icons/morning-express-512.png',
   themeColor: '#071c36',
 } as const;
 
@@ -14,6 +15,7 @@ export const appIcons = {
 
 export function isBrandPlaceholder(src: string) {
   return (
-    src === brand.logoPath || src === '/brand/up24-logo.png' || src === '/brand/newsroom-banner.png'
+    src === brand.logoPath || src === '/brand/the-morning-express-logo.jpg' ||
+    src === '/brand/up24-logo.png' || src === '/brand/newsroom-banner.png'
   );
 }

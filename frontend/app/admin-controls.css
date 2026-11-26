@@ -23,10 +23,21 @@
     align-items: center;
     gap: 12px;
   }
-  .cms-brand-link img {
-    width: clamp(85px, 13vw, 115px);
-    height: auto;
-    object-fit: contain;
+  .cms-brand-link .brand-wordmark {
+    font-size: 19px;
+  }
+  .cms-youtube-control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-block: 20px;
+  }
+  .cms-youtube-control > div {
+    flex: 1 0 min(100%, 320px);
+  }
+  .cms-youtube-control h3 {
+    margin-bottom: 4px;
   }
   .admin-tools-grid {
     display: grid;
