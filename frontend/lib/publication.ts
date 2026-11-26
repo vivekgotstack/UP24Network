@@ -18,7 +18,7 @@ export const publicationDocuments = {
   about: {
     path: '/about',
     label: 'About',
-    title: 'About UP24Network',
+    title: 'About TheMorningExpress',
     description: 'Our publication, coverage and responsibility to readers.',
     intro:
       'Uttar Pradesh is at the centre of our reporting. India and the wider world provide its context.',
@@ -27,7 +27,7 @@ export const publicationDocuments = {
         id: 'publication',
         title: 'The publication',
         paragraphs: [
-          'UP24Network is a Hindi news publication owned by Abhishek Srivastav, covering Uttar Pradesh, national affairs and the developments that shape everyday life. Our editorial team publishes written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.',
+          'TheMorningExpress is a Hindi news publication owned by Abhishek Srivastav, covering Uttar Pradesh, national affairs and the developments that shape everyday life. Our editorial team publishes written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.',
           'Our editorial purpose is to make a report useful: explain what happened, identify what is known, place the development in context and make clear why it matters to the people affected. Speed matters in news, but it does not replace accuracy or responsibility.',
         ],
       },
@@ -56,10 +56,10 @@ export const publicationDocuments = {
         title: 'Read and stay connected',
         paragraphs: [
           'The latest news page lists recent reports, while topic sections provide a more focused way to follow coverage. Saved stories remain in the browser where they were saved, allowing readers to return to an article without creating a public profile.',
-          'UP24Network’s official social channels are listed on the contact page. For a news tip, correction, interview request or commercial enquiry, use the relevant guidance there so that your message reaches the appropriate person.',
+          'TheMorningExpress’s official social channels are listed on the contact page. For a news tip, correction, interview request or commercial enquiry, use the relevant guidance there so that your message reaches the appropriate person.',
         ],
         links: [
-          { href: '/contact', label: 'Contact UP24Network' },
+          { href: '/contact', label: 'Contact TheMorningExpress' },
           { href: '/ownership', label: 'Publication and ownership' },
         ],
       },
@@ -68,7 +68,7 @@ export const publicationDocuments = {
   contact: {
     path: '/contact',
     label: 'Contact',
-    title: 'Contact UP24Network',
+    title: 'Contact TheMorningExpress',
     description: 'News tips, corrections, reader enquiries and commercial contact.',
     intro:
       'A useful conversation starts with the right details. Choose the subject of your enquiry and include the information our team needs to respond.',
@@ -114,7 +114,7 @@ export const publicationDocuments = {
         id: 'channels',
         title: 'Official contact channels',
         paragraphs: [
-          'Use the official UP24Network profiles listed below to reach the publication through their available contact or private messaging options. Include the subject of your enquiry at the start of your message.',
+          'Use the official TheMorningExpress profiles listed below to reach the publication through their available contact or private messaging options. Include the subject of your enquiry at the start of your message.',
           'Keep sensitive personal information out of public comments. Do not send passwords, sign-in codes, financial credentials or identity documents as part of a routine news tip. If your enquiry involves sensitive evidence, begin with a short description and discuss an appropriate way to share it.',
         ],
       },
@@ -250,13 +250,13 @@ export const publicationDocuments = {
     title: 'Privacy policy',
     description: 'Information we handle, why we use it and the choices available to readers.',
     intro:
-      'This policy explains how UP24Network handles information when you read the website, use an account, save a story or contact the publication.',
+      'This policy explains how TheMorningExpress handles information when you read the website, use an account, save a story or contact the publication.',
     sections: [
       {
         id: 'scope',
         title: 'Scope and responsibility',
         paragraphs: [
-          'This policy applies to the UP24Network website and the account features it provides. External platforms, including social networks and video services, operate under their own privacy terms. The publication is responsible for the information it collects through its own services.',
+          'This policy applies to the TheMorningExpress website and the account features it provides. External platforms, including social networks and video services, operate under their own privacy terms. The publication is responsible for the information it collects through its own services.',
           'Information supplied as part of a news tip or editorial correspondence may also be considered for journalistic purposes. The contents of a published report and an account’s operational data are handled for different purposes.',
         ],
       },
@@ -378,15 +378,15 @@ export const publicationDocuments = {
     description:
       'Publication responsibility, editorial control and the treatment of commercial interests.',
     intro:
-      'UP24Network is the publishing identity behind this website and its official news channels. Editorial and commercial decisions carry different responsibilities.',
+      'TheMorningExpress is the publishing identity behind this website and its official news channels. Editorial and commercial decisions carry different responsibilities.',
     sections: [
       {
         id: 'responsibility',
         title: 'Publication responsibility',
         paragraphs: [
-          'UP24Network is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.',
-          'Publication enquiries, correction requests and formal editorial correspondence can be directed to UP24Network through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.',
-          'Official channels are listed together so that readers can identify the UP24Network publication across the website and social platforms. An account or page using a similar name should not be assumed to represent the publication.',
+          'TheMorningExpress is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.',
+          'Publication enquiries, correction requests and formal editorial correspondence can be directed to TheMorningExpress through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.',
+          'Official channels are listed together so that readers can identify the TheMorningExpress publication across the website and social platforms. An account or page using a similar name should not be assumed to represent the publication.',
         ],
         links: [{ href: '/contact', label: 'Official publication contacts' }],
       },
@@ -464,7 +464,7 @@ export const publicationDocuments = {
     description:
       'The terms governing access to the website, account use and reuse of publication material.',
     intro:
-      'These terms explain the conditions for using UP24Network’s website and the responsibilities that accompany access to its content and account features.',
+      'These terms explain the conditions for using TheMorningExpress’s website and the responsibilities that accompany access to its content and account features.',
     sections: [
       {
         id: 'access',
@@ -479,7 +479,7 @@ export const publicationDocuments = {
         title: 'Copyright and content reuse',
         paragraphs: [
           'Articles, photographs, video, graphics, branding and other material may be protected by copyright, trade marks and other rights held by the publication or the relevant rights holder. You may link to a public article and use material where the law or an express licence permits it.',
-          'Republication, syndication, commercial reuse and use of the UP24Network logo require the appropriate permission unless a legal exception applies. Attribution does not, by itself, create permission. For a rights enquiry, identify the material and the proposed use.',
+          'Republication, syndication, commercial reuse and use of the TheMorningExpress logo require the appropriate permission unless a legal exception applies. Attribution does not, by itself, create permission. For a rights enquiry, identify the material and the proposed use.',
         ],
         links: [{ href: '/contact', label: 'Request permission' }],
       },
@@ -516,13 +516,13 @@ export const publicationDocuments = {
   },
   cookies: {
     path: '/cookies', label: 'Cookies', title: 'Cookie and external media policy',
-    description: 'How UP24Network uses essential storage and respects your external-media choices.',
-    intro: 'You can read UP24Network without accepting optional external services. This page explains the storage used by our own services, when another provider is contacted, and how to change your choice.',
+    description: 'How TheMorningExpress uses essential storage and respects your external-media choices.',
+    intro: 'You can read TheMorningExpress without accepting optional external services. This page explains the storage used by our own services, when another provider is contacted, and how to change your choice.',
     sections: [
       { id: 'essential', title: 'Essential security and account storage', paragraphs: ['Account sign-in uses secure authentication and anti-forgery cookies to protect sessions and requests. These are required when you use account features; they are not advertising identifiers. The UP24_ACCESS and UP24_REFRESH cookies support short-lived access credentials and a revocable login lasting up to seven days. Signing out clears the browser credentials and revokes the relevant login.', 'An anti-forgery cookie protects actions such as sign-in and editing. Reader-facing pages remain available without an account. Local browser caches store public static assets for performance and the offline shell; private account responses and news HTML are excluded from the service-worker cache.'] },
       { id: 'choice', title: 'Your preference and its duration', paragraphs: ['UP24_CONSENT records the consent-policy version, permissions for external video and live cricket scores, and when the choice was saved. It lasts up to 180 days on the current browser and device. Both accepting and rejecting optional services are available in the initial notice. No optional category is enabled by default.', 'You can reopen Cookie settings in the footer at any time. Withdrawing a permission removes the associated embeds from the page. It cannot undo information already received by a provider while permission was active. Clearing browser storage also clears the saved preference.'] },
       { id: 'external', title: 'External embeds and links', paragraphs: ['YouTube players use its privacy-enhanced embed domain, but loading a player still connects your browser to YouTube and may share information such as your IP address, device details and playback activity. An embedded player loads only after you have allowed external video and selected a video to play.', 'Allowing live cricket scores loads a SportScore frame on the homepage. SportScore may process network and device information under its own policy.', 'Ordinary outbound links open the selected service when you follow them. That service then applies its own policies. Our server may obtain editorial data or media metadata from providers without placing their scripts on the reader’s device.'] },
-      { id: 'tracking', title: 'Advertising and analytics', paragraphs: ['The current website does not run third-party advertising trackers or an external analytics script. We do not display consent controls for tracking tools that are not installed. If optional processing is introduced, this policy and the consent mechanism must be updated before those tools are activated.'], links: [{ href: '/privacy', label: 'Privacy policy' }, { href: '/contact', label: 'Contact UP24Network' }] },
+      { id: 'tracking', title: 'Advertising and analytics', paragraphs: ['The current website does not run third-party advertising trackers or an external analytics script. We do not display consent controls for tracking tools that are not installed. If optional processing is introduced, this policy and the consent mechanism must be updated before those tools are activated.'], links: [{ href: '/privacy', label: 'Privacy policy' }, { href: '/contact', label: 'Contact TheMorningExpress' }] },
     ],
   },
 } satisfies Record<string, PublicationDocument>;

@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.PublicationBrand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.article.*;
 import org.springframework.context.ApplicationEventPublisher;
@@ -152,7 +153,7 @@ class ArticleStore implements ArticleDesk {
         UUID id=UUID.nameUUIDFromBytes(input.upstreamKey().getBytes(java.nio.charset.StandardCharsets.UTF_8));
         boolean changed=jdbc.update("""
                 INSERT INTO article_record(id,slug,title,summary,category,city,author,status,published_at,image,image_alt,video_url,youtube_id,paragraphs,breaking,upstream_key,source_url,region)
-                VALUES (?,?,?,?,?,?,'UP24Network Desk','PUBLISHED',?,?,?,?,?,?::jsonb,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,'PUBLISHED',?,?,?,?,?,?::jsonb,?,?,?,?)
                 ON CONFLICT(upstream_key) DO UPDATE SET title=EXCLUDED.title,summary=EXCLUDED.summary,category=EXCLUDED.category,
                 image=EXCLUDED.image,image_alt=EXCLUDED.image_alt,video_url=EXCLUDED.video_url,youtube_id=EXCLUDED.youtube_id,
                 paragraphs=EXCLUDED.paragraphs,breaking=EXCLUDED.breaking,source_url=EXCLUDED.source_url,city=EXCLUDED.city,region=EXCLUDED.region,version=article_record.version+1,updated_at=CURRENT_TIMESTAMP
@@ -163,7 +164,7 @@ class ArticleStore implements ArticleDesk {
                     IS DISTINCT FROM ROW(EXCLUDED.title,EXCLUDED.summary,EXCLUDED.category,EXCLUDED.city,
                         EXCLUDED.image,EXCLUDED.image_alt,EXCLUDED.video_url,EXCLUDED.youtube_id,
                         EXCLUDED.paragraphs,EXCLUDED.breaking,EXCLUDED.source_url,EXCLUDED.region)
-                """,id,input.slug(),input.title(),input.summary(),input.category(),input.city(),Timestamp.from(input.publishedAt()),
+                """,id,input.slug(),input.title(),input.summary(),input.category(),input.city(),PublicationBrand.DESK,Timestamp.from(input.publishedAt()),
                 media(input.image(),"image"),input.imageAlt(),media(input.videoUrl(),"video"),input.youtubeId(),contentJson(input.paragraphs()),input.breaking(),input.upstreamKey(),input.sourceUrl(),value(input.region()))>0;
         if(changed) events.publishEvent(new ArticleChanged(id));
         return changed;

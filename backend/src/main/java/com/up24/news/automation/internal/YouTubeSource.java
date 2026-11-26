@@ -1,5 +1,6 @@
 package com.up24.news.automation.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.article.ArticleDesk;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -75,8 +76,8 @@ class YouTubeSource implements AutomationSource {
                     throw new IllegalArgumentException("Unexpected video thumbnail host or path");
                 }
                 reports.add(new ArticleDesk.Imported("youtube:" + id, "video-" + id, title,
-                        "From the UP24Network YouTube channel.", "Videos", "UP24Network", thumbnail, title, null, id,
-                        List.of("Watch this report on the official UP24Network YouTube channel."),
+                        "From the " + PublicationBrand.NAME + " YouTube channel.", "Videos", PublicationBrand.NAME, thumbnail, title, null, id,
+                        List.of("Watch this report on the official " + PublicationBrand.NAME + " YouTube channel."),
                         Instant.parse(text(entry, "published")), false, "https://www.youtube.com/watch?v=" + id, ""));
             }
             return List.copyOf(reports);

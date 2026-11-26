@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { brand } from '@/lib/brand';
+import { getPublicationChannels } from '@/lib/publication-channels';
 import type { PublicationDocument as Document } from '@/lib/publication';
 import {
   getPublicationPage,
@@ -29,6 +30,7 @@ export async function PublicationDocument({
   const officer = settings?.grievanceOfficerName?.trim();
   const grievanceEmail = settings?.grievanceEmail?.trim();
   const { document, contentLocale } = publicationEdition(initial, persisted, locale);
+  const channels = initial.path === '/contact' ? getPublicationChannels() : [];
   const contactTopic =
     document.path === '/corrections'
       ? 'CORRECTION'
@@ -46,7 +48,7 @@ export async function PublicationDocument({
           className="publication-breadcrumb"
           aria-label={copy(locale, 'पृष्ठ का रास्ता', 'Breadcrumb')}
         >
-          <Link href="/">UP24Network</Link>
+          <Link href="/">{brand.name}</Link>
           <span aria-hidden="true">/</span>
           <span lang={contentLocale}>{document.label}</span>
         </nav>
@@ -146,9 +148,9 @@ export async function PublicationDocument({
                     </CookiePreferences>
                   </div>
                 )}
-                {document.path === '/contact' && section.id === 'channels' && (
+                {channels.length > 0 && section.id === 'channels' && (
                   <div className="publication-channels">
-                    {brand.socials.map((social) => (
+                    {channels.map((social) => (
                       <a
                         key={social.name}
                         href={social.url}
@@ -157,7 +159,7 @@ export async function PublicationDocument({
                       >
                         <strong>{social.name}</strong>
                         <span>
-                          UP24Network
+                          {brand.name}
                           <span className="sr-only">
                             {' '}
                             · {copy(locale, 'नए टैब में खुलेगा', 'Opens in a new tab')}
@@ -208,7 +210,7 @@ export async function PublicationDocument({
                   'For a question about this policy or a published report,',
                 )}{' '}
                 <Link href="/contact">
-                  {copy(locale, 'UP24Network से संपर्क करें', 'contact UP24Network')}
+                  {copy(locale, 'TheMorningExpress से संपर्क करें', 'contact TheMorningExpress')}
                 </Link>
                 {copy(locale, '।', '.')}
               </p>

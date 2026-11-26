@@ -2,7 +2,7 @@
   {
     "path": "/about",
     "label": "About",
-    "title": "About UP24Network",
+    "title": "About TheMorningExpress",
     "description": "Our publication, coverage and responsibility to readers.",
     "intro": "Uttar Pradesh is at the centre of our reporting. India and the wider world provide its context.",
     "sections": [
@@ -10,7 +10,7 @@
         "id": "publication",
         "title": "The publication",
         "paragraphs": [
-          "UP24Network is a Hindi news publication owned by Abhishek Srivastav, covering Uttar Pradesh, national affairs and the developments that shape everyday life. Our editorial team publishes written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.",
+          "TheMorningExpress is a Hindi news publication owned by Abhishek Srivastav, covering Uttar Pradesh, national affairs and the developments that shape everyday life. Our editorial team publishes written reports and video coverage, bringing regional stories into the same reading space as politics, public policy, business, education, sport and culture.",
           "Our editorial purpose is to make a report useful: explain what happened, identify what is known, place the development in context and make clear why it matters to the people affected. Speed matters in news, but it does not replace accuracy or responsibility."
         ]
       },
@@ -45,12 +45,12 @@
         "title": "Read and stay connected",
         "paragraphs": [
           "The latest news page lists recent reports, while topic sections provide a more focused way to follow coverage. Saved stories remain in the browser where they were saved, allowing readers to return to an article without creating a public profile.",
-          "UP24Network’s official social channels are listed on the contact page. For a news tip, correction, interview request or commercial enquiry, use the relevant guidance there so that your message reaches the appropriate person."
+          "The contact page lists ways to reach TheMorningExpress. For a news tip, correction, interview request or commercial enquiry, use the relevant guidance there so that your message reaches the appropriate person."
         ],
         "links": [
           {
             "href": "/contact",
-            "label": "Contact UP24Network"
+            "label": "Contact TheMorningExpress"
           },
           {
             "href": "/ownership",
@@ -63,7 +63,7 @@
   {
     "path": "/contact",
     "label": "Contact",
-    "title": "Contact UP24Network",
+    "title": "Contact TheMorningExpress",
     "description": "News tips, corrections, reader enquiries and commercial contact.",
     "intro": "A useful conversation starts with the right details. Choose the subject of your enquiry and include the information our team needs to respond.",
     "sections": [
@@ -120,7 +120,7 @@
         "id": "channels",
         "title": "Official contact channels",
         "paragraphs": [
-          "Use the official UP24Network profiles listed below to reach the publication through their available contact or private messaging options. Include the subject of your enquiry at the start of your message.",
+          "Use the contact form for newsroom enquiries. You can also reach us through any official profiles listed here. Include the subject of your enquiry at the start of your message.",
           "Keep sensitive personal information out of public comments. Do not send passwords, sign-in codes, financial credentials or identity documents as part of a routine news tip. If your enquiry involves sensitive evidence, begin with a short description and discuss an appropriate way to share it."
         ]
       }
@@ -267,13 +267,13 @@
     "label": "Privacy",
     "title": "Privacy policy",
     "description": "Information we handle, why we use it and the choices available to readers.",
-    "intro": "This policy explains how UP24Network handles information when you read the website, use an account, save a story or contact the publication.",
+    "intro": "This policy explains how TheMorningExpress handles information when you read the website, use an account, save a story or contact the publication.",
     "sections": [
       {
         "id": "scope",
         "title": "Scope and responsibility",
         "paragraphs": [
-          "This policy applies to the UP24Network website and the account features it provides. External platforms, including social networks and video services, operate under their own privacy terms. The publication is responsible for the information it collects through its own services.",
+          "This policy applies to the TheMorningExpress website and the account features it provides. External platforms, including social networks and video services, operate under their own privacy terms. The publication is responsible for the information it collects through its own services.",
           "Information supplied as part of a news tip or editorial correspondence may also be considered for journalistic purposes. The contents of a published report and an account’s operational data are handled for different purposes."
         ]
       },
@@ -405,15 +405,15 @@
     "label": "Ownership",
     "title": "Publication and ownership",
     "description": "Publication responsibility, editorial control and the treatment of commercial interests.",
-    "intro": "UP24Network is the publishing identity behind this website and its official news channels. Editorial and commercial decisions carry different responsibilities.",
+    "intro": "TheMorningExpress is the publishing identity behind this website and its official news channels. Editorial and commercial decisions carry different responsibilities.",
     "sections": [
       {
         "id": "responsibility",
         "title": "Publication responsibility",
         "paragraphs": [
-          "UP24Network is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.",
-          "Publication enquiries, correction requests and formal editorial correspondence can be directed to UP24Network through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.",
-          "Official channels are listed together so that readers can identify the UP24Network publication across the website and social platforms. An account or page using a similar name should not be assumed to represent the publication."
+          "TheMorningExpress is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.",
+          "Publication enquiries, correction requests and formal editorial correspondence can be directed to TheMorningExpress through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.",
+          "Check the Contact page for official channels. An account or page using a similar name should not be assumed to represent the publication."
         ],
         "links": [
           {
@@ -508,7 +508,7 @@
     "label": "Terms of use",
     "title": "Terms of use",
     "description": "The terms governing access to the website, account use and reuse of publication material.",
-    "intro": "These terms explain the conditions for using UP24Network’s website and the responsibilities that accompany access to its content and account features.",
+    "intro": "These terms explain the conditions for using TheMorningExpress’s website and the responsibilities that accompany access to its content and account features.",
     "sections": [
       {
         "id": "access",
@@ -523,7 +523,7 @@
         "title": "Copyright and content reuse",
         "paragraphs": [
           "Articles, photographs, video, graphics, branding and other material may be protected by copyright, trade marks and other rights held by the publication or the relevant rights holder. You may link to a public article and use material where the law or an express licence permits it.",
-          "Republication, syndication, commercial reuse and use of the UP24Network logo require the appropriate permission unless a legal exception applies. Attribution does not, by itself, create permission. For a rights enquiry, identify the material and the proposed use."
+          "Republication, syndication, commercial reuse and use of the TheMorningExpress logo require the appropriate permission unless a legal exception applies. Attribution does not, by itself, create permission. For a rights enquiry, identify the material and the proposed use."
         ],
         "links": [
           {
@@ -576,8 +576,8 @@
     "path": "/cookies",
     "label": "Cookies",
     "title": "Cookie and external media policy",
-    "description": "How UP24Network uses essential storage and respects your external-media choices.",
-    "intro": "You can read UP24Network without accepting optional external services. This page explains the storage used by our own services, when another provider is contacted, and how to change your choice.",
+    "description": "How TheMorningExpress uses essential storage and respects your external-media choices.",
+    "intro": "You can read TheMorningExpress without accepting optional external services. This page explains the storage used by our own services, when another provider is contacted, and how to change your choice.",
     "sections": [
       {
         "id": "essential",
@@ -617,7 +617,7 @@
           },
           {
             "href": "/contact",
-            "label": "Contact UP24Network"
+            "label": "Contact TheMorningExpress"
           }
         ]
       }

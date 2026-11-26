@@ -22,7 +22,7 @@ export async function GET() {
         <loc>${xml(url)}</loc>
         <news:news>
           <news:publication>
-            <news:name>UP24Network</news:name>
+            <news:name>TheMorningExpress</news:name>
             <news:language>${textLanguage(article.title)}</news:language>
           </news:publication>
           <news:publication_date>${xml(article.publishedAt)}</news:publication_date>

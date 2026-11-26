@@ -1,12 +1,17 @@
-/** Profiles cross-linked by the existing UP24Network website on 10 Nov 2026. */
 export const brand = {
-  name: 'UP24Network',
-  website: 'https://www.up24network.com/',
-  socials: [
-    { name: 'YouTube', url: 'https://www.youtube.com/@up24network' },
-    { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61577605397475' },
-    { name: 'Instagram', url: 'https://www.instagram.com/up24.network/' },
-    { name: 'X (Twitter)', url: 'https://x.com/up24network' },
-  ],
-  youtubeChannel: 'https://www.youtube.com/@up24network',
+  name: 'TheMorningExpress',
+  logoPath: '/brand/the-morning-express-logo.jpg',
+  themeColor: '#071c36',
 } as const;
+
+export const appIcons = {
+  favicon: '/icons/morning-express-48.png',
+  touch: '/icons/morning-express-apple-touch.png',
+  standard: '/icons/morning-express-192.png',
+  large: '/icons/morning-express-512.png',
+  maskable: '/icons/morning-express-maskable-512.png',
+} as const;
+
+export function isBrandPlaceholder(src: string) {
+  return src === brand.logoPath || src === '/brand/up24-logo.png' || src === '/brand/newsroom-banner.png';
+}

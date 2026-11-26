@@ -67,7 +67,7 @@ export default async function Home({
             <h1>{copy(locale, 'आज की बड़ी खबरें', 'Today’s headlines')}</h1>
           </div>
           <div className="edition-date">
-            <span className="edition-stamp">UP24Network</span>
+            <span className="edition-stamp">TheMorningExpress</span>
             <time
               dateTime={new Intl.DateTimeFormat('sv-SE', {
                 dateStyle: 'short',

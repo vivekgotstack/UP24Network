@@ -70,7 +70,7 @@ export function PwaInstall({ locale = 'hi' }: { locale?: SiteLocale }) {
     } catch {}
   };
   return (
-    <aside className={styles.panel} aria-label={copy(locale, 'UP24Network इंस्टॉल करें', 'Install UP24Network')}>
+    <aside className={styles.panel} aria-label={copy(locale, 'TheMorningExpress इंस्टॉल करें', 'Install TheMorningExpress')}>
       {prompt ? (
         <Button
           variant="outline"
@@ -100,7 +100,7 @@ export function PwaInstall({ locale = 'hi' }: { locale?: SiteLocale }) {
           <Dialog.Portal>
             <Dialog.Overlay className="confirmation-overlay" />
             <Dialog.Content className="confirmation-dialog">
-              <Dialog.Title>{copy(locale, 'UP24Network को होम स्क्रीन पर जोड़ें', 'Add UP24Network to your Home Screen')}</Dialog.Title>
+              <Dialog.Title>{copy(locale, 'TheMorningExpress को होम स्क्रीन पर जोड़ें', 'Add TheMorningExpress to your Home Screen')}</Dialog.Title>
               <Dialog.Description>
                 {copy(locale, 'Safari में Share खोलें, फिर “Add to Home Screen” चुनें।', 'In Safari, open Share and choose “Add to Home Screen”.')}
               </Dialog.Description>

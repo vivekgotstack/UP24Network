@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { BrandLogo } from '@/components/brand-logo';
+import { isBrandPlaceholder } from '@/lib/brand';
 
 export function NewsImage({
   src,
@@ -16,7 +17,7 @@ export function NewsImage({
   sizes?: string;
 }) {
   const [failed, setFailed] = useState<string | null>(null);
-  const fallback = !src || src === '/brand/up24-logo.png' || failed === src;
+  const fallback = !src || isBrandPlaceholder(src) || failed === src;
   if (fallback)
     return (
       <div

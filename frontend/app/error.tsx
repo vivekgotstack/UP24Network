@@ -21,7 +21,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <>
       <header className="compact-header compact-header-minimal">
-        <Link className="brand-lockup" href="/" aria-label="UP24Network home">
+        <Link className="brand-lockup" href="/" aria-label="TheMorningExpress home">
           <span className="compact-logo">
             <BrandLogo eager />
           </span>

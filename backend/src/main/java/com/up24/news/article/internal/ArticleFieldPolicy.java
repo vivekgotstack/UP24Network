@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.article.ArticleDesk;
 import com.up24.news.article.ArticleView;
 import org.springframework.http.HttpStatus;
@@ -115,7 +116,10 @@ final class ArticleFieldPolicy {
 
     static String media(String input, String kind) {
         String text = input == null ? "" : input.trim();
-        if (text.isBlank()) return kind.equals("image") ? "/brand/up24-logo.png" : null;
+        if (text.isBlank()) return kind.equals("image") ? PublicationBrand.LOGO : null;
+        if (kind.equals("image") && Set.of("/brand/up24-logo.png", "/brand/newsroom-banner.png").contains(text)) {
+            return PublicationBrand.LOGO;
+        }
         boolean local = (text.matches("^/(images|brand|videos)/[A-Za-z0-9._/-]+$") && !text.contains(".."))
                 || (kind.equals("image") && text.matches("^/media/[a-f0-9]{64}\\.webp$"))
                 || (kind.equals("video") && text.matches("^/media/videos/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.mp4$"));
@@ -127,6 +131,6 @@ final class ArticleFieldPolicy {
                 return text;
             }
         } catch (IllegalArgumentException ignored) {}
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use a local asset or an HTTPS media URL from UP24Network");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use a local asset or an approved HTTPS media URL.");
     }
 }

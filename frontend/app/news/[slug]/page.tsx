@@ -19,14 +19,14 @@ import { copy, isSiteLocale } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 import { localizeArticle } from '@/lib/article-locale';
 import { canonicalReelUrl } from '@/lib/instagram';
-import officialLogo from '@/public/brand/up24-logo.png';
+import { brand, isBrandPlaceholder } from '@/lib/brand';
 
 export const dynamic = 'force-dynamic';
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ lang?: string }>;
 };
-const deskBylines = new Set(['UP24Network Editorial Team', 'UP24Network Desk']);
+const deskBylines = new Set(['TheMorningExpress Editorial Team', 'TheMorningExpress Desk']);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [original, locale] = await Promise.all([
@@ -48,9 +48,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: article.title,
       description: article.summary,
       url: `/news/${article.slug}`,
-      siteName: 'UP24Network',
+      siteName: brand.name,
       locale: textLanguage(article.title) === 'hi' ? 'hi_IN' : 'en_IN',
-      images: [{ url: article.image, alt: article.imageAlt }],
+      images: [{
+        url: isBrandPlaceholder(article.image) || !article.image ? brand.logoPath : article.image,
+        alt: article.imageAlt,
+      }],
       publishedTime: article.publishedAt,
       authors: [article.author],
       section: article.category,
@@ -112,8 +115,8 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     author: { '@type': isDeskByline ? 'Organization' : 'Person', name: article.author },
     publisher: {
       '@type': 'Organization',
-      name: 'UP24Network',
-      logo: { '@type': 'ImageObject', url: new URL(officialLogo.src, origin).href },
+      name: brand.name,
+      logo: { '@type': 'ImageObject', url: new URL(brand.logoPath, origin).href },
     },
   };
   return (
@@ -289,8 +292,8 @@ export default async function ArticlePage({ params, searchParams }: Props) {
               <p>
                 {copy(
                   locale,
-                  'UP24Network का संपादकीय दल उत्तर प्रदेश, देश और दुनिया की खबरें प्रस्तुत करता है।',
-                  'UP24Network’s editorial desk covers Uttar Pradesh, national affairs, and international news.',
+                  'TheMorningExpress का संपादकीय दल उत्तर प्रदेश, देश और दुनिया की खबरें प्रस्तुत करता है।',
+                  'TheMorningExpress’s editorial desk covers Uttar Pradesh, national affairs, and international news.',
                 )}{' '}
                 <Link href="/editorial-policy">
                   {copy(locale, 'संपादकीय मानक', 'Editorial standards')}

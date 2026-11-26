@@ -97,7 +97,7 @@ export function PasswordRecoveryPanel({ locale }: { locale: SiteLocale }) {
         <Link
           href="/"
           className="brand-badge"
-          aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}
+          aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}
         >
           <BrandLogo eager />
         </Link>
@@ -105,8 +105,8 @@ export function PasswordRecoveryPanel({ locale }: { locale: SiteLocale }) {
         <p>
           {copy(
             locale,
-            'ईमेल से अपने UP24Network खाते की पहुँच वापस पाएँ।',
-            'Recover access to your UP24Network account securely by email.',
+            'ईमेल से अपने TheMorningExpress खाते की पहुँच वापस पाएँ।',
+            'Recover access to your TheMorningExpress account securely by email.',
           )}
         </p>
         <Link href="/" className="text-link">

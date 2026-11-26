@@ -1,5 +1,6 @@
 package com.up24.news.notification.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.jobs.PermanentJobFailure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,7 @@ class BrevoMailTransport implements MailTransport {
         if (!configured()) throw new IllegalStateException("Email delivery is not configured");
         try {
             client.post().uri("/smtp/email").header("api-key",apiKey).contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("sender",Map.of("email",senderEmail,"name","UP24Network"),
+                    .body(Map.of("sender",Map.of("email",senderEmail,"name",PublicationBrand.NAME),
                             "to",List.of(Map.of("email",mail.recipient())),"subject",mail.subject(),
                             "headers",Map.of("IdempotencyKey",deliveryId.toString()),
                             "textContent",mail.body(),"tags",List.of(mail.tag())))

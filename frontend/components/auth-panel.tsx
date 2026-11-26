@@ -65,7 +65,7 @@ export function AuthPanel({
         <Link
           href="/"
           className="brand-badge"
-          aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}
+          aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}
         >
           <BrandLogo eager />
         </Link>
@@ -105,8 +105,8 @@ export function AuthPanel({
               ? copy(locale, 'मुफ़्त पाठक खाता बनाएँ।', 'Create a free subscriber account.')
               : copy(
                   locale,
-                  'अपने UP24Network खाते में लॉगिन करें।',
-                  'Sign in to your UP24Network account.',
+                  'अपने TheMorningExpress खाते में लॉगिन करें।',
+                  'Sign in to your TheMorningExpress account.',
                 )}
         </p>
         <form onSubmit={submit} className="cms-form">

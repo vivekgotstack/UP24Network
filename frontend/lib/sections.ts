@@ -112,8 +112,8 @@ export const newsSections: readonly NewsSection[] = [
     slug: 'videos',
     name: 'Videos',
     title: 'वीडियो',
-    description: 'UP24Network की वीडियो रिपोर्ट और जमीनी कवरेज।',
-    englishDescription: 'Video reports and on-the-ground coverage from UP24Network.',
+    description: 'TheMorningExpress की वीडियो रिपोर्ट और जमीनी कवरेज।',
+    englishDescription: 'Video reports and on-the-ground coverage from TheMorningExpress.',
   },
   {
     slug: 'cricket',

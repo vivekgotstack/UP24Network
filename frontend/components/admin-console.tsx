@@ -175,7 +175,7 @@ export function AdminConsole({
       <header className="cms-heading">
         <div>
           <Link href="/" className="cms-home cms-brand-link">
-            <BrandLogo /> UP24Network / Back to reader
+            <BrandLogo /> TheMorningExpress / Back to reader
           </Link>
           <h1>{titles[section]}</h1>
         </div>

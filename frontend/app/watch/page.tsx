@@ -4,7 +4,7 @@ import { StoryCard } from '@/components/story-card';
 import { EmptyState } from '@/components/empty-state';
 import { Pagination } from '@/components/pagination';
 import { getArticlePage } from '@/lib/articles';
-import { brand } from '@/lib/brand';
+import { getPublicationChannels } from '@/lib/publication-channels';
 import { copy } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
 
@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: copy(locale, 'वीडियो रिपोर्ट', 'Video reports'),
     description: copy(
       locale,
-      'UP24Network की वीडियो खबरें और रिपोर्ट।',
-      'Video news and reporting from UP24Network.',
+      'TheMorningExpress की वीडियो खबरें और रिपोर्ट।',
+      'Video news and reporting from TheMorningExpress.',
     ),
     alternates: { canonical: '/watch' },
   };
@@ -28,6 +28,7 @@ export default async function Watch({
 }) {
   const [filters, locale] = await Promise.all([searchParams, getReaderLocale()]);
   const result = await getArticlePage({ videoOnly: true, page: filters.page });
+  const channel = getPublicationChannels().find(({ name }) => name === 'YouTube');
   return (
     <>
       <SiteHeader category="Videos" />
@@ -43,14 +44,14 @@ export default async function Watch({
               )}
             </p>
           </div>
-          <a
+          {channel && <a
             className="text-link"
-            href={brand.youtubeChannel}
+            href={channel.url}
             target="_blank"
             rel="noopener noreferrer"
           >
             {copy(locale, 'YouTube चैनल', 'YouTube channel')}
-          </a>
+          </a>}
         </header>
         {result.total ? (
           <div className="story-grid video-grid">

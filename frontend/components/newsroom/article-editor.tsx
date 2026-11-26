@@ -525,7 +525,7 @@ export function ArticleEditor({
                     maxLength={100}
                     value={draft.byline}
                     onChange={(event) => set('byline', event.target.value)}
-                    placeholder="UP24Network Editorial Team"
+                    placeholder="TheMorningExpress Editorial Team"
                   />
                   <span className="field-help">
                     Set the name readers see on this report. Leave blank to keep the current byline,

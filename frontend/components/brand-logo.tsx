@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import officialLogo from '@/public/brand/up24-logo.png';
+import officialLogo from '@/public/brand/the-morning-express-logo.jpg';
 
-/** Keep the official mark lossless; its asset hash refreshes cached copies. */
+/** Render the supplied artwork without cropping or re-encoding it. */
 export function BrandLogo({ eager = false }: { eager?: boolean }) {
   return <Image src={officialLogo} alt="" unoptimized loading={eager ? 'eager' : 'lazy'} />;
 }

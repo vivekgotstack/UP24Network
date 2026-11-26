@@ -56,7 +56,7 @@ export function NewsroomSignIn({
   return (
     <section className="auth-layout">
       <div className="auth-brand-panel">
-        <Link href="/" className="brand-badge" aria-label="UP24Network home">
+        <Link href="/" className="brand-badge" aria-label="TheMorningExpress home">
           <BrandLogo eager />
         </Link>
         <p className="eyebrow">PRIVATE NEWSROOM</p>
@@ -65,7 +65,7 @@ export function NewsroomSignIn({
           <br />
           एक जिम्मेदारी।
         </h1>
-        <p>A private workspace for the UP24Network editorial team.</p>
+        <p>A private workspace for the TheMorningExpress editorial team.</p>
         <Link href="/" className="text-link">
           Back to the front page
         </Link>

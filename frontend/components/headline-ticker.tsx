@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SocialIcon } from '@/components/social-icon';
 import type { Article } from '@/lib/articles';
 import { brand } from '@/lib/brand';
+import { getPublicationChannels } from '@/lib/publication-channels';
 import { textLanguage } from '@/lib/language';
 import { copy } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
@@ -17,6 +18,7 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
     .slice(0, 6)
     .map((article) => localizeArticle(article, locale));
   if (!headlines.length) return null;
+  const channels = getPublicationChannels();
   return (
     <section className="headline-ticker" aria-label={copy(locale, 'मुख्य खबरें', 'Headlines')}>
       <strong>
@@ -40,12 +42,12 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
           ))}
         </div>
       </div>
-      <nav
+      {channels.length > 0 && <nav
         className="ticker-follow"
-        aria-label={copy(locale, 'UP24Network को फ़ॉलो करें', 'Follow UP24Network')}
+        aria-label={copy(locale, `${brand.name} को फ़ॉलो करें`, `Follow ${brand.name}`)}
       >
         <span>{copy(locale, 'फ़ॉलो करें', 'Follow us')}</span>
-        {brand.socials.map((social) => (
+        {channels.map((social) => (
           <a
             key={social.name}
             href={social.url}
@@ -53,15 +55,15 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
             rel="noopener noreferrer"
             aria-label={copy(
               locale,
-              `${social.name} पर UP24Network को फ़ॉलो करें`,
-              `Follow UP24Network on ${social.name}`,
+              `${social.name} पर ${brand.name} को फ़ॉलो करें`,
+              `Follow ${brand.name} on ${social.name}`,
             )}
             title={social.name}
           >
             <SocialIcon name={social.name} />
           </a>
         ))}
-      </nav>
+      </nav>}
     </section>
   );
 }

@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.article.ArticleView;
 import com.up24.news.article.Articles;
 import com.up24.news.article.ArticlePage;
@@ -20,7 +21,7 @@ class DemoArticles implements Articles {
             story("closer-to-home", "A closer look at the places we call home",
                     "From the lanes of Lucknow to the ghats of Varanasi, the everyday stories that connect a state of millions.",
                     "Uttar Pradesh", "Lucknow", 4, "/images/heritage.jpg", "An Indian heritage monument reflected in water",
-                    "A place is more than its biggest headline. Its neighbourhoods, public spaces and everyday journeys shape how people experience it. This sample feature previews the kind of local storytelling UP24Network aims to publish.",
+                    "A place is more than its biggest headline. Its neighbourhoods, public spaces and everyday journeys shape how people experience it. This sample feature previews the kind of local storytelling " + PublicationBrand.NAME + " aims to publish.",
                     "Our regional desk will start with questions readers can use: what is changing in my city, who does it affect, and where can I find the original information? Reporting should bring those answers together with context.",
                     "This is demonstration content for our first development milestone. It does not describe a reported event. Future articles will come from the editorial publishing workflow, with sources and verified details."),
             story("reading-beyond-headlines", "Beyond the headline: making sense of the national conversation",
@@ -33,7 +34,7 @@ class DemoArticles implements Articles {
                     "The questions that matter to the shop owners, makers, and first-time founders building close to home.",
                     "Business", "Noida", 4, "/images/business.jpg", "Modern commercial buildings seen from below",
                     "Local business reporting starts with everyday decisions: the cost of a workspace, finding a first customer, or making a delivery reliably. Those details make economic stories useful.",
-                    "UP24Network will explore these questions through reporting, data and direct conversations. A single business owner's experience can illustrate a problem, while broader evidence helps establish its scale.",
+                    PublicationBrand.NAME + " will explore these questions through reporting, data and direct conversations. A single business owner's experience can illustrate a problem, while broader evidence helps establish its scale.",
                     "This is sample editorial content for development, with no claims about a specific business or current economic conditions."),
             story("student-guide-to-next-steps", "The next chapter starts with the right questions",
                     "A practical way to think about courses, skills, and the decisions after school.",
@@ -48,15 +49,15 @@ class DemoArticles implements Articles {
                     "We plan to explore these connections through original photography, conversations and careful historical sourcing. A beautiful image should invite a reader into a well-reported story.",
                     "This is an illustrative article for our development preview. It does not describe a reported visit or interview."),
             new ArticleView("a-moment-in-nature", "A moment in nature", "A close-up view of the world in bloom.",
-                    "Environment", "Visual desk", "UP24 Visual Desk", SAMPLE_TIME, 1,
+                    "Environment", "Visual desk", PublicationBrand.NAME + " Visual Desk", SAMPLE_TIME, 1,
                     "/images/nature.jpg", "Flowers in soft natural light", "/videos/nature-sample.mp4",
-                    List.of("This short sample film demonstrates how a video story appears on UP24Network. It is openly licensed example footage, not original UP24 reporting.",
+                    List.of("This short sample film demonstrates how a video story appears on " + PublicationBrand.NAME + ". The footage is openly licensed and used for this example.",
                             "Video is available in this story. Other articles use photographs. The image remains available if a video cannot play."), true, null, false, null)
     );
 
     private static ArticleView story(String slug, String title, String summary, String category,
                                      String city, int minutes, String image, String alt, String... paragraphs) {
-        return new ArticleView(slug, title, summary, category, city, "UP24 Editorial Desk",
+        return new ArticleView(slug, title, summary, category, city, PublicationBrand.EDITORIAL_TEAM,
                 SAMPLE_TIME, minutes, image, alt, null, List.of(paragraphs), true, null, false, null);
     }
 

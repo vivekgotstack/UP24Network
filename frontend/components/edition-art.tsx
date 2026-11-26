@@ -15,14 +15,14 @@ export function EditionArt({
   locale?: SiteLocale;
 }) {
   return (
-    <section className="edition-art" aria-label={copy(locale, 'UP24Network की संपादकीय पहचान', 'UP24Network editorial identity')}>
+    <section className="edition-art" aria-label={copy(locale, 'TheMorningExpress की संपादकीय पहचान', 'TheMorningExpress editorial identity')}>
       <Image
         className="edition-artwork"
         src={bannerArtwork}
         alt={copy(locale, 'उत्तर प्रदेश के ऐतिहासिक स्थलों और राजनीतिक जीवन का चित्रण', 'Illustration of Uttar Pradesh landmarks and political life')}
         sizes={sizes}
       />
-      <Link href="/about" className="edition-identity" aria-label={copy(locale, 'UP24Network के बारे में', 'About UP24Network')}>
+      <Link href="/about" className="edition-identity" aria-label={copy(locale, 'TheMorningExpress के बारे में', 'About TheMorningExpress')}>
         <span className="edition-logo">
           <BrandLogo />
         </span>

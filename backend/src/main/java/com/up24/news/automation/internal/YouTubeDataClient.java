@@ -1,5 +1,6 @@
 package com.up24.news.automation.internal;
 
+import com.up24.news.PublicationBrand;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.article.ArticleDesk;
@@ -65,9 +66,9 @@ class YouTubeDataClient {
                     || !thumbnail.getPath().startsWith("/vi/"+id+"/")) throw new IllegalArgumentException("Invalid source metadata.");
             String description=snippet.path("description").asText().strip();
             if(description.length()>10000) throw new IllegalArgumentException("Source description exceeds its limit.");
-            String summary=description.isBlank()?"UP24Network की आधिकारिक वीडियो रिपोर्ट।":description.substring(0,Math.min(1800,description.length()));
+            String summary=description.isBlank()?PublicationBrand.NAME + " की आधिकारिक वीडियो रिपोर्ट।":description.substring(0,Math.min(1800,description.length()));
             var paragraphs=description.isBlank()?List.of("पूरी रिपोर्ट वीडियो में देखें।"):Arrays.stream(description.split("\\n\\s*\\n")).map(String::strip).filter(value->!value.isBlank()).toList();
-            result.add(new ArticleDesk.Imported("youtube:"+id,"video-"+id,title,summary,"Videos","UP24Network",image,title,null,id,
+            result.add(new ArticleDesk.Imported("youtube:"+id,"video-"+id,title,summary,"Videos",PublicationBrand.NAME,image,title,null,id,
                     paragraphs,Instant.parse(item.path("contentDetails").path("videoPublishedAt").asText()),false,"https://www.youtube.com/watch?v="+id,""));
         }
         return List.copyOf(result);

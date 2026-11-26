@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.article.ArticleDesk;
 import com.up24.news.identity.*;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ class EditorialController {
     @PostMapping ArticleDesk.Managed create(@Valid @RequestBody ArticleDesk.Input input) {
         var actor=access.current();
         if (actor.role()!=Accounts.Role.ADMIN) ReportingRequirements.draft(input);
-        return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?"UP24Network Editorial Team":actor.displayName());
+        return desk.save(null,input,actor.id(),actor.role()==Accounts.Role.ADMIN?PublicationBrand.EDITORIAL_TEAM:actor.displayName());
     }
     @PostMapping("/{id}/continuations") @ResponseStatus(HttpStatus.CREATED)
     ArticleDesk.Managed continueArticle(@PathVariable UUID id) {

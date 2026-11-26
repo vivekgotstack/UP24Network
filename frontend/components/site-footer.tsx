@@ -4,6 +4,7 @@ import { NewsletterSection } from '@/components/newsletter-section';
 import { SocialIcon } from '@/components/social-icon';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
+import { getPublicationChannels } from '@/lib/publication-channels';
 import { newsSections, sectionGroups, sectionHref } from '@/lib/sections';
 import { regions, regionTitle } from '@/lib/regions';
 import { getPublicationSettings, getPublicationNavigation } from '@/lib/publication-api';
@@ -22,6 +23,7 @@ export async function SiteFooter() {
     getReaderLocale(),
   ]);
   const officialChannelsLabel = copy(locale, 'आधिकारिक चैनल', 'Official channels');
+  const channels = getPublicationChannels();
   const footerDescription = settings.footerDescription === defaultFooterDescription
     ? copy(locale, defaultFooterDescription, 'News from Uttar Pradesh, India, and the world. Local stories, clear context, and responsible journalism.')
     : settings.footerDescription;
@@ -29,22 +31,22 @@ export async function SiteFooter() {
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
         <EditionArt
-          sizes="(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px"
+          sizes={channels.length ? '(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px' : '(max-width: 1152px) 100vw, 1152px'}
           tagline={publicationTagline(locale, settings.tagline)}
           locale={locale}
         />
-        <nav className="social-links" aria-label={officialChannelsLabel}>
+        {channels.length > 0 && <nav className="social-links" aria-label={officialChannelsLabel}>
           <h2 className="footer-social-heading">
             {officialChannelsLabel}
           </h2>
-          {brand.socials.map((social) => (
+          {channels.map((social) => (
             <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
               <SocialIcon name={social.name} />
               {social.name}
               <span className="sr-only"> {copy(locale, '(नए टैब में खुलेगा)', '(opens in a new tab)')}</span>
             </a>
           ))}
-        </nav>
+        </nav>}
       </div>
       {footerDescription && (
         <p className="footer-description" lang={textLanguage(footerDescription)}>
@@ -77,7 +79,7 @@ export async function SiteFooter() {
         </nav>
       </div>
       <div className="footer-bottom">
-        <p>© {yearInIndia.format(new Date())} UP24Network</p>
+        <p>© {yearInIndia.format(new Date())} {brand.name}</p>
         <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
           <Link href="/archive">{copy(locale, 'खबरों का संग्रह', 'News archive')}</Link>
           <a href={readerFeeds.hi.url} lang="hi">हिंदी RSS</a>

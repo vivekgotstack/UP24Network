@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: copy(locale, 'न्यूज़लेटर', 'Newsletter'),
     description: copy(
       locale,
-      'UP24Network का न्यूज़लेटर ईमेल पर पाने के लिए सदस्यता लें।',
-      'Subscribe to the UP24Network newsletter.',
+      'TheMorningExpress का न्यूज़लेटर ईमेल पर पाने के लिए सदस्यता लें।',
+      'Subscribe to the TheMorningExpress newsletter.',
     ),
     alternates: { canonical: '/newsletter' },
   };
@@ -25,7 +25,7 @@ export default async function NewsletterPage() {
       <SiteHeader compact />
       <main id="main-content" className={styles.page} lang={locale}>
         <header className={styles.heading}>
-          <h1>{copy(locale, 'UP24Network न्यूज़लेटर', 'UP24Network newsletter')}</h1>
+          <h1>{copy(locale, 'TheMorningExpress न्यूज़लेटर', 'TheMorningExpress newsletter')}</h1>
           <p>
             {copy(
               locale,

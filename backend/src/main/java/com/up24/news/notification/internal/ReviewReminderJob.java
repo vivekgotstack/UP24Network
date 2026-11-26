@@ -1,5 +1,6 @@
 package com.up24.news.notification.internal;
 
+import com.up24.news.PublicationBrand;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.jobs.BackgroundJobs;
@@ -48,7 +49,7 @@ class ReviewReminderJob implements ReviewReminderDelivery, JobHandler {
         Notice notice = json.treeToValue(payload, Notice.class);
         if (notice.recipient() == null || notice.day() == null || notice.contributor() == null
                 || notice.pendingCount() < 1 || notice.reviewLink() == null) throw new PermanentJobFailure();
-        String subject = "UP24Network daily editorial review";
+        String subject = PublicationBrand.NAME + " daily editorial review";
         boolean single = notice.pendingCount() == 1;
         String body = notice.pendingCount() + (single ? " contribution from " : " contributions from ") + notice.contributor()
                 + (single ? " needs" : " need") + " editorial review as of " + DATE.format(notice.day()) + " (India time).\n\n"

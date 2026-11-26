@@ -1,5 +1,6 @@
 package com.up24.news.article.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.article.ArticleDesk;
 import com.up24.news.article.ArticleOperationException;
 import com.up24.news.identity.Accounts;
@@ -49,7 +50,7 @@ class ArticleContinuationService {
                 """, (row, index) -> new Edition(row.getString("root_slug"), row.getInt("last_edition")), rootId, source.slug()));
 
         UUID id = UUID.randomUUID();
-        String byline = actor.role() == Accounts.Role.ADMIN ? "UP24Network Editorial Team" : actor.displayName();
+        String byline = actor.role() == Accounts.Role.ADMIN ? PublicationBrand.EDITORIAL_TEAM : actor.displayName();
         try {
             jdbc.update("""
                     INSERT INTO article_record(id,slug,title,summary,category,city,author,author_id,image,image_alt,

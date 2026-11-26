@@ -24,7 +24,7 @@ export function NewsletterSection({ variant = 'compact', locale = 'hi' }: { vari
     );
   }
   return (
-    <section className={styles.footer} aria-label={copy(locale, 'UP24Network न्यूज़लेटर', 'UP24Network newsletter')} lang={locale}>
+    <section className={styles.footer} aria-label={copy(locale, 'TheMorningExpress न्यूज़लेटर', 'TheMorningExpress newsletter')} lang={locale}>
       <div>
         <h2>{copy(locale, 'न्यूज़लेटर', 'Newsletter')}</h2>
         <p>{copy(locale, 'उत्तर प्रदेश और देश की चुनिंदा खबरें अपने ईमेल पर पाएँ।', 'Get selected stories from Uttar Pradesh and across India in your inbox.')}</p>

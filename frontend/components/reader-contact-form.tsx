@@ -158,8 +158,8 @@ export function ReaderContactForm({
               <p>
                 {copy(
                   locale,
-                  'UP24Network को आपका संदेश मिला। फ़ॉलो-अप के लिए संदर्भ संख्या सहेज लें।',
-                  'UP24Network received your message. Keep this reference for any follow-up.',
+                  'TheMorningExpress को आपका संदेश मिला। फ़ॉलो-अप के लिए संदर्भ संख्या सहेज लें।',
+                  'TheMorningExpress received your message. Keep this reference for any follow-up.',
                 )}
               </p>
               <p>

@@ -46,7 +46,7 @@ export async function SiteHeader({
       </div>
       <header className={`compact-header ${compact ? 'compact-header-minimal' : ''}`}>
         <div className="compact-identity">
-          <Link className="brand-lockup" href="/" aria-label={copy(locale, 'UP24Network मुख्य पृष्ठ', 'UP24Network home')}>
+          <Link className="brand-lockup" href="/" aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}>
             <span className="compact-logo">
               <BrandLogo eager />
             </span>
@@ -57,7 +57,7 @@ export async function SiteHeader({
         </div>
         <form action="/search" role="search" className="header-search">
           <label className="sr-only" htmlFor="header-query">
-            {copy(locale, 'UP24Network पर खोजें', 'Search UP24Network')}
+            {copy(locale, 'TheMorningExpress पर खोजें', 'Search TheMorningExpress')}
           </label>
           <input
             id="header-query"

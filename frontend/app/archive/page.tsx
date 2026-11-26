@@ -14,8 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: copy(locale, 'खबरों का संग्रह', 'News archive'),
     description: copy(
       locale,
-      'महीने और वर्ष के अनुसार UP24Network की प्रकाशित रिपोर्ट।',
-      'Browse past UP24Network reports by month and year.',
+      'महीने और वर्ष के अनुसार TheMorningExpress की प्रकाशित रिपोर्ट।',
+      'Browse past TheMorningExpress reports by month and year.',
     ),
     alternates: { canonical: '/archive' },
   };

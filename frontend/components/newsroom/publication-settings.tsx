@@ -114,7 +114,7 @@ function SettingsForm({
               onChange={(event) => set('footerDescription', event.target.value)}
             />
           </label>
-          <p>The official UP24Network logo stays the masthead mark.</p>
+          <p>The official TheMorningExpress logo stays the masthead mark.</p>
         </fieldset>
         <fieldset className={styles.card} disabled={busy}>
           <h2>Public grievance contact</h2>

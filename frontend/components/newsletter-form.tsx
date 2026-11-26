@@ -51,7 +51,7 @@ export function NewsletterForm({ locale }: { locale: SiteLocale }) {
             </label>
             <label className={styles.consent}>
               <input name="consent" type="checkbox" required />
-              <span>{copy(locale, 'मैं UP24Network का न्यूज़लेटर ईमेल पर पाने के लिए सहमत हूँ।', 'I agree to receive UP24Network’s newsletter by email.')}</span>
+              <span>{copy(locale, 'मैं TheMorningExpress का न्यूज़लेटर ईमेल पर पाने के लिए सहमत हूँ।', 'I agree to receive TheMorningExpress’s newsletter by email.')}</span>
             </label>
             <p id={hintId} className={styles.hint}>
               {copy(locale, 'हम आपका ईमेल सदस्यता की पुष्टि और न्यूज़लेटर भेजने के लिए इस्तेमाल करते हैं।', 'We use your email to confirm your subscription and send the newsletter.')}{' '}

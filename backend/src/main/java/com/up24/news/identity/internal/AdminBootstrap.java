@@ -1,5 +1,6 @@
 package com.up24.news.identity.internal;
 
+import com.up24.news.PublicationBrand;
 import com.up24.news.identity.Accounts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -33,7 +34,7 @@ class AdminBootstrap implements ApplicationRunner {
         if (email.isBlank()) return;
         if (password.isBlank() || password.length()<12 || password.length()>64 || password.getBytes(StandardCharsets.UTF_8).length>72)
             throw new IllegalStateException("Set a valid ADMIN_PASSWORD in the backend environment (12-64 characters, at most 72 UTF-8 bytes).");
-        var owner=accounts.find(email).orElseGet(() -> accounts.create(email,"UP24Network Admin",password,Accounts.Role.ADMIN));
+        var owner=accounts.find(email).orElseGet(() -> accounts.create(email,PublicationBrand.NAME + " Admin",password,Accounts.Role.ADMIN));
         if (owner.role()!=Accounts.Role.ADMIN || !owner.enabled()) throw new IllegalStateException("The configured administrator account must be active and have the administrator role.");
         var stored=credentials.findCredential(owner.email()).orElseThrow();
         if (!passwords.matches(password,stored.encodedPassword())) {

@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: copy(locale, 'ताज़ा खबरें', 'Latest news'),
     description: copy(
       locale,
-      'UP24Network की सबसे हाल में प्रकाशित रिपोर्ट।',
-      'The latest reports from UP24Network.',
+      'TheMorningExpress की सबसे हाल में प्रकाशित रिपोर्ट।',
+      'The latest reports from TheMorningExpress.',
     ),
     alternates: { canonical: '/latest' },
   };
