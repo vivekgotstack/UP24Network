@@ -10,6 +10,7 @@
 
 # Java and Maven
 target/
+build/
 *.class
 
 # Next.js and Node
@@ -17,6 +18,8 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
+playwright-report/
+test-results/
 
 # Editor and operating system files
 .idea/
@@ -35,7 +38,6 @@ AGENTS.md
 
 # Android tooling state and generated distribution artifacts
 android/.gradle/
-android/**/build/
 android/local.properties
 *.apk
 *.aab

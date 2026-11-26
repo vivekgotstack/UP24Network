@@ -2,7 +2,7 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /build
 COPY backend/pom.xml ./pom.xml
-COPY backend/src ./src
+COPY backend/src/main ./src/main
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine AS runtime

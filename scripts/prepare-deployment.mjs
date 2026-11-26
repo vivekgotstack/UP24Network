@@ -91,11 +91,12 @@ for(const [variable,key] of Object.entries(mediaKeys)) {
 }
 const frontendCdn = frontendProduction.MEDIA_CDN_URL?.replace(/\/$/, '');
 const backendCdn = settings['up24.media.s3.cdn-url']?.replace(/\/$/, '');
-if (frontendCdn && backendCdn && frontendCdn !== backendCdn)
+const useS3 = settings['up24.media.storage'] === 's3';
+if (useS3 && frontendCdn && backendCdn && frontendCdn !== backendCdn)
   throw new Error('MEDIA_CDN_URL in frontend/.env.production must match UP24_MEDIA_CDN_URL in backend/.env.');
 if (frontendCdn) settings['up24.media.s3.cdn-url'] = frontendCdn;
 const mediaBucket=settings['up24.media.s3.bucket'], mediaRegion=settings['up24.media.s3.region'];
-const uploadOrigin=mediaBucket&&mediaRegion
+const uploadOrigin=useS3&&mediaBucket&&mediaRegion
   ? (mediaBucket.includes('.')?`https://s3.${mediaRegion}.amazonaws.com`:`https://${mediaBucket}.s3.${mediaRegion}.amazonaws.com`)
   : '';
 prepareRedisCache(settings, existing['spring.data.redis.password']);
@@ -108,10 +109,15 @@ writePrivate(join(directory,'rabbitmq.conf'),[
   'quorum_queue.initial_cluster_size = 1','log.console = true','log.file = false','log.console.level = warning',
 ].join('\n')+'\n');
 const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:process.env.SITE_INDEXABLE ?? frontendProduction.SITE_INDEXABLE ?? previousPublic.SITE_INDEXABLE ?? 'false',
-  MEDIA_CDN_URL:settings['up24.media.s3.cdn-url'] ?? '',
+  MEDIA_CDN_URL:useS3 ? settings['up24.media.s3.cdn-url'] ?? '' : '',
   MEDIA_UPLOAD_ORIGIN:uploadOrigin,
   UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
   ANDROID_SHA256_CERT_FINGERPRINTS:process.env.ANDROID_SHA256_CERT_FINGERPRINTS ?? frontendProduction.ANDROID_SHA256_CERT_FINGERPRINTS ?? previousPublic.ANDROID_SHA256_CERT_FINGERPRINTS ?? ''};
+for (const key of ['YOUTUBE_CHANNEL_URL', 'FACEBOOK_PAGE_URL', 'INSTAGRAM_PROFILE_URL', 'X_PROFILE_URL']) {
+  const value=process.env[key] ?? frontendProduction[key] ?? previousPublic[key] ?? '';
+  if (/[\r\n]/.test(value)) throw new Error(`Use a single URL for ${key}.`);
+  publicConfig[key]=value;
+}
 if(!['true','false'].includes(publicConfig.SITE_INDEXABLE)) throw new Error('Set SITE_INDEXABLE to true or false in frontend/.env.production.');
 if(!/^[1-9][0-9]{0,14}$/.test(publicConfig.UP24_MEDIA_QUOTA_BYTES)) throw new Error('Set a positive media allowance in UP24_MEDIA_QUOTA_BYTES.');
 writePrivate(join(directory,'deployment.env'),Object.entries(publicConfig).map(([key,value])=>`${key}=${value}`).join('\n')+'\n');

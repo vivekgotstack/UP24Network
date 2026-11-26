@@ -39,12 +39,17 @@ export async function checkDeployment({providers=true,engine=true}={}) {
     if(password.length<16||password.length>64||Buffer.byteLength(password,'utf8')>72)errors.push('Set a production ADMIN_PASSWORD of 16–64 characters and at most 72 UTF-8 bytes.');
     if(!settings['up24.providers.brevo.api-key']||settings['up24.providers.brevo.api-key'].length<20)errors.push('Supply your BREVO_API_KEY so newsroom OTP and account recovery can be delivered.');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings['up24.providers.brevo.sender-email']??''))errors.push('Supply BREVO_SENDER_EMAIL verified in your Brevo account.');
-    if(settings['up24.media.storage']!=='s3')errors.push('Set UP24_MEDIA_STORAGE=s3 for the planned production S3 delivery setup.');
-    if(!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(settings['up24.media.s3.bucket']??''))errors.push('Supply your UP24_S3_BUCKET.');
-    if(!/^[a-z]{2}(-[a-z]+)+-[0-9]$/.test(settings['up24.media.s3.region']??''))errors.push('Supply AWS_REGION for your S3 bucket.');
-    if(!settings['up24.media.s3.access-key-id']||!settings['up24.media.s3.secret-access-key'])errors.push('Supply both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for the Contabo runtime.');
-    try {const media=new URL(settings['up24.media.s3.cdn-url']);if(media.protocol!=='https:'||media.username||media.password||media.search||media.hash||media.pathname!=='/'||media.port)throw Error();if(media.origin!==publicConfig.MEDIA_CDN_URL.replace(/\/$/,''))throw Error();}
-    catch {errors.push('Set UP24_MEDIA_CDN_URL to the HTTPS CloudFront/custom media origin. If MEDIA_CDN_URL is set, it must match.');}
+    const storage=settings['up24.media.storage'] ?? 'local';
+    if(storage==='s3') {
+      if(!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(settings['up24.media.s3.bucket']??''))errors.push('Supply your UP24_S3_BUCKET.');
+      if(!/^[a-z]{2}(-[a-z]+)+-[0-9]$/.test(settings['up24.media.s3.region']??''))errors.push('Supply AWS_REGION for your S3 bucket.');
+      if(!settings['up24.media.s3.access-key-id']||!settings['up24.media.s3.secret-access-key'])errors.push('Supply both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for the Contabo runtime.');
+      try {const media=new URL(settings['up24.media.s3.cdn-url']);if(media.protocol!=='https:'||media.username||media.password||media.search||media.hash||media.pathname!=='/'||media.port)throw Error();if(media.origin!==publicConfig.MEDIA_CDN_URL.replace(/\/$/,''))throw Error();}
+      catch {errors.push('Set UP24_MEDIA_CDN_URL to the HTTPS CloudFront/custom media origin. If MEDIA_CDN_URL is set, it must match.');}
+    } else if(storage==='local') {
+      if(publicConfig.MEDIA_CDN_URL || publicConfig.MEDIA_UPLOAD_ORIGIN) errors.push('Local media is selected. Rerun prepare-deployment.mjs to clear the previous public media origins.');
+      notes.push('Local media uses the persistent uploads volume. Include it in your VPS backups.');
+    } else errors.push('Set UP24_MEDIA_STORAGE to local or s3.');
     if(!settings['up24.providers.astrologics.api-key'])notes.push('Rashifal requires your provider key before its automation can be enabled.');
     if(!settings['up24.providers.youtube.api-key'])notes.push('YouTube Data API is not configured; the supported feed fallback remains available.');
     notes.push('Provider account permissions, DNS and external delivery are verified after you configure the real services; this check does not send email or publish media.');

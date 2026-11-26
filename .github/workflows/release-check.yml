@@ -54,19 +54,21 @@ jobs:
           docker compose --env-file "$COMPOSE_ENV_FILE" exec -T frontend node --input-type=module - <<'NODE'
           import assert from 'node:assert/strict';
           const request = (url) => fetch(url, { signal: AbortSignal.timeout(15000) });
-          const [home, manifest, articles, newsroom] = await Promise.all([
+          const [home, manifest, articles, newsroom, sampleVideo] = await Promise.all([
             request('http://127.0.0.1:3000/'),
             request('http://127.0.0.1:3000/manifest.webmanifest'),
             request('http://backend:8080/api/articles'),
             request('http://backend:8080/api/admin/articles/browse'),
+            request('http://127.0.0.1:3000/videos/nature-sample.mp4'),
           ]);
           assert.equal(home.status, 200);
-          assert.match(await home.text(), /UP24Network/);
+          assert.match(await home.text(), /TheMorningExpress/);
           assert.equal(manifest.status, 200);
-          assert.match((await manifest.json()).name, /UP24Network/);
+          assert.equal((await manifest.json()).name, 'TheMorningExpress');
           assert.equal(articles.status, 200);
-          assert.ok(Array.isArray(await articles.json()));
+          assert.deepEqual(await articles.json(), []);
           assert.ok([401, 403].includes(newsroom.status));
+          assert.equal(sampleVideo.status, 404);
           NODE
 
       - name: Print container logs on failure

@@ -21,7 +21,8 @@ Put production secrets in **`backend/.env`** using unquoted `KEY=value` lines. O
 | --- | --- |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Owner sign-in email and a unique production password of 16–64 characters and at most 72 UTF-8 bytes |
 | `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` | Brevo key and verified sender for sign-in codes and recovery |
-| `UP24_MEDIA_STORAGE`, `UP24_S3_BUCKET`, `AWS_REGION` | Set storage to `s3` and use the private bucket name and its region |
+| `UP24_MEDIA_STORAGE` | `local` stores uploads on the VPS. `s3` uses the configured object storage |
+| `UP24_S3_BUCKET`, `AWS_REGION` | Private bucket and Region when using `s3` |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Scoped IAM credentials for the VPS. Add `AWS_SESSION_TOKEN` only for temporary credentials |
 | `UP24_MEDIA_CDN_URL` | CloudFront HTTPS origin with no path |
 | `ASTROLOGICS_API_KEY`, `WEATHERBIT_API_KEY` | Optional keys for Rashifal and air quality |
@@ -36,24 +37,17 @@ The homepage uses SportScore's free editorial cricket widget. It updates automat
 
 ## Deploy to the VPS
 
-1. Point the public DNS at the VPS, open ports 80 and 443, and install Docker Engine with Compose 2.24+ and Node.js 24. Allow at least 8 GB RAM for builds, video encoding, and the running services.
-2. Set up the private S3 bucket in your AWS project's selected Region and configure CloudFront Origin Access Control to always sign origin requests. Use `./scripts/Configure-MediaStorage.ps1` with `-Bucket`, `-CdnUrl`, `-SiteUrl`, and `-Region` to generate the scoped IAM and CORS policies under `.local/media-storage`. Supply the AWS account and CloudFront distribution IDs to also generate the bucket policy. Merge the generated statements into any existing bucket policy and keep S3 Block Public Access enabled.
-3. From the repository root, prepare the private deployment files and check the values.
+1. Point `themorningexpres.com` at the VPS, open ports 80 and 443, and install Docker Engine with Compose 2.24+ and Node.js 24. Allow at least 8 GB RAM for builds, video encoding, and the running services.
+2. Fill `backend/.env` with the production admin credentials and verified Brevo sender details. If starting with VPS storage, use `UP24_MEDIA_STORAGE=local`. For your configured S3 setup, supply the keys above and use `https://themorningexpres.com` as the upload origin.
+3. Run from the VPS repository root.
 
    ```sh
    node scripts/prepare-deployment.mjs
-   node scripts/deployment-doctor.mjs --config-only
-   ```
-
-   Preparation generates and preserves the database, broker, cache, OTP, and signing secrets. Initial signing-key generation uses the JDK's `keytool`. Transfer `.local/deployment` privately to the VPS repository and set its directory permissions to `700`.
-4. From the VPS repository root, run the full preflight and deploy.
-
-   ```sh
-   node scripts/deployment-doctor.mjs
    node scripts/deploy.mjs
    ```
 
-5. Verify a real sign-in email, publish a report, and confirm one upload and video playback. Submit `/sitemap-index.xml` in Google Search Console once the public site is live. Enable provider-backed jobs under **Admin → Automations** as needed.
+   Prepare generates and preserves the private deployment files and uses `keytool` on first setup. If you already prepared the files on your computer, copy `.local/deployment` privately into the VPS checkout, run `chmod 700 .local/deployment`, and run only `node scripts/deploy.mjs`. Deploy runs the preflight, builds the images, and verifies the HTTPS site after startup.
+4. Verify one administrator OTP and publish a report. Test one upload and playback with your chosen storage. Enable indexing and submit `/sitemap-index.xml` once the site is live.
 
 Caddy is the public entry point. Application, database, cache, and broker ports use the private Compose networks. To apply credential or environment changes, rerun preparation and deploy so the updated configuration is remounted.
 

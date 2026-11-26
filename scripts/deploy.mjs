@@ -24,10 +24,10 @@ try {
       const hasReaderSecurityPolicy=home.headers.get('content-security-policy')?.includes("'nonce-");
       await home.body?.cancel();
       const app=manifest.ok ? await manifest.json() : null;
-      if(home.ok&&hasReaderSecurityPolicy&&app?.name==='UP24Network'&&app.id==='/') {available=true;break;}
+      if(home.ok&&hasReaderSecurityPolicy&&app?.name==='TheMorningExpress'&&app.id==='/') {available=true;break;}
     } catch { }
     await new Promise(resolve=>setTimeout(resolve,5000));
   }
   if(!available)throw new Error('Containers started, but the HTTPS reader or app manifest did not verify. Check DNS, ports 80/443 and Caddy logs; persistent volumes were retained.');
-  console.log('UP24Network is healthy at '+site+'. Verify one administrator OTP and published report with your configured services.');
+  console.log('TheMorningExpress is healthy at '+site+'. Verify one administrator OTP and published report with your configured services.');
 } finally {release();}
