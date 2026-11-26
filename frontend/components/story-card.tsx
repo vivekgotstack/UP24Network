@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Instagram } from 'lucide-react';
+import { Clapperboard } from 'lucide-react';
 import type { Article } from '@/lib/articles';
 import { VideoPoster } from '@/components/video-poster';
 import { NewsImage } from '@/components/news-image';
@@ -41,7 +41,7 @@ export async function StoryCard({
           ) : (
             <Link href={href} tabIndex={-1} aria-hidden="true" className="image-link">
               {reel && !photo ? (
-                <span className="reel-poster"><Instagram size={32} /></span>
+                <span className="reel-poster"><Clapperboard size={32} /></span>
               ) : (
                 <NewsImage
                   src={article.image}

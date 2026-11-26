@@ -23,6 +23,13 @@ export async function placeMetadata(kind: Kind, slug: string): Promise<Metadata>
   const locale = await getReaderLocale();
   const place = placeFor(kind, slug);
   const label = place ? placeLabel(place, locale) : '';
+  if (kind === 'region' && slug === 'uttar-pradesh') {
+    return {
+      title: copy(locale, 'उत्तर प्रदेश समाचार · ताज़ा यूपी न्यूज़', 'Uttar Pradesh News · Local UP News'),
+      description: copy(locale, 'लखनऊ, कानपुर, वाराणसी, प्रयागराज, आगरा और उत्तर प्रदेश के अन्य शहरों की स्थानीय खबरें और ज़मीनी रिपोर्ट।', 'Local news and field reporting from Lucknow, Kanpur, Varanasi, Prayagraj, Agra, and across Uttar Pradesh.'),
+      alternates: { canonical: '/region/uttar-pradesh' },
+    };
+  }
   return place
     ? {
         title: copy(locale, `${label} की खबरें`, `${label} news`),

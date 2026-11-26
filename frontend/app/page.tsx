@@ -48,14 +48,15 @@ export default async function Home({
   if (typeof filters.category === 'string' && newsSections.some((s) => s.name === filters.category))
     redirect(sectionHref(filters.category));
   if (filters.view === 'latest') redirect('/latest');
-  const [written, settings, locale, requestHeaders] = await Promise.all([
+  const publicationSettings = getPublicationSettings();
+  const [written, settings, locale, requestHeaders, videos] = await Promise.all([
     getArticlePage({ writtenOnly: true, size: 48 }),
-    getPublicationSettings(),
+    publicationSettings,
     getReaderLocale(),
     headers(),
+    publicationSettings.then(async ({ showVideo }) => showVideo ? (await getArticlePage({ categories: ['Videos'], videoOnly: true, size: 3 })).items : []),
   ]);
   const [lead, ...remaining] = written.items;
-  const videos = settings.showVideo ? (await getArticlePage({ videoOnly: true, size: 3 })).items : [];
   const deskReports = remaining.slice(5);
   const now = new Date();
   const date = new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {

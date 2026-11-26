@@ -115,7 +115,7 @@
     min-width: 0;
     padding: 0;
   }
-  .story-card-compact .story-headline {
+  .story-card.story-card-compact .story-headline {
     margin-top: 4px;
     font-size: clamp(17px, 1.65vw, 22px);
   }

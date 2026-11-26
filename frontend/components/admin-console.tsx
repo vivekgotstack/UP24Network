@@ -149,10 +149,7 @@ export function AdminConsole({
   const youtubeJob = jobs.find((job) => job.key === 'youtube');
   async function saveAutomation(job: AutomationJob, enabled: boolean, intervalMinutes: number) {
     await act(async () => {
-      const saved = await cms<AutomationJob>(`admin/automations/${job.key}`, 'PATCH', { enabled, intervalMinutes });
-      client.setQueryData<AutomationJob[]>(['newsroom', user!.id, 'admin/automations'], (previous) =>
-        previous?.map((item) => item.key === saved.key ? saved : item),
-      );
+      await cms(`admin/automations/${job.key}`, 'PATCH', { enabled, intervalMinutes });
       await jobData.refetch();
     }, 'Automation settings saved.');
   }

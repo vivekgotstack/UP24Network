@@ -430,26 +430,26 @@
     color: var(--brand-navy);
     font-size: 10px;
   }
-  .story-card h2 {
+  .story-card .story-headline {
     font: 700 24px/1.35 var(--serif);
     margin-top: 9px;
     overflow-wrap: anywhere;
   }
-  .story-card h2:lang(hi) {
+  .story-card .story-headline:lang(hi) {
     line-height: 1.65;
   }
-  .story-card h2 a:hover,
+  .story-card .story-headline a:hover,
   .news-list h3 a:hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 6px;
   }
-  .lead-story h2 {
+  .lead-story .story-headline {
     font-size: clamp(30px, 3.1vw, 43px);
     line-height: 1.25;
     letter-spacing: -0.8px;
   }
-  .lead-story h2:lang(hi) {
+  .lead-story .story-headline:lang(hi) {
     line-height: 1.55;
     letter-spacing: normal;
   }
@@ -1242,7 +1242,7 @@
     .story-grid {
       gap: 30px 23px;
     }
-    .story-card h2 {
+    .story-card .story-headline {
       font-size: 22px;
     }
     .lead-story h2 {
@@ -1487,10 +1487,10 @@
       grid-template-columns: 1fr;
       gap: 30px;
     }
-    .story-card h2 {
+    .story-card .story-headline {
       font-size: 25px;
     }
-    .lead-story h2 {
+    .lead-story .story-headline {
       font-size: 31px;
     }
     .story-copy {

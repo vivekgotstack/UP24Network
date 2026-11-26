@@ -63,4 +63,26 @@ class ArticleDiscoveryTest {
         mvc.perform(get("/api/articles/browse").param("page", "0")).andExpect(status().isBadRequest());
         mvc.perform(get("/api/articles/browse").param("q", "x".repeat(201))).andExpect(status().isBadRequest());
     }
+
+    @Test void writtenFeedFindsArticlesBehindVideoImportsWhileLatestKeepsEveryFormat() throws Exception {
+        String slug = "mixed-feed-" + UUID.randomUUID();
+        Instant now = Instant.now();
+        jdbc.batchUpdate("""
+                INSERT INTO article_record(id,slug,title,summary,category,author,status,published_at,youtube_id,reel_url)
+                VALUES (?,?,?,'Summary',?,'Test desk','PUBLISHED',?,?,?)
+                """, java.util.List.of(
+                new Object[]{UUID.randomUUID(), slug + "-video", slug, "Videos", Timestamp.from(now.minusSeconds(60)), "abcdefghijk", null},
+                new Object[]{UUID.randomUUID(), slug + "-reel", slug, "Trending Reels", Timestamp.from(now.minusSeconds(120)), null, "https://www.instagram.com/reel/test123/"},
+                new Object[]{UUID.randomUUID(), slug + "-article", slug, "Uttar Pradesh", Timestamp.from(now.minusSeconds(180)), null, null}
+        ));
+
+        mvc.perform(get("/api/articles/browse").param("q", slug))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(3))
+                .andExpect(jsonPath("$.items[0].slug").value(slug + "-video"))
+                .andExpect(jsonPath("$.items[1].slug").value(slug + "-reel"))
+                .andExpect(jsonPath("$.items[2].slug").value(slug + "-article"));
+        mvc.perform(get("/api/articles/browse").param("q", slug).param("writtenOnly", "true").param("size", "1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value(slug + "-article"));
+    }
 }

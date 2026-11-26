@@ -125,6 +125,34 @@ class AutomationIntegrationTest {
         assertThatThrownBy(() -> horoscopes.save(edition(DAY.minusDays(1)), "test", "test", "test")).isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test void adminCanTurnAutomaticYoutubeImportsOnAndOff() throws Exception {
+        for (boolean enabled : new boolean[]{true, false}) {
+            mvc.perform(patch("/api/admin/automations/youtube").with(user(admin)).with(verified()).with(csrf())
+                            .contentType("application/json")
+                            .content("{\"enabled\":%s,\"intervalMinutes\":15}".formatted(enabled)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(enabled));
+        }
+    }
+
+    @Test void pausingAScheduledSourcePreventsPublicationButAllowsAnExplicitRun() {
+        jdbc.update("UPDATE automation_job SET enabled=FALSE");
+        service.update("test-source", true, 15);
+        source.fetch = () -> {
+            service.update("test-source", false, 15);
+            return () -> { throw new AssertionError("Paused scheduled jobs must not publish"); };
+        };
+
+        service.runDue();
+
+        var paused = service.list().stream().filter(job -> job.key().equals("test-source")).findFirst().orElseThrow();
+        assertThat(paused.enabled()).isFalse();
+        assertThat(paused.running()).isFalse();
+        assertThat(paused.lastResult()).contains("paused before publication");
+
+        source.fetch = () -> () -> 1;
+        assertThat(service.run("test-source").failureCount()).isZero();
+    }
+
     @Test void aCachedEditionAvoidsAnotherProviderCallAndSchedulesAtMidnightIst() {
         horoscopes.save(edition(DAY), "test", "test", "test");
         var job = service.run("rashifal"); // No network request: the day is already stored.

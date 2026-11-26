@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!original) return { title: copy(locale, 'खबर नहीं मिली', 'Report not found') };
   const article = localizeArticle(original, locale);
   const indexable = process.env.SITE_INDEXABLE === 'true' && !article.demo;
+  const hasImage = Boolean(article.image && !isBrandPlaceholder(article.image));
   return {
     title: article.title,
     description: article.summary,
@@ -50,14 +51,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/news/${article.slug}`,
       siteName: brand.name,
       locale: textLanguage(article.title) === 'hi' ? 'hi_IN' : 'en_IN',
-      images: [{
-        url: isBrandPlaceholder(article.image) || !article.image ? brand.logoPath : article.image,
-        alt: article.imageAlt,
-      }],
+      images: hasImage ? [{ url: article.image, alt: article.imageAlt }] : undefined,
       publishedTime: article.publishedAt,
       authors: [article.author],
       section: article.category,
       tags: article.tags,
+    },
+    twitter: {
+      card: hasImage ? 'summary_large_image' : 'summary',
+      title: article.title,
+      description: article.summary,
+      images: hasImage ? [article.image] : undefined,
     },
   };
 }
@@ -94,13 +98,12 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     .slice(0, 3);
   const origin = process.env.SITE_URL ?? 'http://127.0.0.1:3000';
   const mediaCredit = article.mediaCredit?.trim();
-  const imageUrl = article.image.startsWith('/brand/')
-    ? undefined
-    : new URL(article.image, origin).href;
+  const imageUrl = article.image && !isBrandPlaceholder(article.image) ? new URL(article.image, origin).href : undefined;
+  const hasMedia = Boolean(imageUrl || reelUrl || article.videoUrl || article.youtubeId);
   const tags = article.tags ?? [];
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
+    '@type': article.category === 'Videos' || reelUrl ? 'Article' : 'NewsArticle',
     headline: article.title,
     inLanguage: textLanguage(article.title),
     description: article.summary,
@@ -114,8 +117,9 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     mainEntityOfPage: new URL(`/news/${article.slug}`, origin).href,
     author: { '@type': isDeskByline ? 'Organization' : 'Person', name: article.author },
     publisher: {
-      '@type': 'Organization',
-      name: brand.name,
+      '@id': new URL('/#publisher', origin).href,
+      '@type': 'NewsMediaOrganization',
+      name: brand.displayName,
       logo: { '@type': 'ImageObject', url: new URL(brand.logoPath, origin).href },
     },
   };
@@ -188,7 +192,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
               </div>
             </div>
           </header>
-          <figure className="article-figure">
+          {hasMedia && <figure className="article-figure">
             {reelUrl ? (
               <InstagramReel url={reelUrl} title={article.title} locale={locale} />
             ) : (
@@ -222,7 +226,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                 <span lang={textLanguage(mediaCredit)}>{mediaCredit}</span>
               </figcaption>
             )}
-          </figure>
+          </figure>}
           <ReadingExperience
             locale={locale}
             story={{

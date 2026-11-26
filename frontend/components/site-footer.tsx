@@ -25,6 +25,7 @@ export async function SiteFooter() {
   ]);
   const officialChannelsLabel = copy(locale, 'आधिकारिक चैनल', 'Official channels');
   const channels = getPublicationChannels();
+  const tagline = publicationTagline(locale, settings.tagline);
   const footerDescription =
     settings.footerDescription === defaultFooterDescription
       ? copy(
@@ -38,7 +39,7 @@ export async function SiteFooter() {
       <div className="footer-main">
         <div className="footer-masthead">
           <Link href="/" aria-label={brand.displayName}><BrandLogo /></Link>
-          <p lang={textLanguage(publicationTagline(locale, settings.tagline))}>{publicationTagline(locale, settings.tagline)}</p>
+          <p lang={textLanguage(tagline)}>{tagline}</p>
         </div>
         {channels.length > 0 && (
           <nav className="social-links" aria-label={officialChannelsLabel}>

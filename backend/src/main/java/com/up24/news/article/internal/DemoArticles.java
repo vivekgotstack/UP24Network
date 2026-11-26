@@ -49,7 +49,7 @@ class DemoArticles implements Articles {
                     "We plan to explore these connections through original photography, conversations and careful historical sourcing. A beautiful image should invite a reader into a well-reported story.",
                     "This is an illustrative article for our development preview. It does not describe a reported visit or interview."),
             new ArticleView("a-moment-in-nature", "A moment in nature", "A close-up view of the world in bloom.",
-                    "Environment", "Visual desk", PublicationBrand.NAME + " Visual Desk", SAMPLE_TIME, 1,
+                    "Videos", "Visual desk", PublicationBrand.NAME + " Visual Desk", SAMPLE_TIME, 1,
                     "/images/nature.jpg", "Flowers in soft natural light", "/videos/nature-sample.mp4",
                     List.of("This short sample film demonstrates how a video story appears on " + PublicationBrand.NAME + ". The footage is openly licensed and used for this example.",
                             "Video is available in this story. Other articles use photographs. The image remains available if a video cannot play."), true, null, false, null)
