@@ -28,7 +28,7 @@ Put production secrets in **`backend/.env`** using unquoted `KEY=value` lines. O
 | `NEWSLETTER_LIST_ID`, `NEWSLETTER_DOI_TEMPLATE_ID` | Optional Brevo double opt-in list and template IDs |
 | `YOUTUBE_API_KEY` | Optional YouTube Data API key. The feed also supports RSS |
 
-**`frontend/.env.production`** holds public configuration. Set `SITE_URL` to your public HTTPS origin and `SITE_INDEXABLE=true` for launch. Compose sets `NEWS_API_URL`, and deployment uses the backend CloudFront origin when `MEDIA_CDN_URL` is empty. Set `ANDROID_SHA256_CERT_FINGERPRINTS` when configuring Android App Links. To show official social links, set the relevant `YOUTUBE_CHANNEL_URL`, `FACEBOOK_PAGE_URL`, `INSTAGRAM_PROFILE_URL`, or `X_PROFILE_URL`. For local overrides use `frontend/.env.local`.
+**`frontend/.env.production`** holds public configuration. Use `SITE_URL=https://themorningexpres.com` and enable `SITE_INDEXABLE=true` for launch. Compose sets `NEWS_API_URL`, and deployment uses the backend CloudFront origin when `MEDIA_CDN_URL` is empty. Set `ANDROID_SHA256_CERT_FINGERPRINTS` when configuring Android App Links. To show official social links, set the relevant `YOUTUBE_CHANNEL_URL`, `FACEBOOK_PAGE_URL`, `INSTAGRAM_PROFILE_URL`, or `X_PROFILE_URL`. For local overrides use `frontend/.env.local`.
 
 The env files, credentials, signing keys, and generated `.local` files are ignored by Git. Spring's `application.properties` contains shared defaults.
 

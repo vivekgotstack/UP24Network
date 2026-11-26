@@ -21,10 +21,10 @@ const secret = (name, bytes=24) => {
 };
 const previousPublic=properties(join(directory,'deployment.env'));
 const frontendProduction=properties(join(root,'frontend/.env.production'));
-const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? 'https://www.up24network.com';
+const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? 'https://themorningexpres.com';
 const site=new URL(requestedSite);
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port)
-  throw new Error('Use a public HTTPS origin without a path or custom port, e.g. --site=https://www.up24network.com');
+  throw new Error('Use a public HTTPS origin without a path or custom port, e.g. --site=https://themorningexpres.com');
 const adminEmail=process.env.ADMIN_EMAIL ?? environment.ADMIN_EMAIL;
 const adminPassword=process.env.ADMIN_PASSWORD ?? environment.ADMIN_PASSWORD;
 if (!adminEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail) || /\.invalid$/i.test(adminEmail))

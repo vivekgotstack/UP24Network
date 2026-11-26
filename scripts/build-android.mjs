@@ -13,7 +13,7 @@ mkdirSync(tools,{recursive:true,mode:0o700}); mkdirSync(upload,{recursive:true,m
 const windows=process.platform==='win32';
 const preparedDeployment=join(root,'.local/deployment/deployment.env');
 const preparedSite=existsSync(preparedDeployment)?readFileSync(preparedDeployment,'utf8').match(/^SITE_URL=(.+)$/m)?.[1].trim():undefined;
-const site=new URL(process.argv.find(arg=>arg.startsWith('--site='))?.slice(7) ?? preparedSite ?? 'https://www.up24network.com');
+const site=new URL(process.argv.find(arg=>arg.startsWith('--site='))?.slice(7) ?? preparedSite ?? 'https://themorningexpres.com');
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port) throw new Error('Use a public HTTPS origin without a path.');
 const versionCode=process.argv.find(arg=>arg.startsWith('--version-code='))?.slice(15) ?? '1';
 const versionName=process.argv.find(arg=>arg.startsWith('--version-name='))?.slice(15) ?? '1.0.0';

@@ -4,7 +4,7 @@ def rootDirectory = rootProject.projectDir.parentFile
 def signingFile = new File(rootDirectory, '.local/android-upload/signing.properties')
 def signing = new Properties()
 if (signingFile.exists()) signingFile.withInputStream { signing.load(it) }
-def origin = providers.gradleProperty('up24SiteOrigin').getOrElse('https://www.up24network.com')
+def origin = providers.gradleProperty('up24SiteOrigin').getOrElse('https://themorningexpres.com')
 def website = new URI(origin)
 if (website.scheme != 'https' || !website.host || website.userInfo || (website.path && website.path != '/')) {
     throw new GradleException('up24SiteOrigin must be a public HTTPS origin.')
