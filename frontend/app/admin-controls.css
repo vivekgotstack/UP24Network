@@ -24,8 +24,8 @@
     gap: 12px;
   }
   .cms-brand-link img {
-    width: 40px;
-    height: 40px;
+    width: clamp(85px, 13vw, 115px);
+    height: auto;
     object-fit: contain;
   }
   .admin-tools-grid {

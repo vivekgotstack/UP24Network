@@ -44,14 +44,11 @@ export default async function Watch({
               )}
             </p>
           </div>
-          {channel && <a
-            className="text-link"
-            href={channel.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {copy(locale, 'YouTube चैनल', 'YouTube channel')}
-          </a>}
+          {channel && (
+            <a className="text-link" href={channel.url} target="_blank" rel="noopener noreferrer">
+              {copy(locale, 'YouTube चैनल', 'YouTube channel')}
+            </a>
+          )}
         </header>
         {result.total ? (
           <div className="story-grid video-grid">

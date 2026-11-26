@@ -42,28 +42,30 @@ export async function HeadlineTicker({ articles }: { articles: Article[] }) {
           ))}
         </div>
       </div>
-      {channels.length > 0 && <nav
-        className="ticker-follow"
-        aria-label={copy(locale, `${brand.name} को फ़ॉलो करें`, `Follow ${brand.name}`)}
-      >
-        <span>{copy(locale, 'फ़ॉलो करें', 'Follow us')}</span>
-        {channels.map((social) => (
-          <a
-            key={social.name}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={copy(
-              locale,
-              `${social.name} पर ${brand.name} को फ़ॉलो करें`,
-              `Follow ${brand.name} on ${social.name}`,
-            )}
-            title={social.name}
-          >
-            <SocialIcon name={social.name} />
-          </a>
-        ))}
-      </nav>}
+      {channels.length > 0 && (
+        <nav
+          className="ticker-follow"
+          aria-label={copy(locale, `${brand.name} को फ़ॉलो करें`, `Follow ${brand.name}`)}
+        >
+          <span>{copy(locale, 'फ़ॉलो करें', 'Follow us')}</span>
+          {channels.map((social) => (
+            <a
+              key={social.name}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={copy(
+                locale,
+                `${social.name} पर ${brand.name} को फ़ॉलो करें`,
+                `Follow ${brand.name} on ${social.name}`,
+              )}
+              title={social.name}
+            >
+              <SocialIcon name={social.name} />
+            </a>
+          ))}
+        </nav>
+      )}
     </section>
   );
 }

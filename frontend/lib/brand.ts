@@ -13,5 +13,7 @@ export const appIcons = {
 } as const;
 
 export function isBrandPlaceholder(src: string) {
-  return src === brand.logoPath || src === '/brand/up24-logo.png' || src === '/brand/newsroom-banner.png';
+  return (
+    src === brand.logoPath || src === '/brand/up24-logo.png' || src === '/brand/newsroom-banner.png'
+  );
 }

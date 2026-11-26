@@ -17,8 +17,11 @@ export function getPublicationChannels() {
       const url = new URL(value);
       if (
         url.protocol === 'https:' &&
-        !url.username && !url.password && !url.port &&
-        url.pathname !== '/' && hosts.some((host) => host === url.hostname)
+        !url.username &&
+        !url.password &&
+        !url.port &&
+        url.pathname !== '/' &&
+        hosts.some((host) => host === url.hostname)
       ) {
         return [{ name, url: url.href }];
       }

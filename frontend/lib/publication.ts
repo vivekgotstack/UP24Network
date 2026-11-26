@@ -56,7 +56,7 @@ export const publicationDocuments = {
         title: 'Read and stay connected',
         paragraphs: [
           'The latest news page lists recent reports, while topic sections provide a more focused way to follow coverage. Saved stories remain in the browser where they were saved, allowing readers to return to an article without creating a public profile.',
-          'TheMorningExpress’s official social channels are listed on the contact page. For a news tip, correction, interview request or commercial enquiry, use the relevant guidance there so that your message reaches the appropriate person.',
+          'Use our contact page for a news tip, correction, interview request or commercial enquiry. It also lists official social profiles when available.',
         ],
         links: [
           { href: '/contact', label: 'Contact TheMorningExpress' },
@@ -114,7 +114,7 @@ export const publicationDocuments = {
         id: 'channels',
         title: 'Official contact channels',
         paragraphs: [
-          'Use the official TheMorningExpress profiles listed below to reach the publication through their available contact or private messaging options. Include the subject of your enquiry at the start of your message.',
+          'Use the contact form for newsroom enquiries. You can also reach us through any official profiles listed here. Include the subject of your enquiry at the start of your message.',
           'Keep sensitive personal information out of public comments. Do not send passwords, sign-in codes, financial credentials or identity documents as part of a routine news tip. If your enquiry involves sensitive evidence, begin with a short description and discuss an appropriate way to share it.',
         ],
       },
@@ -386,7 +386,7 @@ export const publicationDocuments = {
         paragraphs: [
           'TheMorningExpress is owned by Abhishek Srivastav. He is responsible for the ownership and operation of the publication. Publishing responsibilities are shared by the editorial team, with editors accountable for the reports they review and publish.',
           'Publication enquiries, correction requests and formal editorial correspondence can be directed to TheMorningExpress through its official contact channels. The contact page brings those channels together for readers and people affected by our reporting.',
-          'Official channels are listed together so that readers can identify the TheMorningExpress publication across the website and social platforms. An account or page using a similar name should not be assumed to represent the publication.',
+          'Check the Contact page for official channels. An account or page using a similar name should not be assumed to represent the publication.',
         ],
         links: [{ href: '/contact', label: 'Official publication contacts' }],
       },

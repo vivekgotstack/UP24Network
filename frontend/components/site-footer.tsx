@@ -13,7 +13,8 @@ import { getReaderLocale } from '@/lib/reader-locale';
 import { textLanguage } from '@/lib/language';
 import { readerFeeds } from '@/lib/reader-feeds';
 
-const defaultFooterDescription = 'उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।';
+const defaultFooterDescription =
+  'उत्तर प्रदेश, भारत और दुनिया की खबरें। स्थानीय सरोकार, स्पष्ट संदर्भ और जिम्मेदार पत्रकारिता।';
 const yearInIndia = new Intl.DateTimeFormat('en-IN', { year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 export async function SiteFooter() {
@@ -24,29 +25,41 @@ export async function SiteFooter() {
   ]);
   const officialChannelsLabel = copy(locale, 'आधिकारिक चैनल', 'Official channels');
   const channels = getPublicationChannels();
-  const footerDescription = settings.footerDescription === defaultFooterDescription
-    ? copy(locale, defaultFooterDescription, 'News from Uttar Pradesh, India, and the world. Local stories, clear context, and responsible journalism.')
-    : settings.footerDescription;
+  const footerDescription =
+    settings.footerDescription === defaultFooterDescription
+      ? copy(
+          locale,
+          defaultFooterDescription,
+          'News from Uttar Pradesh, India, and the world. Local stories, clear context, and responsible journalism.',
+        )
+      : settings.footerDescription;
   return (
     <footer className="site-footer" id="site-footer">
       <div className="footer-main">
         <EditionArt
-          sizes={channels.length ? '(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px' : '(max-width: 1152px) 100vw, 1152px'}
+          sizes={
+            channels.length
+              ? '(max-width: 800px) 100vw, (max-width: 1100px) 65vw, 900px'
+              : '(max-width: 1152px) 100vw, 1152px'
+          }
           tagline={publicationTagline(locale, settings.tagline)}
           locale={locale}
         />
-        {channels.length > 0 && <nav className="social-links" aria-label={officialChannelsLabel}>
-          <h2 className="footer-social-heading">
-            {officialChannelsLabel}
-          </h2>
-          {channels.map((social) => (
-            <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
-              <SocialIcon name={social.name} />
-              {social.name}
-              <span className="sr-only"> {copy(locale, '(नए टैब में खुलेगा)', '(opens in a new tab)')}</span>
-            </a>
-          ))}
-        </nav>}
+        {channels.length > 0 && (
+          <nav className="social-links" aria-label={officialChannelsLabel}>
+            <h2 className="footer-social-heading">{officialChannelsLabel}</h2>
+            {channels.map((social) => (
+              <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">
+                <SocialIcon name={social.name} />
+                {social.name}
+                <span className="sr-only">
+                  {' '}
+                  {copy(locale, '(नए टैब में खुलेगा)', '(opens in a new tab)')}
+                </span>
+              </a>
+            ))}
+          </nav>
+        )}
       </div>
       {footerDescription && (
         <p className="footer-description" lang={textLanguage(footerDescription)}>
@@ -79,11 +92,17 @@ export async function SiteFooter() {
         </nav>
       </div>
       <div className="footer-bottom">
-        <p>© {yearInIndia.format(new Date())} {brand.name}</p>
+        <p>
+          © {yearInIndia.format(new Date())} {brand.name}
+        </p>
         <nav aria-label={copy(locale, 'प्रकाशन की जानकारी', 'Publication information')}>
           <Link href="/archive">{copy(locale, 'खबरों का संग्रह', 'News archive')}</Link>
-          <a href={readerFeeds.hi.url} lang="hi">हिंदी RSS</a>
-          <a href={readerFeeds.en.url} lang="en">English RSS</a>
+          <a href={readerFeeds.hi.url} lang="hi">
+            हिंदी RSS
+          </a>
+          <a href={readerFeeds.en.url} lang="en">
+            English RSS
+          </a>
           {publicationNavigation.map(({ path, label }) => (
             <Link key={path} href={path}>
               {publicationLabel(locale, path, label)}

@@ -1,15 +1,21 @@
 /* Public static assets only. Private pages, APIs and news HTML are never cached. */
-const CACHE = 'up24-static-v1';
+const CACHE = 'morning-express-static-v1';
+const OFFLINE_PATH = '/offline.html';
+const PRECACHE = [OFFLINE_PATH, '/brand/the-morning-express-logo.jpg'];
 const MAX_ENTRIES = 48;
 const MAX_BYTES = 1024 * 1024;
 const PRIVATE = /^\/(?:api|admin|newsroom|account|saved)(?:\/|$)/;
 const ASSET = /^\/(?:_next\/static|fonts|brand|icons)\//;
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['/offline.html', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE)
+    .then(cache => cache.addAll(PRECACHE.map(path => new Request(path, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('up24-static-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys
+    .filter(key => key !== CACHE && /^(up24|morning-express)-static-/.test(key))
+    .map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
 async function remember(request, response) {
@@ -32,8 +38,8 @@ async function remember(request, response) {
   const cache = await caches.open(CACHE);
   await cache.put(request, candidate);
   const keys = await cache.keys();
-  const removable = keys.filter(key => !key.url.endsWith('/offline.html') && !key.url.endsWith('/icons/icon-192.png'));
-  while (removable.length > MAX_ENTRIES - 2) await cache.delete(removable.shift());
+  const removable = keys.filter(key => !PRECACHE.includes(new URL(key.url).pathname));
+  while (removable.length > MAX_ENTRIES - PRECACHE.length) await cache.delete(removable.shift());
 }
 
 self.addEventListener('fetch', event => {
@@ -41,7 +47,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || PRIVATE.test(url.pathname)) return;
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(async () => (await caches.match('/offline.html')) || Response.error()));
+    event.respondWith(fetch(request).catch(async () => (await caches.match(OFFLINE_PATH, { cacheName: CACHE })) || Response.error()));
     return;
   }
   if (!ASSET.test(url.pathname) || url.search) return;

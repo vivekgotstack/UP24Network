@@ -161,7 +161,7 @@ export function MediaStoragePanel() {
                   />
                 </label>
                 <p className="field-help">
-                  Default: 365 days. Only eligible objects of at least 128 KiB in UP24’s configured
+                  Default: 365 days. Only eligible objects of at least 128 KiB in the publication’s configured
                   S3 prefix qualify. GIR has retrieval charges and a 90-day minimum billable storage
                   duration. This policy never deletes articles or media.
                 </p>

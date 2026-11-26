@@ -611,9 +611,9 @@
     padding: 50px;
   }
   .auth-brand-panel .brand-badge {
-    width: 115px;
-    height: 115px;
-    margin-bottom: 45px;
+    width: min(100%, 245px);
+    height: auto;
+    margin-bottom: 32px;
   }
   .auth-brand-panel .eyebrow {
     color: #b7c5d0;
@@ -882,8 +882,7 @@
       padding: 28px;
     }
     .auth-brand-panel .brand-badge {
-      width: 82px;
-      height: 82px;
+      width: min(100%, 180px);
       margin-bottom: 20px;
     }
     .auth-brand-panel h1 {
