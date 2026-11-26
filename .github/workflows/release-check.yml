@@ -47,7 +47,6 @@ jobs:
       - name: Build and start the production containers
         run: |
           docker compose --env-file "$COMPOSE_ENV_FILE" up -d --build --wait --wait-timeout 240 redis frontend
-          docker compose --env-file "$COMPOSE_ENV_FILE" run --rm --no-deps proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 
       - name: Check the reader and the private API boundary
         run: |

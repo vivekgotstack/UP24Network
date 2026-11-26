@@ -21,7 +21,8 @@ const secret = (name, bytes=24) => {
 };
 const previousPublic=properties(join(directory,'deployment.env'));
 const frontendProduction=properties(join(root,'frontend/.env.production'));
-const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? 'https://themorningexpres.com';
+const productionOrigin = 'https://themorningexpres.com';
+const requestedSite=process.argv.find(value => value.startsWith('--site='))?.slice(7) ?? process.env.SITE_URL ?? frontendProduction.SITE_URL ?? previousPublic.SITE_URL ?? productionOrigin;
 const site=new URL(requestedSite);
 if (site.protocol!=='https:' || site.pathname!=='/' || site.search || site.hash || site.username || site.password || site.port)
   throw new Error('Use a public HTTPS origin without a path or custom port, e.g. --site=https://themorningexpres.com');
@@ -108,7 +109,13 @@ writePrivate(join(directory,'rabbitmq.conf'),[
   'max_connections = 40','max_channels_per_connection = 64','max_message_size = 65536','consumer_timeout = 900000',
   'quorum_queue.initial_cluster_size = 1','log.console = true','log.file = false','log.console.level = warning',
 ].join('\n')+'\n');
-const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:process.env.SITE_INDEXABLE ?? frontendProduction.SITE_INDEXABLE ?? previousPublic.SITE_INDEXABLE ?? 'false',
+const fileIndexing = !frontendProduction.SITE_URL || frontendProduction.SITE_URL.replace(/\/$/, '') === site.origin
+  ? frontendProduction.SITE_INDEXABLE
+  : undefined;
+const savedIndexing = previousPublic.SITE_URL === site.origin ? previousPublic.SITE_INDEXABLE : undefined;
+const indexable = process.env.SITE_INDEXABLE ?? fileIndexing
+  ?? (site.origin === productionOrigin ? 'true' : savedIndexing ?? 'false');
+const publicConfig={SITE_URL:site.origin,SITE_HOST:site.hostname,SITE_INDEXABLE:indexable,
   MEDIA_CDN_URL:useS3 ? settings['up24.media.s3.cdn-url'] ?? '' : '',
   MEDIA_UPLOAD_ORIGIN:uploadOrigin,
   UP24_MEDIA_QUOTA_BYTES:process.env.UP24_MEDIA_QUOTA_BYTES ?? environment.UP24_MEDIA_QUOTA_BYTES ?? previousPublic.UP24_MEDIA_QUOTA_BYTES ?? '1073741824',
@@ -124,5 +131,5 @@ writePrivate(join(directory,'deployment.env'),Object.entries(publicConfig).map((
 console.log('Deployment configuration prepared in ignored .local/deployment; existing secrets were preserved.');
 console.log('Copy that private directory with the project to your VPS; protect it with owner-only directory access.');
 console.log('Next: node scripts/deployment-doctor.mjs, then node scripts/deploy.mjs');
-console.log('Frontend settings are read from frontend/.env.production. Enable indexing there after verifying the deployed domain.');
+console.log(`Search indexing is ${indexable === 'true' ? 'enabled' : 'disabled'} for ${site.origin}.`);
 } finally {release();}

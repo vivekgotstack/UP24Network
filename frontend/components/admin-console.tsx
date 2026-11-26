@@ -354,7 +354,7 @@ export function AdminConsole({
                         <p>
                           {workspace === 'staff'
                             ? 'Add verification and rights evidence. Your requests enter one daily review batch for the administrator.'
-                            : 'Publish from the article desk. Breaking reports enter the headline strip.'}
+                            : 'Publish from the article desk. Mark urgent stories as breaking.'}
                         </p>
                       </div>
                     </li>

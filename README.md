@@ -29,7 +29,7 @@ Put production secrets in **`backend/.env`** using unquoted `KEY=value` lines. O
 | `NEWSLETTER_LIST_ID`, `NEWSLETTER_DOI_TEMPLATE_ID` | Optional Brevo double opt-in list and template IDs |
 | `YOUTUBE_API_KEY` | Optional YouTube Data API key. The feed also supports RSS |
 
-**`frontend/.env.production`** holds public configuration. Use `SITE_URL=https://themorningexpres.com` and enable `SITE_INDEXABLE=true` for launch. Compose sets `NEWS_API_URL`, and deployment uses the backend CloudFront origin when `MEDIA_CDN_URL` is empty. Set `ANDROID_SHA256_CERT_FINGERPRINTS` when configuring Android App Links. To show official social links, set the relevant `YOUTUBE_CHANNEL_URL`, `FACEBOOK_PAGE_URL`, `INSTAGRAM_PROFILE_URL`, or `X_PROFILE_URL`. For local overrides use `frontend/.env.local`.
+**`frontend/.env.production`** holds public configuration. Deployment preparation defaults to `SITE_INDEXABLE=true` for `https://themorningexpres.com` and `false` for new preview origins. Set `SITE_INDEXABLE` explicitly to override that default. After changing it, rerun deployment preparation and deploy. Verify that the live `/robots.txt` allows crawling and lists `/sitemap-index.xml`. Compose sets `NEWS_API_URL`, and deployment uses the backend CloudFront origin when `MEDIA_CDN_URL` is empty. Set `ANDROID_SHA256_CERT_FINGERPRINTS` when configuring Android App Links. To show official social links, set the relevant `YOUTUBE_CHANNEL_URL`, `FACEBOOK_PAGE_URL`, `INSTAGRAM_PROFILE_URL`, or `X_PROFILE_URL`. For local overrides use `frontend/.env.local`.
 
 The env files, credentials, signing keys, and generated `.local` files are ignored by Git. Spring's `application.properties` contains shared defaults.
 
@@ -49,7 +49,7 @@ The homepage uses SportScore's free editorial cricket widget. It updates automat
    Prepare generates and preserves the private deployment files and uses `keytool` on first setup. If you already prepared the files on your computer, copy `.local/deployment` privately into the VPS checkout, run `chmod 700 .local/deployment`, and run only `node scripts/deploy.mjs`. Deploy runs the preflight, builds the images, and verifies the HTTPS site after startup.
 4. Verify one administrator OTP and publish a report. Test one upload and playback with your chosen storage. Enable indexing and submit `/sitemap-index.xml` once the site is live.
 
-Caddy is the public entry point. Application, database, cache, and broker ports use the private Compose networks. To apply credential or environment changes, rerun preparation and deploy so the updated configuration is remounted.
+Configure your HTTPS reverse proxy to forward the public domain to the frontend on port 3000. The backend, database, cache, and broker use private Compose networks. To apply credential or environment changes, rerun preparation and deploy so the updated configuration is remounted.
 
 The GitHub Actions production-stack check builds and starts the Linux containers with disposable configuration. Review its result before deploying. The new archive starts with stories published in the new newsroom. Keep the existing WordPress installation and a restorable backup available for rollback when switching DNS.
 
