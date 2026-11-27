@@ -10,7 +10,7 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 @font-face {
   font-family: 'Noto Serif Devanagari';
-  font-weight: 100 900;
+  font-weight: 400 700;
   font-style: normal;
   font-display: swap;
   src: url('/fonts/noto-serif-devanagari.woff2') format('woff2');

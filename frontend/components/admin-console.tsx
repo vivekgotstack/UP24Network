@@ -182,7 +182,7 @@ export function AdminConsole({
       <header className="cms-heading">
         <div>
           <Link href="/" className="cms-home cms-brand-link">
-            <BrandLogo compact /> Back to reader
+            <BrandLogo /> Back to reader
           </Link>
           <h1>{titles[section]}</h1>
         </div>

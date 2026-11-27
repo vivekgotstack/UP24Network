@@ -39,7 +39,7 @@ export function AdminWorkspace({ title, active, children }: { title: string; act
     <h1>Administrator verification required</h1><Link href="/admin/sign-in">Verify your sign-in</Link>
   </main>;
   return <main id="main-content" className="cms-shell" lang="en">
-    <header className="cms-heading"><div><Link className="cms-home cms-brand-link" href="/"><BrandLogo compact />Back to reader</Link><h1>{title}</h1></div>
+    <header className="cms-heading"><div><Link className="cms-home cms-brand-link" href="/"><BrandLogo />Back to reader</Link><h1>{title}</h1></div>
       <div className="cms-identity"><div><strong>{session.data.displayName}</strong><span>Administrator</span></div>
         <Button variant="outline" onClick={() => void session.signOut()}>Sign out</Button></div>
     </header>

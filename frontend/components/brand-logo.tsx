@@ -1,16 +1,17 @@
+import Image from 'next/image';
 import { brand } from '@/lib/brand';
 
-export function BrandLogo({ compact = false }: { compact?: boolean }) {
+export function BrandLogo({ eager = false }: { eager?: boolean }) {
   return (
-    <span className="brand-wordmark" lang="hi" aria-hidden="true">
-      <span className="brand-title">
-        <span className="brand-prefix">द</span> {brand.mastheadTitle}
-      </span>
-      {!compact && (
-        <span className="brand-subtitle">
-          लखनऊ से प्रकाशित हिंदी दैनिक <span aria-hidden="true">•</span> खबर हमारी, यकीन आपका
-        </span>
-      )}
+    <span className="brand-wordmark">
+      <Image
+        src={brand.logoPath}
+        width={1098}
+        height={351}
+        alt=""
+        unoptimized
+        loading={eager ? 'eager' : 'lazy'}
+      />
     </span>
   );
 }

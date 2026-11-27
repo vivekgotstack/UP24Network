@@ -47,7 +47,7 @@ export async function SiteHeader({
       <header className={`compact-header ${compact ? 'compact-header-minimal' : ''}`}>
         <div className="compact-identity">
           <Link className="brand-lockup" href="/" aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}>
-            <BrandLogo />
+            <BrandLogo eager />
           </Link>
           {tagline && (
             <p className="compact-tagline" lang={textLanguage(tagline)}>
