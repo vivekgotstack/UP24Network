@@ -1,6 +1,6 @@
 package com.up24.news.notification.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import com.up24.news.jobs.PermanentJobFailure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;

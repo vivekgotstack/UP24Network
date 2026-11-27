@@ -1,6 +1,6 @@
 package com.up24.news.automation.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import java.net.http.HttpClient;

@@ -1,4 +1,4 @@
-package com.up24.news;
+package com.up24.news.branding;
 
 public final class PublicationBrand {
     public static final String NAME = "TheMorningExpress";

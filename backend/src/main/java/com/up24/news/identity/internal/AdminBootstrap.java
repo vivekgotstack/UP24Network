@@ -1,6 +1,6 @@
 package com.up24.news.identity.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import com.up24.news.identity.Accounts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;

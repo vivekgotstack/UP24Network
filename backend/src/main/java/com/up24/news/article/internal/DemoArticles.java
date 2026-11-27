@@ -1,6 +1,6 @@
 package com.up24.news.article.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import com.up24.news.article.ArticleView;
 import com.up24.news.article.Articles;
 import com.up24.news.article.ArticlePage;

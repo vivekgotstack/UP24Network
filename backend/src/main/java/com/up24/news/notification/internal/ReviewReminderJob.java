@@ -1,6 +1,6 @@
 package com.up24.news.notification.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.up24.news.jobs.BackgroundJobs;

@@ -1,6 +1,6 @@
 package com.up24.news.automation.internal;
 
-import com.up24.news.PublicationBrand;
+import com.up24.news.branding.PublicationBrand;
 import com.up24.news.article.ArticleDesk;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
