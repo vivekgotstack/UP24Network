@@ -1,5 +1,5 @@
 /* Public static assets only. Private pages, APIs and news HTML are never cached. */
-const CACHE = 'morning-express-static-v5';
+const CACHE = 'morning-express-static-v6';
 const OFFLINE_PATH = '/offline.html';
 const PRECACHE = [OFFLINE_PATH, '/brand/the-morning-express-hindi.png'];
 const MAX_ENTRIES = 48;

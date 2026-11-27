@@ -1,7 +1,4 @@
 @layer components {
-  :root {
-    --logo-dark-edge: drop-shadow(0 0 0.65px #f5f7ff) drop-shadow(0 0 0.55px #f5f7ff99);
-  }
   .brand-wordmark {
     display: block;
     width: min(100%, 300px);
@@ -10,15 +7,15 @@
     display: block;
     width: 100%;
     height: auto;
-    filter: var(--logo-edge, none);
+    filter: var(--logo-filter, none);
   }
   :root[data-theme='dark'] .brand-wordmark,
   .brand-badge .brand-wordmark {
-    --logo-edge: var(--logo-dark-edge);
+    --logo-filter: invert(1);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) .brand-wordmark {
-      --logo-edge: var(--logo-dark-edge);
+      --logo-filter: invert(1);
     }
   }
   .brand-badge .brand-wordmark {
