@@ -1,11 +1,11 @@
 import type { NextConfig } from 'next';
-import { brand, legacyBrandImage } from './lib/brand';
+import { brand, legacyBrandImages } from './lib/brand';
 const config: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   output: 'standalone',
   async redirects() {
-    return [{ source: legacyBrandImage, destination: brand.logoPath, permanent: true }];
+    return legacyBrandImages.map((source) => ({ source, destination: brand.logoPath, permanent: true }));
   },
   async rewrites() {
     return [

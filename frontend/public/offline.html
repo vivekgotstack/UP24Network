@@ -10,6 +10,9 @@
       body { margin: 0; background: light-dark(#fff8f1, #171321); color: light-dark(#15182a, #f6edf3); font: 18px/1.8 system-ui, sans-serif; min-height: 100svh; display: grid; place-items: center; }
       main { width: min(36rem, calc(100% - 3rem)); padding: 3rem 0; }
       .masthead { display: block; width: min(100%, 350px); height: auto; }
+      @media (prefers-color-scheme: dark) {
+        .masthead { filter: drop-shadow(0 0 0.65px #f5f7ff) drop-shadow(0 0 0.55px #f5f7ff99); }
+      }
       h1 { font-size: clamp(1.6rem, 5vw, 2.5rem); line-height: 1.5; margin: 1rem 0; }
       p { color: light-dark(#645861, #c8bbcc); }
       a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; background: #54245c; color: #fff; text-decoration: none; border-radius: 4px; border-bottom: 3px solid #ffc47c; }
@@ -18,7 +21,7 @@
   </head>
   <body>
     <main>
-      <img class="masthead" src="/brand/the-morning-express-masthead.png" width="1098" height="351" alt="द मॉर्निंग एक्सप्रेस">
+      <img class="masthead" src="/brand/the-morning-express-hindi.png" width="1554" height="462" alt="द मॉर्निंग एक्सप्रेस">
       <h1>अभी इंटरनेट उपलब्ध नहीं है।</h1>
       <p>नई खबरें पढ़ने के लिए कनेक्शन जुड़ने पर फिर कोशिश करें। आपके खाते और न्यूज़रूम की निजी जानकारी इस डिवाइस पर ऑफलाइन सहेजी नहीं जाती।</p>
       <a href="/">फिर कोशिश करें</a>

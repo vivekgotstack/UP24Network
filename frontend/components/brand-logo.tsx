@@ -6,8 +6,8 @@ export function BrandLogo({ eager = false }: { eager?: boolean }) {
     <span className="brand-wordmark">
       <Image
         src={brand.logoPath}
-        width={1098}
-        height={351}
+        width={1554}
+        height={462}
         alt=""
         unoptimized
         loading={eager ? 'eager' : 'lazy'}
