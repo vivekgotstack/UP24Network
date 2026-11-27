@@ -9,7 +9,8 @@
       html { color-scheme: light dark; }
       body { margin: 0; background: light-dark(#fff8f1, #171321); color: light-dark(#15182a, #f6edf3); font: 18px/1.8 system-ui, sans-serif; min-height: 100svh; display: grid; place-items: center; }
       main { width: min(36rem, calc(100% - 3rem)); padding: 3rem 0; }
-      img { display: block; width: min(100%, 250px); height: auto; border-radius: 5px; }
+      @font-face { font-family: 'Noto Serif Devanagari'; font-weight: 100 900; src: url('/fonts/noto-serif-devanagari.woff2') format('woff2'); }
+      .masthead { color: light-dark(#a51618, #ff9393); width: fit-content; border-bottom: 2px solid currentColor; font: 900 clamp(1.4rem, 6vw, 2.6rem)/1.5 'Noto Serif Devanagari', serif; }
       h1 { font-size: clamp(1.6rem, 5vw, 2.5rem); line-height: 1.5; margin: 1rem 0; }
       p { color: light-dark(#645861, #c8bbcc); }
       a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; background: #54245c; color: #fff; text-decoration: none; border-radius: 4px; border-bottom: 3px solid #ffc47c; }
@@ -18,7 +19,7 @@
   </head>
   <body>
     <main>
-      <img src="/brand/the-morning-express-logo.jpg" alt="TheMorningExpress" width="1600" height="724">
+      <p class="masthead">द मॉर्निंग एक्सप्रेस</p>
       <h1>अभी इंटरनेट उपलब्ध नहीं है।</h1>
       <p>नई खबरें पढ़ने के लिए कनेक्शन जुड़ने पर फिर कोशिश करें। आपके खाते और न्यूज़रूम की निजी जानकारी इस डिवाइस पर ऑफलाइन सहेजी नहीं जाती।</p>
       <a href="/">फिर कोशिश करें</a>

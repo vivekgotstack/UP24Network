@@ -24,7 +24,8 @@
     gap: 12px;
   }
   .cms-brand-link .brand-wordmark {
-    font-size: 19px;
+    width: clamp(100px, 17vw, 165px);
+    flex: none;
   }
   .cms-youtube-control {
     display: flex;

@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next';
+import { appIcons, legacyBrandImage } from './lib/brand';
 const config: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   output: 'standalone',
+  async redirects() {
+    return [{ source: legacyBrandImage, destination: appIcons.large, permanent: true }];
+  },
   async rewrites() {
     return [
       {

@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: appIcons.standard, sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: appIcons.large, sizes: '512x512', type: 'image/png', purpose: 'any' },
       {
-        src: appIcons.maskable,
+        src: appIcons.large,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',

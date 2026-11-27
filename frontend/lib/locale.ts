@@ -1,3 +1,5 @@
+import { brand } from '@/lib/brand';
+
 export type SiteLocale = 'hi' | 'en';
 
 export const LANGUAGE_COOKIE = 'UP24_LANGUAGE';
@@ -30,6 +32,7 @@ export function publicationLabel(locale: SiteLocale, path: string, fallback: str
   return locale === 'hi' && labels?.[0] === fallback ? labels[1] : fallback;
 }
 
-export function publicationTagline(locale: SiteLocale, tagline: string) {
-  return locale === 'en' && tagline === 'खबर हमारी यकीन आपका' ? 'Our news, your trust' : tagline;
+export function publicationTagline(tagline: string) {
+  // The masthead artwork already carries the default tagline.
+  return tagline === brand.defaultTagline ? '' : tagline;
 }

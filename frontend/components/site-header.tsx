@@ -25,7 +25,7 @@ export async function SiteHeader({
   home?: boolean;
 }) {
   const [settings, locale] = await Promise.all([getPublicationSettings(), getReaderLocale()]);
-  const tagline = publicationTagline(locale, settings.tagline);
+  const tagline = publicationTagline(settings.tagline);
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -49,9 +49,11 @@ export async function SiteHeader({
           <Link className="brand-lockup" href="/" aria-label={copy(locale, 'TheMorningExpress मुख्य पृष्ठ', 'TheMorningExpress home')}>
             <BrandLogo />
           </Link>
-          <p className="compact-tagline" lang={textLanguage(tagline)}>
-            {tagline}
-          </p>
+          {tagline && (
+            <p className="compact-tagline" lang={textLanguage(tagline)}>
+              {tagline}
+            </p>
+          )}
         </div>
         <form action="/search" role="search" className="header-search">
           <label className="sr-only" htmlFor="header-query">

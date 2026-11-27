@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: { siteName: brand.name, locale: 'hi_IN', type: 'website' },
-  icons: { icon: appIcons.favicon, apple: appIcons.touch },
+  icons: { icon: appIcons.standard, apple: appIcons.standard },
   robots: { index: indexable, follow: indexable },
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: brand.themeColor };

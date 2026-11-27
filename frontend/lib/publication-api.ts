@@ -6,6 +6,7 @@ import { publicationNavigation } from '@/lib/publication';
 import { hindiPublication } from '@/lib/publication-hi';
 import type { SiteLocale } from '@/lib/locale';
 import { getReaderLocale } from '@/lib/reader-locale';
+import { brand } from '@/lib/brand';
 
 export type PublicationSettings = {
   tagline: string;
@@ -25,7 +26,7 @@ export type EditablePublicationDocument = PublicationDocument & {
   updatedAt: string;
 };
 const defaults: PublicationSettings = {
-  tagline: 'खबर हमारी यकीन आपका',
+  tagline: brand.defaultTagline,
   announcementEnabled: false,
   announcement: '',
   footerDescription:

@@ -135,11 +135,6 @@
     border-radius: 5px;
     background: var(--brand-navy);
   }
-  .brand-badge img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
   .masthead-tagline {
     font: 400 clamp(15px, 1.6vw, 23px)/1.7 var(--serif);
     color: white;
@@ -404,10 +399,6 @@
   }
   .media-placeholder .brand-badge {
     width: min(62%, 190px);
-  }
-  .media-placeholder > span:last-child {
-    font: 400 13px var(--serif);
-    opacity: 0.7;
   }
   .story-copy {
     padding-top: 18px;
@@ -1109,17 +1100,8 @@
     gap: 32px;
     padding: 28px 0;
   }
-  .footer-main > .edition-art {
-    min-width: 0;
-    align-self: center;
-    margin: 0;
-  }
   .footer-main:not(:has(> .social-links)) {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .footer-main:not(:has(> .social-links)) > .edition-art {
-    width: min(100%, 72rem);
-    justify-self: center;
   }
   .social-links {
     display: grid;
