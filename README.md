@@ -13,6 +13,8 @@ npm --prefix frontend ci
 
 Open [the local site](http://127.0.0.1:3000). Spring Boot listens on port 8080. Preview uses sample articles and an isolated database schema on port 55432. Read the sample logins in `backend/.local/preview-login.txt` and the local sign-in code in `backend/.local/preview-mailbox/latest-message.txt`. Use `./scripts/Backend.ps1 Restart -Profile default` to switch back to editorial data.
 
+Use `.\scripts\Start-OptimizedPreview.ps1` for a production-mode local preview. It runs outside the Next.js build directory so you can rebuild while the preview is open. Use `.\scripts\Stop-Preview.ps1` to stop the frontend and Spring Boot.
+
 ## Private configuration
 
 Put production secrets in **`backend/.env`** using unquoted `KEY=value` lines. On a fresh checkout, the preview launcher creates this file. To add any missing service fields to an existing file, run `./scripts/Initialize-ServiceEnvironment.ps1` and `./scripts/Initialize-MediaEnvironment.ps1`.

@@ -22,6 +22,73 @@ function Get-Up24PortProcessIds {
     return @($processIds | Sort-Object -Unique)
 }
 
+function Test-Up24NodeEntryPoint {
+    param([string]$CommandLine, [string]$EntryPoint)
+    $command = [regex]::Match($CommandLine, '^\s*(?:"[^"]*node(?:\.exe)?"|[^\s"]*node(?:\.exe)?)\s+(?:"(?<entry>[^"]+)"|(?<entry>[^\s"]+))(?=\s|$)', 'IgnoreCase')
+    if (-not $command.Success) { return $false }
+    $entry = $command.Groups['entry'].Value
+    return [System.IO.Path]::IsPathRooted($entry) -and
+        [System.IO.Path]::GetFullPath($entry) -eq [System.IO.Path]::GetFullPath($EntryPoint)
+}
+
+function Get-Up24FrontendProcess {
+    param([string]$ProjectRoot, [int]$ProcessId)
+    $frontend = Join-Path $ProjectRoot 'frontend'
+    $next = Join-Path $frontend 'node_modules/next/dist/bin/next'
+    $worker = Join-Path $frontend 'node_modules/next/dist/server/lib/start-server.js'
+    $standalone = Join-Path $ProjectRoot '.local/frontend-standalone/server.js'
+    $previousStandalone = Join-Path $frontend '.next/standalone/server.js'
+    $candidate = Get-CimInstance Win32_Process -Filter "ProcessId=$ProcessId" -ErrorAction Stop
+    if (-not $candidate -or $candidate.Name -ne 'node.exe') {
+        throw "Port 3000 belongs to an unverified process (PID $ProcessId)."
+    }
+
+    $listener = Get-Process -Id $ProcessId -ErrorAction Stop
+    if ((Test-Up24NodeEntryPoint $candidate.CommandLine $standalone) -or
+        (Test-Up24NodeEntryPoint $candidate.CommandLine $previousStandalone) -or
+        ((Test-Up24NodeEntryPoint $candidate.CommandLine $next) -and $candidate.CommandLine -match '\s(?:dev|start)(?:\s|$)')) {
+        return [pscustomobject]@{ Listener = $listener; Parent = $null }
+    }
+    if (Test-Up24NodeEntryPoint $candidate.CommandLine $worker) {
+        $parent = Get-CimInstance Win32_Process -Filter "ProcessId=$($candidate.ParentProcessId)" -ErrorAction Stop
+        if ($parent -and $parent.Name -eq 'node.exe' -and
+            (Test-Up24NodeEntryPoint $parent.CommandLine $next) -and $parent.CommandLine -match '\sdev(?:\s|$)') {
+            $owner = Get-Process -Id $parent.ProcessId -ErrorAction Stop
+            if ($owner.StartTime -le $listener.StartTime) {
+                return [pscustomobject]@{ Listener = $listener; Parent = $owner }
+            }
+        }
+    }
+    throw "Port 3000 belongs to an unverified frontend (PID $ProcessId)."
+}
+
+function Stop-Up24VerifiedProcess {
+    param([System.Diagnostics.Process]$Verified)
+    $current = Get-Process -Id $Verified.Id -ErrorAction SilentlyContinue
+    if (-not $current) { return }
+    if ($current.StartTime -ne $Verified.StartTime) { throw 'The process identity changed.' }
+    Stop-Process -Id $current.Id -ErrorAction Stop
+    Wait-Process -Id $current.Id -Timeout 10 -ErrorAction SilentlyContinue
+}
+
+function Stop-Up24Frontend {
+    param([string]$ProjectRoot)
+    if (Test-Up24LocalPort 3000) {
+        $listeners = @(Get-Up24PortProcessIds 3000)
+        if ($listeners.Count -ne 1) { throw 'The owner of port 3000 could not be verified.' }
+        $frontend = Get-Up24FrontendProcess -ProjectRoot $ProjectRoot -ProcessId $listeners[0]
+        if ($frontend.Parent) { Stop-Up24VerifiedProcess $frontend.Parent }
+        Stop-Up24VerifiedProcess $frontend.Listener
+        $deadline = [DateTime]::UtcNow.AddSeconds(10)
+        while ((Test-Up24LocalPort 3000) -and [DateTime]::UtcNow -lt $deadline) {
+            Start-Sleep -Milliseconds 250
+        }
+        if (Test-Up24LocalPort 3000) { throw 'Port 3000 is still listening after frontend shutdown.' }
+        Write-Output "Stopped the frontend (PID $($frontend.Listener.Id))."
+    }
+    Remove-Item -LiteralPath (Join-Path $ProjectRoot '.local/frontend.pid') -ErrorAction SilentlyContinue
+}
+
 function Get-Up24BackendProcess {
     param([string]$ProjectRoot, [int]$ProcessId)
     $process = Get-Process -Id $ProcessId -ErrorAction Stop
